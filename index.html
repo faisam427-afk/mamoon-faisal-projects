@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Portfolio & Project Index</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            900: '#164e63'
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-card {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card:hover {
+            border-color: rgba(6, 182, 212, 0.4);
+            box-shadow: 0 10px 25px -5px rgba(6, 182, 212, 0.15);
+        }
+        /* Owner-only UI control elements */
+        .owner-only {
+            display: none !important;
+        }
+        body.owner-authenticated .owner-only {
+            display: inline-flex !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-cyan-500 selection:text-slate-950">
+
+    <header class="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <button id="ownerModeBtn" onclick="openOwnerModal()" class="flex items-center space-x-2 text-xs font-medium px-3.5 py-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all hover:border-slate-500">
+                    <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    <span id="ownerBtnLabel">Owner Login</span>
+                </button>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <span class="text-xs font-mono text-slate-400">Developer Project Hub</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        
+        <!-- Access Notice Alert -->
+        <div class="rounded-2xl bg-slate-900/60 border border-slate-800 p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-start space-x-3.5">
+                <div class="p-2.5 bg-slate-800/80 rounded-xl text-cyan-400 border border-slate-700/60 flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div>
+                    <h2 class="text-sm font-semibold text-slate-200">Public & Owner Access Guidelines</h2>
+                    <p class="text-xs text-slate-400 mt-0.5 max-w-3xl leading-relaxed">
+                        <strong class="text-slate-300">Visitors:</strong> View and test active applications and experiments. 
+                        <strong class="text-slate-300">Owner:</strong> Log in to add, edit, or manage project cards locally.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls & Filtering Bar -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center">
+            <!-- Search Bar -->
+            <div class="relative flex-grow max-w-md">
+                <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text" id="searchInput" oninput="filterProjects()" placeholder="Search projects by title, tech stack, or description..." class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all">
+            </div>
+
+            <!-- Category Filter Pills -->
+            <div class="flex items-center space-x-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none text-xs font-medium">
+                <button onclick="setCategoryFilter('all')" class="cat-filter-btn px-3 py-2 rounded-lg bg-cyan-600 text-white font-semibold shadow-sm transition-all" data-cat="all">All Projects</button>
+                <button onclick="setCategoryFilter('maintained')" class="cat-filter-btn px-3 py-2 rounded-lg bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 transition-all" data-cat="maintained">Maintained</button>
+                <button onclick="setCategoryFilter('experiment')" class="cat-filter-btn px-3 py-2 rounded-lg bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 transition-all" data-cat="experiment">Experiments</button>
+                <button onclick="setCategoryFilter('archive')" class="cat-filter-btn px-3 py-2 rounded-lg bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 transition-all" data-cat="archive">Archive</button>
+            </div>
+        </div>
+
+        <!-- Section: Maintained Projects -->
+        <section id="sectionMaintained" class="space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                    Maintained Projects & Applications
+                </h3>
+                <span class="text-xs font-mono text-slate-400" id="countMaintained">0 Projects</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="maintainedGrid"></div>
+        </section>
+
+        <!-- Section: Experiments & Utilities -->
+        <section id="sectionExperiments" class="space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+                    Experiments & Utilities
+                </h3>
+                <span class="text-xs font-mono text-slate-400" id="countExperiments">0 Modules</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="experimentsGrid"></div>
+        </section>
+
+        <!-- Section: Archive -->
+        <section id="sectionArchive" class="space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
+                    Archive & Deprecated Codebases
+                </h3>
+                <span class="text-xs font-mono text-slate-400" id="countArchive">0 Entries</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="archiveGrid"></div>
+        </section>
+
+    </main>
+
+    <!-- Modal: Live Interactive Game Frame -->
+    <div id="gameModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-lg hidden flex flex-col items-center justify-center p-2 sm:p-4">
+        <div class="w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl flex flex-col h-[90vh] overflow-hidden">
+            <div class="px-4 py-3 border-b border-slate-800 bg-slate-950 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <span class="w-3 h-3 rounded-full bg-red-500 inline-block cursor-pointer" onclick="closeGameModal()"></span>
+                    <span class="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span>
+                    <span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span>
+                    <span id="gameModalTitle" class="text-xs font-mono font-bold text-slate-200 ml-2">Launching Game...</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <a id="gameModalExternalLink" href="#" target="_blank" class="text-xs text-cyan-400 hover:underline font-mono px-2 py-1 rounded bg-slate-800 border border-slate-700">Open Full Window ↗</a>
+                    <button onclick="closeGameModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="flex-grow bg-black relative">
+                <iframe id="gameIframe" class="w-full h-full border-0" title="Game Preview"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Owner Management -->
+    <div id="ownerModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 space-y-6 max-h-[90vh] overflow-y-auto">
+            
+            <div class="flex items-start justify-between border-b border-slate-800 pb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-cyan-950 text-cyan-400 rounded-xl border border-cyan-800">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white" id="ownerModalHeading">Owner Authentication</h3>
+                        <p class="text-xs text-slate-400" id="ownerModalSubheading">Log in with owner credentials to unlock administration tools</p>
+                    </div>
+                </div>
+                <button onclick="closeOwnerModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Login View -->
+            <div id="ownerLoginFormView" class="space-y-4">
+                <form onsubmit="handleOwnerLogin(event)" class="space-y-4">
+                    <div id="loginErrorMessage" class="hidden p-3 rounded-xl bg-red-950/80 border border-red-800/80 text-red-300 text-xs flex items-center gap-2">
+                        <svg class="w-4 h-4 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span id="loginErrorText">Incorrect username or password.</span>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold text-slate-300">Owner Username</label>
+                        <input type="text" id="ownerUsername" placeholder="owner" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500">
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold text-slate-300">Owner Password</label>
+                        <input type="password" id="ownerPassword" placeholder="owneriscool" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500">
+                    </div>
+
+                    <div class="pt-2 flex items-center justify-between">
+                        <span class="text-[11px] text-slate-500">Default: owner / owneriscool</span>
+                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold text-xs transition-all shadow-lg shadow-cyan-950/50">
+                            Log In as Owner
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Authenticated Dashboard View -->
+            <div id="ownerDashboardView" class="hidden space-y-5">
+                <div class="p-3.5 rounded-xl bg-emerald-950/60 border border-emerald-800/70 flex items-center justify-between">
+                    <div class="flex items-center space-x-2.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="text-xs font-semibold text-emerald-300">Logged in as Owner</span>
+                    </div>
+                    <button onclick="handleOwnerLogout()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-red-950 hover:text-red-300 border border-slate-700 text-slate-300 text-xs transition-all">
+                        Log Out
+                    </button>
+                </div>
+
+                <!-- Add Project Tool -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <h4 class="font-bold text-cyan-400 text-xs uppercase tracking-wider">➕ Quick Add New Project Card</h4>
+                    <form onsubmit="handleAddNewProject(event)" class="space-y-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">Project Title</label>
+                                <input type="text" id="newProjTitle" placeholder="e.g. My New Live App" required class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-500">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">Category</label>
+                                <select id="newProjCategory" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-500">
+                                    <option value="maintained">Maintained Project</option>
+                                    <option value="experiment">Experiment / Module</option>
+                                    <option value="archive">Archive Entry</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1">Description</label>
+                            <input type="text" id="newProjDesc" placeholder="Short overview of what this project does..." required class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-500">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">Tech Stack (comma separated)</label>
+                                <input type="text" id="newProjStack" placeholder="e.g. React, Tailwind, Node.js" required class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-500">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">Project / Repository Link</label>
+                                <input type="text" id="newProjLink" placeholder="e.g. https://github.com/..." required class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-500">
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end pt-1">
+                            <button type="submit" class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold transition-all">
+                                Add Project
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2 border-t border-slate-800/80">
+                <button onclick="closeOwnerModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700">
+                    Close Window
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Utility to escape HTML entities for safely populating attributes and markup
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // Default seed data for initial setup
+        const defaultProjectsSeed = [
+            {
+                id: 'proj-meteor-30',
+                title: '🎮 Meteor Dodge 3.0',
+                category: 'maintained',
+                desc: 'Retro space shooter featuring 4-way vector movement, laser weapons, power-up orbs, and a Level 3 space dreadnought boss battle.',
+                stack: ['HTML5 Canvas', 'JavaScript', 'Tailwind CSS'],
+                link: './meteor_dodge_3_0.html',
+                tag: 'Active',
+                tagClass: 'bg-emerald-950/80 text-emerald-400 border-emerald-800/60',
+                isGame: true,
+                createdAt: Date.now()
+            },
+            {
+                id: 'proj-alpha',
+                title: '⚡ Project-Alpha',
+                category: 'maintained',
+                desc: 'Primary application backend and high-performance API service infrastructure managing real-time websocket and client connections.',
+                stack: ['TypeScript', 'Node.js', 'Express'],
+                link: 'https://github.com/user/project-alpha',
+                tag: 'Active',
+                tagClass: 'bg-emerald-950/80 text-emerald-400 border-emerald-800/60',
+                isGame: false,
+                createdAt: Date.now() - 10000
+            },
+            {
+                id: 'proj-beta',
+                title: '🛠️ Project-Beta',
+                category: 'maintained',
+                desc: 'Command-line utility for automated cloud deployment, container management, and Kubernetes cluster synchronization.',
+                stack: ['Go', 'Docker', 'Kubernetes'],
+                link: 'https://github.com/user/project-beta',
+                tag: 'Maintenance',
+                tagClass: 'bg-amber-950/80 text-amber-400 border-amber-800/60',
+                isGame: false,
+                createdAt: Date.now() - 20000
+            },
+            {
+                id: 'exp-automation',
+                title: '🧪 script-automation',
+                category: 'experiment',
+                desc: 'Internal shell and Python scripts for CI/CD workflow automation, automated backups, and log parsing utilities.',
+                stack: ['Python', 'Bash'],
+                link: 'https://github.com/user/script-automation',
+                typeLabel: 'Python / Bash',
+                isGame: false,
+                createdAt: Date.now() - 30000
+            },
+            {
+                id: 'exp-prototype',
+                title: '🧪 ui-prototype',
+                category: 'experiment',
+                desc: 'Interactive component playground testing frontend DOM rendering performance and custom Tailwind layout shaders.',
+                stack: ['React', 'Tailwind'],
+                link: 'https://github.com/user/ui-prototype',
+                typeLabel: 'React / Tailwind',
+                isGame: false,
+                createdAt: Date.now() - 40000
+            },
+            {
+                id: 'arc-legacy-v1',
+                title: '📦 legacy-v1-api',
+                category: 'archive',
+                desc: 'Deprecated API design replaced in late 2024.',
+                stack: ['Legacy'],
+                link: '#',
+                typeLabel: 'Archived',
+                isGame: false,
+                createdAt: Date.now() - 50000
+            },
+            {
+                id: 'arc-hackathon',
+                title: '📦 hackathon-2023',
+                category: 'archive',
+                desc: 'Submission entry for prototype hackathon challenge.',
+                stack: ['Prototype'],
+                link: '#',
+                typeLabel: 'Archived',
+                isGame: false,
+                createdAt: Date.now() - 60000
+            }
+        ];
+
+        let projectsData = [];
+        let currentCat = 'all';
+        let isOwnerLoggedIn = false;
+
+        function initAuthAndSync() {
+            subscribeToProjects();
+        }
+
+        function subscribeToProjects() {
+            const stored = localStorage.getItem('portfolio_projects_data');
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        projectsData = parsed;
+                    } else {
+                        seedInitialData();
+                        return;
+                    }
+                } catch(e) {
+                    console.warn('Corrupted local storage detected, clearing and re-seeding default data.', e);
+                    seedInitialData();
+                    return;
+                }
+            } else {
+                seedInitialData();
+                return;
+            }
+            renderProjectsUI();
+        }
+
+        function seedInitialData() {
+            projectsData = [...defaultProjectsSeed];
+            saveProjectsToSync();
+            renderProjectsUI();
+        }
+
+        function saveProjectsToSync() {
+            try {
+                localStorage.setItem('portfolio_projects_data', JSON.stringify(projectsData));
+            } catch(e) {
+                console.error('Failed to save projects to localStorage:', e);
+            }
+        }
+
+        // Listen for localStorage changes across windows/tabs
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'portfolio_projects_data' && e.newValue) {
+                try {
+                    const parsed = JSON.parse(e.newValue);
+                    if (Array.isArray(parsed)) {
+                        projectsData = parsed;
+                        renderProjectsUI();
+                    }
+                } catch(err) {
+                    console.error('Storage sync error:', err);
+                }
+            }
+        });
+
+        function renderProjectsUI() {
+            const maintainedGrid = document.getElementById('maintainedGrid');
+            const experimentsGrid = document.getElementById('experimentsGrid');
+            const archiveGrid = document.getElementById('archiveGrid');
+
+            if (!maintainedGrid || !experimentsGrid || !archiveGrid) return;
+
+            maintainedGrid.innerHTML = '';
+            experimentsGrid.innerHTML = '';
+            archiveGrid.innerHTML = '';
+
+            const sortedProjects = [...projectsData].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+            sortedProjects.forEach(proj => {
+                const searchTags = `${proj.title} ${proj.desc} ${proj.typeLabel || ''} ${(proj.stack || []).join(' ')}`.toLowerCase();
+                
+                if (proj.category === 'maintained') {
+                    maintainedGrid.appendChild(createMaintainedCard(proj, searchTags));
+                } else if (proj.category === 'experiment') {
+                    experimentsGrid.appendChild(createExperimentCard(proj, searchTags));
+                } else if (proj.category === 'archive') {
+                    archiveGrid.appendChild(createArchiveCard(proj, searchTags));
+                }
+            });
+
+            filterProjects();
+        }
+
+        function createMaintainedCard(proj, searchTags) {
+            const div = document.createElement('div');
+            div.className = 'project-card glass-card rounded-2xl p-5 flex flex-col justify-between space-y-4 transition-all duration-300 relative group';
+            div.setAttribute('data-category', 'maintained');
+            div.setAttribute('data-tags', escapeHtml(searchTags));
+
+            const stackBadges = (proj.stack || []).map(s => 
+                `<span class="px-2 py-0.5 text-[11px] font-mono rounded bg-slate-800 text-cyan-300 border border-slate-700/60">${escapeHtml(s)}</span>`
+            ).join(' ');
+
+            const actionBtn = proj.isGame ?
+                `<button onclick="launchGameModalById('${escapeHtml(proj.id)}')" class="w-full inline-flex items-center justify-center space-x-2 py-2 px-3 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-medium text-xs transition-all shadow-md shadow-cyan-950/40">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Play Live Demo</span>
+                </button>` :
+                `<a href="${escapeHtml(proj.link)}" target="_blank" class="w-full inline-flex items-center justify-center space-x-2 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-xs transition-all">
+                    <span>View Repository</span>
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                </a>`;
+
+            const deleteBtn = `<button onclick="removeProjectCard('${escapeHtml(proj.id)}')" title="Delete Project" class="owner-only text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-950/50 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>`;
+
+            div.innerHTML = `
+                <div class="space-y-3">
+                    <div class="flex items-start justify-between gap-2">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold border ${escapeHtml(proj.tagClass || 'bg-cyan-950/80 text-cyan-400 border-cyan-800/60')}">${escapeHtml(proj.tag || 'Active')}</span>
+                        <div class="flex items-center gap-2">
+                            ${deleteBtn}
+                        </div>
+                    </div>
+                    <h4 class="text-base font-bold text-white group-hover:text-cyan-400 transition-colors">${escapeHtml(proj.title)}</h4>
+                    <p class="text-xs text-slate-300 leading-relaxed">${escapeHtml(proj.desc)}</p>
+                </div>
+                <div class="space-y-3 pt-2 border-t border-slate-800/60">
+                    <div class="flex flex-wrap gap-1.5">${stackBadges}</div>
+                    ${actionBtn}
+                </div>
+            `;
+            return div;
+        }
+
+        function createExperimentCard(proj, searchTags) {
+            const div = document.createElement('div');
+            div.className = 'project-card glass-card rounded-xl p-4 flex flex-col justify-between space-y-3 transition-all relative group';
+            div.setAttribute('data-category', 'experiment');
+            div.setAttribute('data-tags', escapeHtml(searchTags));
+
+            const stackBadges = (proj.stack || []).map(s => 
+                `<span class="px-2 py-0.5 text-[10px] font-mono rounded bg-slate-800 text-purple-300 border border-slate-700/60">${escapeHtml(s)}</span>`
+            ).join(' ');
+
+            const deleteBtn = `<button onclick="removeProjectCard('${escapeHtml(proj.id)}')" title="Delete Project" class="owner-only text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-950/50 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>`;
+
+            div.innerHTML = `
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-sm font-bold text-white group-hover:text-purple-400 transition-colors">${escapeHtml(proj.title)}</h4>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] font-mono text-purple-400 bg-purple-950/60 px-2 py-0.5 rounded border border-purple-800/50">${escapeHtml(proj.typeLabel || 'Experiment')}</span>
+                            ${deleteBtn}
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">${escapeHtml(proj.desc)}</p>
+                </div>
+                <div class="flex items-center justify-between pt-1 border-t border-slate-800/40">
+                    <div class="flex flex-wrap gap-1">${stackBadges}</div>
+                    <a href="${escapeHtml(proj.link)}" target="_blank" class="text-xs text-purple-400 hover:text-purple-300 font-medium inline-flex items-center space-x-1">
+                        <span>View Source</span>
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </a>
+                </div>
+            `;
+            return div;
+        }
+
+        function createArchiveCard(proj, searchTags) {
+            const div = document.createElement('div');
+            div.className = 'project-card glass-card rounded-lg p-3 flex items-center justify-between transition-all relative group';
+            div.setAttribute('data-category', 'archive');
+            div.setAttribute('data-tags', escapeHtml(searchTags));
+
+            const deleteBtn = `<button onclick="removeProjectCard('${escapeHtml(proj.id)}')" title="Delete Project" class="owner-only text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-950/50 transition-colors ml-2">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>`;
+
+            div.innerHTML = `
+                <div class="space-y-0.5 pr-2">
+                    <div class="flex items-center space-x-2">
+                        <h4 class="text-xs font-semibold text-slate-300 group-hover:text-white">${escapeHtml(proj.title)}</h4>
+                        <span class="text-[9px] font-mono text-slate-500 uppercase px-1.5 py-0.5 bg-slate-900 rounded">${escapeHtml(proj.typeLabel || 'Archived')}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 leading-tight">${escapeHtml(proj.desc)}</p>
+                </div>
+                <div class="flex items-center space-x-2 flex-shrink-0">
+                    <a href="${escapeHtml(proj.link)}" target="_blank" class="text-slate-400 hover:text-slate-200 p-1 rounded hover:bg-slate-800">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    </a>
+                    ${deleteBtn}
+                </div>
+            `;
+            return div;
+        }
+
+        function filterProjects() {
+            const query = document.getElementById('searchInput')?.value.toLowerCase().trim() || '';
+            const cards = document.querySelectorAll('.project-card');
+
+            cards.forEach(card => {
+                const category = card.getAttribute('data-category');
+                const tags = card.getAttribute('data-tags') || '';
+                
+                const matchesCategory = (currentCat === 'all' || category === currentCat);
+                const matchesQuery = query === '' || tags.includes(query);
+
+                if (matchesCategory && matchesQuery) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+
+            updateSectionCounts();
+        }
+
+        function setCategoryFilter(category) {
+            currentCat = category;
+            document.querySelectorAll('.cat-filter-btn').forEach(btn => {
+                if (btn.getAttribute('data-cat') === category) {
+                    btn.className = 'cat-filter-btn px-3 py-2 rounded-lg bg-cyan-600 text-white font-semibold shadow-sm transition-all';
+                } else {
+                    btn.className = 'cat-filter-btn px-3 py-2 rounded-lg bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 transition-all';
+                }
+            });
+            filterProjects();
+        }
+
+        function updateSectionCounts() {
+            const getVisibleCount = (containerId) => {
+                const container = document.getElementById(containerId);
+                if (!container) return 0;
+                return Array.from(container.querySelectorAll('.project-card')).filter(c => !c.classList.contains('hidden')).length;
+            };
+
+            const maintainedCount = getVisibleCount('maintainedGrid');
+            const expCount = getVisibleCount('experimentsGrid');
+            const archiveCount = getVisibleCount('archiveGrid');
+
+            document.getElementById('countMaintained').textContent = `${maintainedCount} Project${maintainedCount === 1 ? '' : 's'}`;
+            document.getElementById('countExperiments').textContent = `${expCount} Module${expCount === 1 ? '' : 's'}`;
+            document.getElementById('countArchive').textContent = `${archiveCount} Entr${archiveCount === 1 ? 'y' : 'ies'}`;
+
+            document.getElementById('sectionMaintained').style.display = (maintainedCount > 0 || currentCat === 'all' || currentCat === 'maintained') ? 'block' : 'none';
+            document.getElementById('sectionExperiments').style.display = (expCount > 0 || currentCat === 'all' || currentCat === 'experiment') ? 'block' : 'none';
+            document.getElementById('sectionArchive').style.display = (archiveCount > 0 || currentCat === 'all' || currentCat === 'archive') ? 'block' : 'none';
+        }
+
+        function openOwnerModal() {
+            const modal = document.getElementById('ownerModal');
+            modal.classList.remove('hidden');
+            updateOwnerModalUI();
+        }
+
+        function closeOwnerModal() {
+            const modal = document.getElementById('ownerModal');
+            modal.classList.add('hidden');
+        }
+
+        function handleOwnerLogin(e) {
+            e.preventDefault();
+            const userVal = document.getElementById('ownerUsername').value.trim();
+            const passVal = document.getElementById('ownerPassword').value.trim();
+            const errorBox = document.getElementById('loginErrorMessage');
+
+            if (userVal === 'owner' && passVal === 'owneriscool') {
+                isOwnerLoggedIn = true;
+                if (errorBox) errorBox.classList.add('hidden');
+                document.getElementById('ownerUsername').value = '';
+                document.getElementById('ownerPassword').value = '';
+                updateOwnerModalUI();
+                updateHeaderOwnerButton();
+            } else {
+                if (errorBox) errorBox.classList.remove('hidden');
+            }
+        }
+
+        function handleOwnerLogout() {
+            isOwnerLoggedIn = false;
+            updateOwnerModalUI();
+            updateHeaderOwnerButton();
+        }
+
+        function updateOwnerModalUI() {
+            const loginView = document.getElementById('ownerLoginFormView');
+            const dashView = document.getElementById('ownerDashboardView');
+            const heading = document.getElementById('ownerModalHeading');
+            const subheading = document.getElementById('ownerModalSubheading');
+
+            if (isOwnerLoggedIn) {
+                loginView?.classList.add('hidden');
+                dashView?.classList.remove('hidden');
+                if (heading) heading.textContent = 'Owner Control Center';
+                if (subheading) subheading.textContent = 'Manage portfolio project cards';
+            } else {
+                loginView?.classList.remove('hidden');
+                dashView?.classList.add('hidden');
+                if (heading) heading.textContent = 'Owner Authentication';
+                if (subheading) subheading.textContent = 'Log in with owner credentials to unlock administration tools';
+            }
+        }
+
+        function updateHeaderOwnerButton() {
+            const label = document.getElementById('ownerBtnLabel');
+            const btn = document.getElementById('ownerModeBtn');
+            
+            document.body.classList.toggle('owner-authenticated', isOwnerLoggedIn);
+
+            if (isOwnerLoggedIn) {
+                if (label) label.textContent = 'Owner Dashboard (Active)';
+                if (btn) btn.className = 'flex items-center space-x-2 text-xs font-medium px-3.5 py-2 rounded-lg bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 border border-cyan-700/80 transition-all';
+            } else {
+                if (label) label.textContent = 'Owner Login';
+                if (btn) btn.className = 'flex items-center space-x-2 text-xs font-medium px-3.5 py-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all hover:border-slate-500';
+            }
+        }
+
+        function handleAddNewProject(e) {
+            e.preventDefault();
+            if (!isOwnerLoggedIn) return;
+
+            const title = document.getElementById('newProjTitle').value.trim();
+            const category = document.getElementById('newProjCategory').value;
+            const desc = document.getElementById('newProjDesc').value.trim();
+            const rawStack = document.getElementById('newProjStack').value.trim();
+            const link = document.getElementById('newProjLink').value.trim();
+
+            const stackArray = rawStack.split(',').map(s => s.trim()).filter(Boolean);
+
+            const newProj = {
+                id: 'proj-' + Date.now(),
+                title: '🚀 ' + title,
+                category,
+                desc,
+                stack: stackArray,
+                link,
+                tag: 'New',
+                tagClass: 'bg-cyan-950/80 text-cyan-400 border-cyan-800/60',
+                isGame: false,
+                createdAt: Date.now()
+            };
+
+            projectsData.unshift(newProj);
+            saveProjectsToSync();
+            renderProjectsUI();
+
+            document.getElementById('newProjTitle').value = '';
+            document.getElementById('newProjDesc').value = '';
+            document.getElementById('newProjStack').value = '';
+            document.getElementById('newProjLink').value = '';
+
+            closeOwnerModal();
+        }
+
+        function removeProjectCard(id) {
+            if (!isOwnerLoggedIn) return;
+            projectsData = projectsData.filter(p => p.id !== id);
+            saveProjectsToSync();
+            renderProjectsUI();
+        }
+
+        function launchGameModalById(id) {
+            const proj = projectsData.find(p => p.id === id);
+            if (proj) {
+                launchGameModal(proj.link, proj.title);
+            }
+        }
+
+        function launchGameModal(url, title) {
+            const modal = document.getElementById('gameModal');
+            const iframe = document.getElementById('gameIframe');
+            const modalTitle = document.getElementById('gameModalTitle');
+            const externalLink = document.getElementById('gameModalExternalLink');
+
+            if (modalTitle) modalTitle.textContent = title;
+            if (externalLink) externalLink.href = url;
+            if (iframe) iframe.src = url;
+            
+            modal?.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeGameModal() {
+            const modal = document.getElementById('gameModal');
+            const iframe = document.getElementById('gameIframe');
+            
+            if (iframe) iframe.src = '';
+            modal?.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeGameModal();
+                closeOwnerModal();
+            }
+        });
+
+        // Initialize application on load
+        window.addEventListener('DOMContentLoaded', () => {
+            initAuthAndSync();
+        });
+    </script>
+</body>
+</html>
