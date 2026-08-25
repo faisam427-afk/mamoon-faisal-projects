@@ -292,30 +292,37 @@
         }
 
         // Default seed data for initial setup
-        const defaultProjectsSeed = [
-            {
-                id: 'proj-egg-pong',
-                title: '🥚 Trampoline Egg Pong',
-                category: 'maintained',
-                desc: 'Dynamic physics arcade game! Keep the egg bouncing on the trampoline paddle and beat your personal high score.',
-                stack: ['HTML5 Canvas', 'JavaScript', 'Physics API'],
-                link: './eggcilent-pong/index.html',
-                tag: 'Active',
-                tagClass: 'bg-emerald-950/80 text-emerald-400 border-emerald-800/60',
-                isGame: true,
-                createdAt: Date.now()
-            },
-            {
-                id: 'proj-meteor-30',
-                title: '🎮 Meteor Dodge 3.0',
-                category: 'maintained',
-                desc: 'Retro space shooter featuring 4-way vector movement, laser weapons, power-up orbs, and a Level 3 space dreadnought boss battle.',
-                stack: ['HTML5 Canvas', 'JavaScript', 'Tailwind CSS'],
-                link: './meteor_dodge_3_0.html',
-                tag: 'Active',
-                tagClass: 'bg-emerald-950/80 text-emerald-400 border-emerald-800/60',
-                isGame: true,
-                createdAt: Date.now() - 5000
+        // Open your browser console (F12) and run: localStorage.clear();
+// Or use this updated seed configuration:
+
+const defaultProjectsSeed = [
+    {
+        id: 'proj-egg-pong',
+        title: '🥚 Trampoline Egg Pong',
+        category: 'maintained',
+        desc: 'Dynamic physics arcade game! Keep the egg bouncing on the trampoline paddle and beat your personal high score.',
+        stack: ['HTML5 Canvas', 'JavaScript', 'Physics API'],
+        // Make sure this folder and file exist in your repository root
+        link: 'eggcilent-pong/index.html', 
+        tag: 'Active',
+        tagClass: 'bg-emerald-950/80 text-emerald-400 border-emerald-800/60',
+        isGame: true,
+        createdAt: Date.now()
+    },
+    {
+        id: 'proj-meteor-30',
+        title: '🎮 Meteor Dodge 3.0',
+        category: 'maintained',
+        desc: 'Retro space shooter featuring 4-way vector movement, laser weapons, power-up orbs, and a Level 3 space dreadnought boss battle.',
+        stack: ['HTML5 Canvas', 'JavaScript', 'Tailwind CSS'],
+        // Match exact filename and path in your GitHub repository
+        link: 'meteor-doge/index.html', 
+        tag: 'Active',
+        tagClass: 'bg-emerald-950/80 text-emerald-400 border-emerald-800/60',
+        isGame: true,
+        createdAt: Date.now() - 5000
+    }
+];
             },
             {
                 id: 'proj-alpha',
