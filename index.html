@@ -226,7 +226,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-[11px] text-slate-400 mb-1">Project Title</label>
-                                <input type="text" id="newProjTitle" placeholder="e.g. My New Live App" required class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-500">
+                                <input type="text" id="newProjTitle" placeholder="e.g. Trampoline Egg Pong" required class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-500">
                             </div>
                             <div>
                                 <label class="block text-[11px] text-slate-400 mb-1">Category</label>
@@ -246,11 +246,11 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-[11px] text-slate-400 mb-1">Tech Stack (comma separated)</label>
-                                <input type="text" id="newProjStack" placeholder="e.g. React, Tailwind, Node.js" required class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-500">
+                                <input type="text" id="newProjStack" placeholder="e.g. Canvas, JavaScript, HTML5" required class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-500">
                             </div>
                             <div>
                                 <label class="block text-[11px] text-slate-400 mb-1">Project / Repository Link</label>
-                                <input type="text" id="newProjLink" placeholder="e.g. ./eggcilent-pong/index.html or https://..." required class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-500">
+                                <input type="text" id="newProjLink" placeholder="e.g. meteordash.html or eggcilent-pong.html" required class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-500">
                             </div>
                         </div>
 
@@ -276,6 +276,10 @@
         let currentCat = 'all';
         let isOwnerLoggedIn = false;
 
+        document.addEventListener('DOMContentLoaded', () => {
+            initAuthAndSync();
+        });
+
         function escapeHtml(str) {
             if (!str) return '';
             return String(str)
@@ -293,19 +297,19 @@
                 category: 'maintained',
                 desc: 'Dynamic physics arcade game! Keep the egg bouncing on the trampoline paddle and beat your personal high score.',
                 stack: ['HTML5 Canvas', 'JavaScript', 'Physics API'],
-                link: 'eggcilent-pong/index.html',
+                link: 'eggcilent-pong.html', // Pointing directly to file name
                 tag: 'Active',
                 tagClass: 'bg-emerald-950/80 text-emerald-400 border-emerald-800/60',
                 isGame: true,
                 createdAt: Date.now()
             },
             {
-                id: 'proj-meteor-30',
-                title: '🎮 Meteor Dodge 3.0',
+                id: 'proj-meteor-dash',
+                title: '🎮 Meteor Dash',
                 category: 'maintained',
-                desc: 'Retro space shooter featuring 4-way vector movement, laser weapons, power-up orbs, and a Level 3 space dreadnought boss battle.',
+                desc: 'Retro space shooter featuring vector movement, laser weapons, power-up orbs, and space dreadnought boss battles.',
                 stack: ['HTML5 Canvas', 'JavaScript', 'Tailwind CSS'],
-                link: 'meteor_dodge_3_0.html',
+                link: 'meteordash.html', // Fixed target path to resolve 404
                 tag: 'Active',
                 tagClass: 'bg-emerald-950/80 text-emerald-400 border-emerald-800/60',
                 isGame: true,
@@ -315,7 +319,7 @@
                 id: 'proj-alpha',
                 title: '⚡ Project-Alpha',
                 category: 'maintained',
-                desc: 'Primary application backend and high-performance API service infrastructure managing real-time websocket and client connections.',
+                desc: 'Primary application backend and high-performance API service infrastructure managing real-time websocket connections.',
                 stack: ['TypeScript', 'Node.js', 'Express'],
                 link: 'https://github.com/user/project-alpha',
                 tag: 'Active',
@@ -327,7 +331,7 @@
                 id: 'proj-beta',
                 title: '🛠️ Project-Beta',
                 category: 'maintained',
-                desc: 'Command-line utility for automated cloud deployment, container management, and Kubernetes cluster synchronization.',
+                desc: 'Command-line utility for automated cloud deployment, container management, and Kubernetes synchronization.',
                 stack: ['Go', 'Docker', 'Kubernetes'],
                 link: 'https://github.com/user/project-beta',
                 tag: 'Maintenance',
@@ -531,10 +535,6 @@
                 </div>
                 <div class="space-y-2 pt-2 border-t border-slate-800/60">
                     <div class="flex flex-wrap gap-1">${stackBadges}</div>
-                    <a href="${escapeHtml(proj.link)}" target="_blank" class="inline-flex items-center space-x-1 text-xs text-purple-400 hover:text-purple-300 font-mono pt-1">
-                        <span>Source Link</span>
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                    </a>
                 </div>
             `;
             return div;
@@ -542,7 +542,7 @@
 
         function createArchiveCard(proj, searchTags) {
             const div = document.createElement('div');
-            div.className = 'project-card glass-card rounded-xl p-3.5 flex items-center justify-between space-x-3 transition-all relative group';
+            div.className = 'project-card glass-card rounded-xl p-3.5 flex items-center justify-between transition-all relative group';
             div.setAttribute('data-category', 'archive');
             div.setAttribute('data-tags', escapeHtml(searchTags));
 
@@ -551,20 +551,119 @@
             </button>`;
 
             div.innerHTML = `
-                <div class="space-y-1 min-w-0">
-                    <h4 class="text-xs font-bold text-slate-300 truncate group-hover:text-cyan-400 transition-colors">${escapeHtml(proj.title)}</h4>
-                    <p class="text-[11px] text-slate-500 truncate">${escapeHtml(proj.desc)}</p>
+                <div class="space-y-1">
+                    <h4 class="text-xs font-bold text-slate-300">${escapeHtml(proj.title)}</h4>
+                    <p class="text-[11px] text-slate-400">${escapeHtml(proj.desc)}</p>
                 </div>
-                <div class="flex items-center space-x-2 flex-shrink-0">
+                <div class="flex items-center space-x-2">
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800">${escapeHtml(proj.typeLabel || 'Archived')}</span>
                     ${deleteBtn}
-                    <a href="${escapeHtml(proj.link)}" target="_blank" class="text-xs text-slate-400 hover:text-white p-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                    </a>
                 </div>
             `;
             return div;
         }
 
+        /* --- Modal & Launcher Logic --- */
+        function launchGameModalById(id) {
+            const proj = projectsData.find(p => p.id === id);
+            if (!proj) return;
+
+            const modal = document.getElementById('gameModal');
+            const title = document.getElementById('gameModalTitle');
+            const iframe = document.getElementById('gameIframe');
+            const extLink = document.getElementById('gameModalExternalLink');
+
+            if (title) title.textContent = proj.title;
+            if (extLink) extLink.href = proj.link;
+            if (iframe) iframe.src = proj.link;
+
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeGameModal() {
+            const modal = document.getElementById('gameModal');
+            const iframe = document.getElementById('gameIframe');
+
+            if (iframe) iframe.src = 'about:blank';
+            if (modal) modal.classList.add('hidden');
+        }
+
+        /* --- Owner Modal & Auth Logic --- */
+        function openOwnerModal() {
+            const modal = document.getElementById('ownerModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeOwnerModal() {
+            const modal = document.getElementById('ownerModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function handleOwnerLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('ownerUsername').value;
+            const pass = document.getElementById('ownerPassword').value;
+            const errDiv = document.getElementById('loginErrorMessage');
+
+            if (user === 'owner' && pass === 'owneriscool') {
+                isOwnerLoggedIn = true;
+                document.body.classList.add('owner-authenticated');
+                document.getElementById('ownerLoginFormView').classList.add('hidden');
+                document.getElementById('ownerDashboardView').classList.remove('hidden');
+                document.getElementById('ownerBtnLabel').textContent = '⚡ Owner Active';
+                if (errDiv) errDiv.classList.add('hidden');
+            } else {
+                if (errDiv) errDiv.classList.remove('hidden');
+            }
+        }
+
+        function handleOwnerLogout() {
+            isOwnerLoggedIn = false;
+            document.body.classList.remove('owner-authenticated');
+            document.getElementById('ownerLoginFormView').classList.remove('hidden');
+            document.getElementById('ownerDashboardView').classList.add('hidden');
+            document.getElementById('ownerBtnLabel').textContent = '🔥 Owner Login';
+        }
+
+        function handleAddNewProject(e) {
+            e.preventDefault();
+            const title = document.getElementById('newProjTitle').value.trim();
+            const category = document.getElementById('newProjCategory').value;
+            const desc = document.getElementById('newProjDesc').value.trim();
+            const stack = document.getElementById('newProjStack').value.split(',').map(s => s.trim()).filter(Boolean);
+            const link = document.getElementById('newProjLink').value.trim();
+
+            const isGame = link.endsWith('.html') || link.includes('pong') || link.includes('meteor') || link.includes('game');
+
+            const newProj = {
+                id: 'proj-' + Date.now(),
+                title: title,
+                category: category,
+                desc: desc,
+                stack: stack,
+                link: link,
+                tag: category === 'maintained' ? 'Active' : 'Dev',
+                tagClass: 'bg-emerald-950/80 text-emerald-400 border-emerald-800/60',
+                isGame: isGame,
+                createdAt: Date.now()
+            };
+
+            projectsData.unshift(newProj);
+            saveProjectsToSync();
+            renderProjectsUI();
+            e.target.reset();
+            closeOwnerModal();
+        }
+
+        function removeProjectCard(id) {
+            if (confirm('Are you sure you want to delete this project?')) {
+                projectsData = projectsData.filter(p => p.id !== id);
+                saveProjectsToSync();
+                renderProjectsUI();
+            }
+        }
+
+        /* --- Filtering & Search Logic --- */
         function setCategoryFilter(cat) {
             currentCat = cat;
             document.querySelectorAll('.cat-filter-btn').forEach(btn => {
@@ -575,158 +674,47 @@
                 }
             });
 
-            const secMain = document.getElementById('sectionMaintained');
-            const secExp = document.getElementById('sectionExperiments');
-            const secArc = document.getElementById('sectionArchive');
+            const secMaintained = document.getElementById('sectionMaintained');
+            const secExperiments = document.getElementById('sectionExperiments');
+            const secArchive = document.getElementById('sectionArchive');
 
-            if (cat === 'all') {
-                secMain.style.display = 'block';
-                secExp.style.display = 'block';
-                secArc.style.display = 'block';
-            } else if (cat === 'maintained') {
-                secMain.style.display = 'block';
-                secExp.style.display = 'none';
-                secArc.style.display = 'none';
-            } else if (cat === 'experiment') {
-                secMain.style.display = 'none';
-                secExp.style.display = 'block';
-                secArc.style.display = 'none';
-            } else if (cat === 'archive') {
-                secMain.style.display = 'none';
-                secExp.style.display = 'none';
-                secArc.style.display = 'block';
-            }
+            if (secMaintained) secMaintained.style.display = (cat === 'all' || cat === 'maintained') ? 'block' : 'none';
+            if (secExperiments) secExperiments.style.display = (cat === 'all' || cat === 'experiment') ? 'block' : 'none';
+            if (secArchive) secArchive.style.display = (cat === 'all' || cat === 'archive') ? 'block' : 'none';
 
             filterProjects();
         }
 
         function filterProjects() {
-            const searchVal = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+            const searchVal = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
             const cards = document.querySelectorAll('.project-card');
 
-            let countMain = 0;
-            let countExp = 0;
-            let countArc = 0;
+            let countM = 0, countE = 0, countA = 0;
 
             cards.forEach(card => {
-                const category = card.getAttribute('data-category');
+                const cat = card.getAttribute('data-category');
                 const tags = card.getAttribute('data-tags') || '';
                 const matchesSearch = !searchVal || tags.includes(searchVal);
+                const matchesCat = (currentCat === 'all' || currentCat === cat);
 
-                if (matchesSearch) {
+                if (matchesSearch && matchesCat) {
                     card.style.display = 'flex';
-                    if (category === 'maintained') countMain++;
-                    if (category === 'experiment') countExp++;
-                    if (category === 'archive') countArc++;
+                    if (cat === 'maintained') countM++;
+                    if (cat === 'experiment') countE++;
+                    if (cat === 'archive') countA++;
                 } else {
                     card.style.display = 'none';
                 }
             });
 
-            document.getElementById('countMaintained').innerText = `${countMain} Projects`;
-            document.getElementById('countExperiments').innerText = `${countExp} Modules`;
-            document.getElementById('countArchive').innerText = `${countArc} Entries`;
+            const elM = document.getElementById('countMaintained');
+            const elE = document.getElementById('countExperiments');
+            const elA = document.getElementById('countArchive');
+
+            if (elM) elM.textContent = `${countM} Projects`;
+            if (elE) elE.textContent = `${countE} Modules`;
+            if (elA) elA.textContent = `${countA} Entries`;
         }
-
-        function launchGameModalById(id) {
-            const proj = projectsData.find(p => p.id === id);
-            if (!proj) return;
-
-            document.getElementById('gameModalTitle').innerText = proj.title;
-            document.getElementById('gameModalExternalLink').href = proj.link;
-            document.getElementById('gameIframe').src = proj.link;
-            document.getElementById('gameModal').classList.remove('hidden');
-        }
-
-        function closeGameModal() {
-            document.getElementById('gameModal').classList.add('hidden');
-            document.getElementById('gameIframe').src = 'about:blank';
-        }
-
-        function openOwnerModal() {
-            document.getElementById('ownerModal').classList.remove('hidden');
-        }
-
-        function closeOwnerModal() {
-            document.getElementById('ownerModal').classList.add('hidden');
-        }
-
-        function handleOwnerLogin(e) {
-            e.preventDefault();
-            const u = document.getElementById('ownerUsername').value;
-            const p = document.getElementById('ownerPassword').value;
-
-            if (u === 'owner' && p === 'owneriscool') {
-                isOwnerLoggedIn = true;
-                document.body.classList.add('owner-authenticated');
-                document.getElementById('ownerLoginFormView').classList.add('hidden');
-                document.getElementById('ownerDashboardView').classList.remove('hidden');
-                document.getElementById('loginErrorMessage').classList.add('hidden');
-                document.getElementById('ownerBtnLabel').innerText = '🔥 Owner Controls';
-                document.getElementById('ownerModalHeading').innerText = '🔥 Owner Dashboard';
-                document.getElementById('ownerModalSubheading').innerText = 'Manage your project collection and display settings';
-            } else {
-                document.getElementById('loginErrorMessage').classList.remove('hidden');
-            }
-        }
-
-        function handleOwnerLogout() {
-            isOwnerLoggedIn = false;
-            document.body.classList.remove('owner-authenticated');
-            document.getElementById('ownerLoginFormView').classList.remove('hidden');
-            document.getElementById('ownerDashboardView').classList.add('hidden');
-            document.getElementById('ownerUsername').value = '';
-            document.getElementById('ownerPassword').value = '';
-            document.getElementById('ownerBtnLabel').innerText = '🔥 Owner Login';
-            document.getElementById('ownerModalHeading').innerText = '🔥 Owner Authentication';
-            document.getElementById('ownerModalSubheading').innerText = 'Log in with owner credentials to unlock administration tools';
-        }
-
-        function handleAddNewProject(e) {
-            e.preventDefault();
-            const title = document.getElementById('newProjTitle').value;
-            const category = document.getElementById('newProjCategory').value;
-            const desc = document.getElementById('newProjDesc').value;
-            const stackRaw = document.getElementById('newProjStack').value;
-            const link = document.getElementById('newProjLink').value;
-
-            const stack = stackRaw.split(',').map(s => s.trim()).filter(Boolean);
-            const isGame = link.endsWith('.html') || link.includes('demo');
-
-            const newProj = {
-                id: 'proj-' + Date.now(),
-                title,
-                category,
-                desc,
-                stack,
-                link,
-                tag: category === 'maintained' ? 'Active' : 'Custom',
-                tagClass: 'bg-cyan-950/80 text-cyan-400 border-cyan-800/60',
-                typeLabel: category === 'experiment' ? stack.join(' / ') || 'Custom Module' : 'Archived',
-                isGame,
-                createdAt: Date.now()
-            };
-
-            projectsData.unshift(newProj);
-            saveProjectsToSync();
-            renderProjectsUI();
-
-            document.getElementById('newProjTitle').value = '';
-            document.getElementById('newProjDesc').value = '';
-            document.getElementById('newProjStack').value = '';
-            document.getElementById('newProjLink').value = '';
-
-            closeOwnerModal();
-        }
-
-        function removeProjectCard(id) {
-            if (!confirm('Are you sure you want to remove this project?')) return;
-            projectsData = projectsData.filter(p => p.id !== id);
-            saveProjectsToSync();
-            renderProjectsUI();
-        }
-
-        document.addEventListener('DOMContentLoaded', initAuthAndSync);
     </script>
 </body>
 </html>
