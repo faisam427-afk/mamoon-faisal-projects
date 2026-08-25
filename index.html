@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Developer Portfolio & Project Hub</title>
+    <title>Developer Portfolio & Project Hub</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>😎</text></svg>">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -531,19 +531,16 @@
             div.innerHTML = `
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
-                        <h4 class="text-sm font-bold text-white group-hover:text-purple-400 transition-colors">${escapeHtml(proj.title)}</h4>
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-[10px] font-mono text-purple-400 bg-purple-950/60 px-2 py-0.5 rounded border border-purple-800/50">${escapeHtml(proj.typeLabel || 'Experiment')}</span>
-                            ${deleteBtn}
-                        </div>
+                        <span class="text-[11px] font-mono text-purple-400 font-semibold">${escapeHtml(proj.typeLabel || 'Experiment')}</span>
+                        ${deleteBtn}
                     </div>
-                    <p class="text-xs text-slate-300 leading-relaxed">${escapeHtml(proj.desc)}</p>
+                    <h4 class="text-sm font-bold text-white group-hover:text-purple-300 transition-colors">${escapeHtml(proj.title)}</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">${escapeHtml(proj.desc)}</p>
                 </div>
-                <div class="flex items-center justify-between pt-2 border-t border-slate-800/60">
+                <div class="pt-2 border-t border-slate-800/60 flex items-center justify-between gap-2">
                     <div class="flex flex-wrap gap-1">${stackBadges}</div>
-                    <a href="${escapeHtml(proj.link)}" target="_blank" class="text-xs text-purple-400 hover:text-purple-300 font-medium inline-flex items-center gap-1">
-                        <span>Code</span>
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    <a href="${escapeHtml(proj.link)}" target="_blank" class="text-xs text-slate-400 hover:text-cyan-400 font-mono inline-flex items-center gap-1 flex-shrink-0">
+                        View ↗
                     </a>
                 </div>
             `;
@@ -552,7 +549,7 @@
 
         function createArchiveCard(proj, searchTags) {
             const div = document.createElement('div');
-            div.className = 'project-card bg-slate-900/40 border border-slate-800/80 rounded-xl p-3.5 flex items-center justify-between transition-all group';
+            div.className = 'project-card glass-card rounded-xl p-3.5 flex items-center justify-between gap-3 transition-all relative group';
             div.setAttribute('data-category', 'archive');
             div.setAttribute('data-tags', escapeHtml(searchTags));
 
@@ -561,55 +558,19 @@
             </button>`;
 
             div.innerHTML = `
-                <div class="space-y-1">
-                    <h4 class="text-xs font-bold text-slate-300 group-hover:text-slate-100 transition-colors">${escapeHtml(proj.title)}</h4>
-                    <p class="text-[11px] text-slate-400 leading-normal">${escapeHtml(proj.desc)}</p>
+                <div class="min-w-0 flex-grow">
+                    <div class="flex items-center gap-2">
+                        <h4 class="text-xs font-bold text-slate-300 group-hover:text-slate-100 truncate">${escapeHtml(proj.title)}</h4>
+                        <span class="text-[10px] font-mono text-slate-500 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800 flex-shrink-0">${escapeHtml(proj.typeLabel || 'Archived')}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 truncate mt-0.5">${escapeHtml(proj.desc)}</p>
                 </div>
-                <div class="flex items-center gap-2 flex-shrink-0 ml-3">
+                <div class="flex items-center space-x-2 flex-shrink-0">
                     ${deleteBtn}
+                    <a href="${escapeHtml(proj.link)}" target="_blank" class="text-xs text-slate-500 hover:text-slate-300 font-mono">View ↗</a>
                 </div>
             `;
             return div;
-        }
-
-        function filterProjects() {
-            const query = (document.getElementById('searchInput')?.value || '').toLowerCase();
-            const cards = document.querySelectorAll('.project-card');
-
-            let maintainedVisible = 0;
-            let experimentsVisible = 0;
-            let archiveVisible = 0;
-
-            cards.forEach(card => {
-                const cat = card.getAttribute('data-category');
-                const tags = card.getAttribute('data-tags') || '';
-                
-                const matchesCategory = (currentCat === 'all' || currentCat === cat);
-                const matchesSearch = !query || tags.includes(query);
-
-                if (matchesCategory && matchesSearch) {
-                    card.classList.remove('hidden');
-                    if (cat === 'maintained') maintainedVisible++;
-                    if (cat === 'experiment') experimentsVisible++;
-                    if (cat === 'archive') archiveVisible++;
-                } else {
-                    card.classList.add('hidden');
-                }
-            });
-
-            // Update Counts
-            const cMaintained = document.getElementById('countMaintained');
-            const cExperiments = document.getElementById('countExperiments');
-            const cArchive = document.getElementById('countArchive');
-
-            if (cMaintained) cMaintained.textContent = `${maintainedVisible} Projects`;
-            if (cExperiments) cExperiments.textContent = `${experimentsVisible} Modules`;
-            if (cArchive) cArchive.textContent = `${archiveVisible} Entries`;
-
-            // Hide section headings if empty under filter
-            document.getElementById('sectionMaintained')?.classList.toggle('hidden', maintainedVisible === 0);
-            document.getElementById('sectionExperiments')?.classList.toggle('hidden', experimentsVisible === 0);
-            document.getElementById('sectionArchive')?.classList.toggle('hidden', archiveVisible === 0);
         }
 
         function setCategoryFilter(category) {
@@ -624,6 +585,40 @@
             filterProjects();
         }
 
+        function filterProjects() {
+            const query = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+            const cards = document.querySelectorAll('.project-card');
+
+            let visibleMaintained = 0;
+            let visibleExperiments = 0;
+            let visibleArchive = 0;
+
+            cards.forEach(card => {
+                const cat = card.getAttribute('data-category');
+                const tags = card.getAttribute('data-tags') || '';
+
+                const matchesCat = (currentCat === 'all' || currentCat === cat);
+                const matchesSearch = !query || tags.includes(query);
+
+                if (matchesCat && matchesSearch) {
+                    card.classList.remove('hidden');
+                    if (cat === 'maintained') visibleMaintained++;
+                    if (cat === 'experiment') visibleExperiments++;
+                    if (cat === 'archive') visibleArchive++;
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+
+            document.getElementById('countMaintained').innerText = `${visibleMaintained} Projects`;
+            document.getElementById('countExperiments').innerText = `${visibleExperiments} Modules`;
+            document.getElementById('countArchive').innerText = `${visibleArchive} Entries`;
+
+            document.getElementById('sectionMaintained').style.display = (visibleMaintained > 0 || (!query && currentCat === 'all')) ? 'block' : 'none';
+            document.getElementById('sectionExperiments').style.display = (visibleExperiments > 0 || (!query && currentCat === 'all')) ? 'block' : 'none';
+            document.getElementById('sectionArchive').style.display = (visibleArchive > 0 || (!query && currentCat === 'all')) ? 'block' : 'none';
+        }
+
         function launchGameModalById(id) {
             const proj = projectsData.find(p => p.id === id);
             if (!proj) return;
@@ -633,81 +628,99 @@
             const title = document.getElementById('gameModalTitle');
             const extLink = document.getElementById('gameModalExternalLink');
 
-            if (modal && iframe && title && extLink) {
-                iframe.src = proj.link;
-                title.textContent = proj.title;
-                extLink.href = proj.link;
-                modal.classList.remove('hidden');
-            }
+            title.innerText = proj.title;
+            extLink.setAttribute('href', proj.link);
+            iframe.src = proj.link;
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
         }
 
         function closeGameModal() {
             const modal = document.getElementById('gameModal');
             const iframe = document.getElementById('gameIframe');
-            if (modal && iframe) {
-                iframe.src = '';
-                modal.classList.add('hidden');
-            }
+
+            iframe.src = 'about:blank';
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
         }
 
         function openOwnerModal() {
-            const modal = document.getElementById('ownerModal');
-            if (modal) modal.classList.remove('hidden');
+            document.getElementById('ownerModal').classList.remove('hidden');
+            updateOwnerModalUI();
         }
 
         function closeOwnerModal() {
-            const modal = document.getElementById('ownerModal');
-            if (modal) modal.classList.add('hidden');
+            document.getElementById('ownerModal').classList.add('hidden');
+        }
+
+        function updateOwnerModalUI() {
+            const loginView = document.getElementById('ownerLoginFormView');
+            const dashView = document.getElementById('ownerDashboardView');
+            const heading = document.getElementById('ownerModalHeading');
+            const subheading = document.getElementById('ownerModalSubheading');
+
+            if (isOwnerLoggedIn) {
+                loginView.classList.add('hidden');
+                dashView.classList.remove('hidden');
+                heading.innerText = '🔥 Owner Control Dashboard';
+                subheading.innerText = 'Add, remove, or manage projects in local browser storage';
+            } else {
+                loginView.classList.remove('hidden');
+                dashView.classList.add('hidden');
+                heading.innerText = '🔥 Owner Authentication';
+                subheading.innerText = 'Log in with owner credentials to unlock administration tools';
+            }
         }
 
         function handleOwnerLogin(e) {
             e.preventDefault();
-            const u = document.getElementById('ownerUsername')?.value;
-            const p = document.getElementById('ownerPassword')?.value;
-            const errDiv = document.getElementById('loginErrorMessage');
+            const u = document.getElementById('ownerUsername').value.trim();
+            const p = document.getElementById('ownerPassword').value.trim();
+            const errBox = document.getElementById('loginErrorMessage');
 
             if (u === 'owner' && p === 'owneriscool') {
                 isOwnerLoggedIn = true;
                 document.body.classList.add('owner-authenticated');
-                if (errDiv) errDiv.classList.add('hidden');
-                
-                document.getElementById('ownerLoginFormView')?.classList.add('hidden');
-                document.getElementById('ownerDashboardView')?.classList.remove('hidden');
-                document.getElementById('ownerBtnLabel').textContent = '🔥 Owner Dashboard';
+                document.getElementById('ownerBtnLabel').innerText = '🔥 Owner Controls';
+                errBox.classList.add('hidden');
+                updateOwnerModalUI();
             } else {
-                if (errDiv) errDiv.classList.remove('hidden');
+                errBox.classList.remove('hidden');
             }
         }
 
         function handleOwnerLogout() {
             isOwnerLoggedIn = false;
             document.body.classList.remove('owner-authenticated');
-            document.getElementById('ownerLoginFormView')?.classList.remove('hidden');
-            document.getElementById('ownerDashboardView')?.classList.add('hidden');
-            document.getElementById('ownerBtnLabel').textContent = '🔥 Owner Login';
-            closeOwnerModal();
+            document.getElementById('ownerBtnLabel').innerText = '🔥 Owner Login';
+            updateOwnerModalUI();
         }
 
         function handleAddNewProject(e) {
             e.preventDefault();
-            const title = document.getElementById('newProjTitle')?.value;
-            const category = document.getElementById('newProjCategory')?.value;
-            const desc = document.getElementById('newProjDesc')?.value;
-            const stackRaw = document.getElementById('newProjStack')?.value;
-            const link = document.getElementById('newProjLink')?.value;
+            const title = document.getElementById('newProjTitle').value.trim();
+            const category = document.getElementById('newProjCategory').value;
+            const desc = document.getElementById('newProjDesc').value.trim();
+            const stackStr = document.getElementById('newProjStack').value.trim();
+            const link = document.getElementById('newProjLink').value.trim();
 
             if (!title || !desc || !link) return;
 
+            const stack = stackStr ? stackStr.split(',').map(s => s.trim()) : ['General'];
+            const isGame = link.endsWith('.html') || link.includes('game') || link.includes('pong');
+
             const newProj = {
                 id: 'proj-' + Date.now(),
-                title: title.startsWith('🔥') || title.startsWith('🎮') || title.startsWith('⚡') ? title : `🔥 ${title}`,
-                category: category || 'maintained',
+                title: title,
+                category: category,
                 desc: desc,
-                stack: stackRaw ? stackRaw.split(',').map(s => s.trim()) : ['HTML5'],
+                stack: stack,
                 link: link,
                 tag: 'Active',
-                tagClass: 'bg-cyan-950/80 text-cyan-400 border-cyan-800/60',
-                isGame: link.includes('html') || link.includes('game') || link.includes('pong'),
+                tagClass: 'bg-emerald-950/80 text-emerald-400 border-emerald-800/60',
+                typeLabel: category === 'experiment' ? stack.join(' / ') : (category === 'archive' ? 'Archived' : undefined),
+                isGame: isGame,
                 createdAt: Date.now()
             };
 
@@ -715,7 +728,6 @@
             saveProjectsToSync();
             renderProjectsUI();
 
-            // Clear inputs
             document.getElementById('newProjTitle').value = '';
             document.getElementById('newProjDesc').value = '';
             document.getElementById('newProjStack').value = '';
@@ -726,17 +738,15 @@
 
         function removeProjectCard(id) {
             if (!isOwnerLoggedIn) return;
-            if (confirm('Are you sure you want to remove this project?')) {
+            if (confirm('Are you sure you want to delete this project card?')) {
                 projectsData = projectsData.filter(p => p.id !== id);
                 saveProjectsToSync();
                 renderProjectsUI();
             }
         }
 
-        // Initialize App
-        window.addEventListener('DOMContentLoaded', () => {
-            initAuthAndSync();
-        });
+        // Initialize script on document ready
+        document.addEventListener('DOMContentLoaded', initAuthAndSync);
     </script>
 </body>
 </html>
