@@ -1,1 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Trampoline Egg Pong</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Fredoka', cursive, sans-serif;
+            touch-action: none;
+            overflow: hidden;
+            user-select: none;
+        }
+        canvas {
+            display: block;
+            touch-action: none;
+        }
+        .glow-text {
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.7), 0 0 20px rgba(251, 191, 36, 0.5);
+        }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        /* Custom UI Buttons */
+        .btn-diff {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-diff.active {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.6);
+            border-color: #f59e0b;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col justify-between items-center select-none">
 
+    <!-- Top Navigation & Scoreboard -->
+    <header class="w-full max-w-5xl px-4 py-3 flex flex-wrap justify-between items-center gap-2 z-20 glass-card rounded-b-2xl shadow-xl">
+        <div class="flex items-center gap-3">
+            <span class="text-3xl">🥚</span>
+            <h1 class="text-xl md:text-2xl font-bold bg-gradient-to-r from-amber-300 via-yellow-400 to-orange-500 bg-clip-text text-transparent">
+                Egg-cellent Pong
+            </h1>
+        </div>
+
+        <!-- Scores -->
+        <div class="flex items-center gap-6 bg-slate-800/80 px-6 py-2 rounded-full border border-slate-700 shadow-inner">
+            <div class="text-center">
+                <span class="block text-xs uppercase tracking-wider text-slate-400">You</span>
+                <span id="player-score" class="text-2xl md:text-3xl font-extrabold text-emerald-400">0</span>
+            </div>
+            <span class="text-xl font-bold text-slate-600">:</span>
+            <div class="text-center">
+                <span class="block text-xs uppercase tracking-wider text-slate-400">AI</span>
+                <span id="ai-score" class="text-2xl md:text-3xl font-extrabold text-rose-400">0</span>
+            </div>
+        </div>
+
+        <!-- Audio & Controls -->
+        <div class="flex items-center gap-2">
+            <button id="btn-sound" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 transition active:scale-95 text-lg" title="Toggle Audio">
+                🔊
+            </button>
+            <button id="btn-pause" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 transition active:scale-95 text-lg" title="Pause Game">
+                ⏸️
+            </button>
+            <button id="btn-reset" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 font-bold text-slate-950 transition active:scale-95 shadow-md">
+                Reset
+            </button>
+        </div>
+    </header>
+
+    <!-- Difficulty Selector Bar -->
+    <div class="w-full max-w-3xl px-4 py-2 flex justify-center items-center gap-2 md:gap-4 z-10 my-1">
+        <span class="text-xs md:text-sm font-semibold text-slate-400 uppercase tracking-wider mr-1">AI Mode:</span>
+        <button data-diff="easy" class="btn-diff active px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold bg-slate-800 border border-slate-700 hover:border-emerald-500 text-emerald-400">
+            Easy
+        </button>
+        <button data-diff="medium" class="btn-diff px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold bg-slate-800 border border-slate-700 hover:border-amber-500 text-amber-400">
+            Medium
+        </button>
+        <button data-diff="hard" class="btn-diff px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold bg-slate-800 border border-slate-700 hover:border-rose-500 text-rose-400">
+            Hard
+        </button>
+        <button data-diff="unbeatable" class="btn-diff px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold bg-slate-800 border border-slate-700 hover:border-purple-500 text-purple-400">
+            😈 Unbeatable
+        </button>
+    </div>
+
+    <!-- Canvas Container -->
+    <main class="relative flex-1 w-full max-w-5xl px-2 py-1 flex items-center justify-center min-h-0">
+        <canvas id="gameCanvas" class="w-full h-full rounded-2xl shadow-2xl bg-gradient-to-b from-sky-900 via-indigo-950 to-slate-950 border border-slate-800"></canvas>
+
+        <!-- Start / Pause / GameOver Overlay -->
+        <div id="overlay" class="absolute inset-0 m-2 rounded-2xl glass-card flex flex-col items-center justify-center p-6 text-center z-30 transition-all duration-300">
+            <h2 id="overlay-title" class="text-3xl md:text-5xl font-extrabold mb-3 glow-text text-amber-400">
+                Trampoline Egg Pong!
+            </h2>
+            <p id="overlay-desc" class="text-slate-300 max-w-md text-sm md:text-base mb-6">
+                Bounce the giant egg back and forth using your elastic trampoline paddle. Don't let it crash!
+            </p>
+            <div class="text-xs md:text-sm text-slate-400 mb-6 bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-1">
+                <p>🎮 <b>Controls:</b> Move Mouse / Drag Touch OR press <b>W / S</b> / <b>Up / Down Arrow</b></p>
+                <p>🍳 Scoring cracks the egg and plays the sad Wah-Wah!</p>
+            </div>
+            <button id="btn-start" class="px-8 py-3 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-slate-950 font-black text-lg md:text-xl shadow-lg transform transition active:scale-95">
+                START PLAYING
+            </button>
+        </div>
+    </main>
+
+    <!-- Footer Status -->
+    <footer class="w-full max-w-5xl px-4 py-2 text-center text-xs text-slate-500 flex justify-between items-center">
+        <span>Use keyboard arrow keys or touch drag to move paddle</span>
+        <span id="ai-status" class="font-mono text-amber-400/80">AI: Easy Mode</span>
+    </footer>
+
+    <script>
+        /* ===================================================================
+           Web Audio API Sound Engine (Trampoline Boings & Wah-Wah Sound)
+           =================================================================== */
+        class AudioEngine {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioCtx();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            // High pitched bouncy trampoline boing sound effect
+            playBoing(pitchMultiplier = 1.0) {
+                if (!this.enabled) return;
+                this.init();
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sine';
+                
+                // Pitch envelope (rapid upward bend like a trampoline spring)
+                const startFreq = 110 * pitchMultiplier;
+                const peakFreq = 380 * pitchMultiplier;
+                osc.frequency.setValueAtTime(startFreq, now);
+                osc.frequency.exponentialRampToValueAtTime(peakFreq, now + 0.08);
+                osc.frequency.exponentialRampToValueAtTime(160 * pitchMultiplier, now + 0.25);
+
+                // Amplitude envelope
+                gain.gain.setValueAtTime(0.01, now);
+                gain.gain.linearRampToValueAtTime(0.3, now + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+
+            // Authentic sad brass / synth "Wah-Wah-Wah-Wahhh" score loss sound
+            playWahWah() {
+                if (!this.enabled) return;
+                this.init();
+
+                const notes = [
+                    { pitch: 261.63, duration: 0.32, delay: 0.00 }, // C4
+                    { pitch: 246.94, duration: 0.32, delay: 0.34 }, // B3
+                    { pitch: 233.08, duration: 0.32, delay: 0.68 }, // Bb3
+                    { pitch: 220.00, duration: 0.75, delay: 1.02 }  // A3 (Wahhh drop)
+                ];
+
+                notes.forEach((n, idx) => {
+                    const startTime = this.ctx.currentTime + n.delay;
+                    const isLast = idx === notes.length - 1;
+
+                    // Main Sawtooth Oscillator for brassy sound
+                    const osc = this.ctx.createOscillator();
+                    osc.type = 'sawtooth';
+
+                    // Resonant Lowpass Filter for the "Wah" sweeping effect
+                    const filter = this.ctx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.Q.value = 6; // Heavy resonance for vocal "Wah" timbre
+
+                    const gain = this.ctx.createGain();
+
+                    // Frequency sweep for Wah envelope
+                    if (isLast) {
+                        // Pitch bend down at the end
+                        osc.frequency.setValueAtTime(n.pitch, startTime);
+                        osc.frequency.linearRampToValueAtTime(n.pitch * 0.82, startTime + n.duration);
+
+                        // Filter sweep (wah envelope)
+                        filter.frequency.setValueAtTime(300, startTime);
+                        filter.frequency.exponentialRampToValueAtTime(1400, startTime + 0.2);
+                        filter.frequency.exponentialRampToValueAtTime(250, startTime + n.duration);
+                    } else {
+                        osc.frequency.setValueAtTime(n.pitch, startTime);
+
+                        filter.frequency.setValueAtTime(250, startTime);
+                        filter.frequency.exponentialRampToValueAtTime(1200, startTime + 0.12);
+                        filter.frequency.exponentialRampToValueAtTime(300, startTime + n.duration);
+                    }
+
+                    // Volume envelope
+                    gain.gain.setValueAtTime(0.001, startTime);
+                    gain.gain.linearRampToValueAtTime(0.22, startTime + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + n.duration);
+
+                    osc.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start(startTime);
+                    osc.stop(startTime + n.duration);
+                });
+            }
+
+            // Splat sound when egg smashes
+            playSplat() {
+                if (!this.enabled) return;
+                this.init();
+
+                const now = this.ctx.currentTime;
+                
+                // Noise buffer for splat texture
+                const bufferSize = this.ctx.sampleRate * 0.2;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(800, now);
+                filter.frequency.exponentialRampToValueAtTime(150, now + 0.2);
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                noise.start(now);
+            }
+        }
+
+        const audio = new AudioEngine();
+
+        /* ===================================================================
+           Trampoline Paddle Object (Spring Physics Canvas Rendering)
+           =================================================================== */
+        class TrampolinePaddle {
+            constructor(isLeft = true) {
+                this.isLeft = isLeft;
+                this.width = 24;
+                this.height = 110;
+                this.x = 0;
+                this.y = 0;
+                this.targetY = 0;
+                this.speed = 12;
+
+                // Trampoline Mat Flex Physics
+                this.flex = 0;          // Current flex displacement (px)
+                this.flexVel = 0;       // Flex velocity
+                this.stiffness = 0.18;  // Spring tension
+                this.damping = 0.82;    // Vibration decay
+            }
+
+            update(canvasHeight) {
+                // Smooth paddle movement
+                this.y += (this.targetY - this.y) * 0.35;
+
+                // Clamp within screen boundaries
+                const halfH = this.height / 2;
+                if (this.y - halfH < 10) this.y = 10 + halfH;
+                if (this.y + halfH > canvasHeight - 10) this.y = canvasHeight - 10 - halfH;
+
+                // Spring physics update for trampoline deflection
+                const force = -this.stiffness * this.flex;
+                this.flexVel += force;
+                this.flexVel *= this.damping;
+                this.flex += this.flexVel;
+            }
+
+            // Impose an elastic strike force on the trampoline mat
+            impact(forceAmount) {
+                this.flexVel = this.isLeft ? forceAmount : -forceAmount;
+            }
+
+            draw(ctx) {
+                const halfH = this.height / 2;
+                const topY = this.y - halfH;
+                const botY = this.y + halfH;
+
+                ctx.save();
+
+                // Frame Posts Color & Metallic Gradient
+                const postGrad = ctx.createLinearGradient(this.x, topY, this.x + this.width, topY);
+                postGrad.addColorStop(0, '#64748b');
+                postGrad.addColorStop(0.5, '#cbd5e1');
+                postGrad.addColorStop(1, '#334155');
+
+                // Trampoline Outer Steel Arch Frame
+                ctx.strokeStyle = postGrad;
+                ctx.lineWidth = 6;
+                ctx.lineCap = 'round';
+
+                ctx.beginPath();
+                ctx.moveTo(this.isLeft ? this.x : this.x + this.width, topY - 6);
+                ctx.lineTo(this.isLeft ? this.x : this.x + this.width, botY + 6);
+                ctx.stroke();
+
+                // Springs attaching mat to frame
+                const numSprings = 7;
+                ctx.strokeStyle = '#94a3b8';
+                ctx.lineWidth = 2;
+                for (let i = 0; i <= numSprings; i++) {
+                    const sy = topY + (this.height / numSprings) * i;
+                    const anchorX = this.isLeft ? this.x : this.x + this.width;
+                    const matX = this.isLeft ? this.x + 8 : this.x + this.width - 8;
+
+                    ctx.beginPath();
+                    ctx.moveTo(anchorX, sy);
+                    ctx.lineTo(matX + (this.flex * 0.3), sy);
+                    ctx.stroke();
+                }
+
+                // Trampoline Elastic Canvas Mat Curve (Drawn with flex deformation)
+                const matStartX = this.isLeft ? this.x + 8 : this.x + this.width - 8;
+                const apexFlexX = matStartX + this.flex;
+
+                // Outer Glow for Trampoline Elastic Mat
+                ctx.shadowColor = this.isLeft ? 'rgba(56, 189, 248, 0.6)' : 'rgba(244, 63, 94, 0.6)';
+                ctx.shadowBlur = 12;
+
+                // Mat Line
+                ctx.beginPath();
+                ctx.moveTo(matStartX, topY);
+                ctx.quadraticCurveTo(apexFlexX, this.y, matStartX, botY);
+                ctx.strokeStyle = this.isLeft ? '#38bdf8' : '#f43f5e';
+                ctx.lineWidth = 8;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+
+                // Inner Bouncy Grip Pattern on Trampoline Mat
+                ctx.beginPath();
+                ctx.moveTo(matStartX, topY + 10);
+                ctx.quadraticCurveTo(apexFlexX, this.y, matStartX, botY - 10);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([4, 4]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.restore();
+            }
+        }
+
+        /* ===================================================================
+           Giant Egg Ball Class & Broken Egg Shell / Yolk Particles
+           =================================================================== */
+        class GiantEgg {
+            constructor() {
+                this.reset(0, 0, 1);
+            }
+
+            reset(centerX, centerY, direction = 1) {
+                this.x = centerX;
+                this.y = centerY;
+                this.rx = 22; // Horizontal radius
+                this.ry = 28; // Vertical radius
+                this.angle = 0;
+                this.rotSpeed = 0.05;
+
+                const baseSpeed = 7;
+                const angleRad = (Math.random() * 0.6 - 0.3); // Slight initial random angle
+                this.vx = direction * baseSpeed * Math.cos(angleRad);
+                this.vy = baseSpeed * Math.sin(angleRad);
+
+                this.squishX = 1.0;
+                this.squishY = 1.0;
+                this.isCracked = false;
+            }
+
+            update(canvasWidth, canvasHeight) {
+                if (this.isCracked) return;
+
+                this.x += this.vx;
+                this.y += this.vy;
+                this.angle += this.rotSpeed;
+
+                // Recover from squish elastic deformation
+                this.squishX += (1.0 - this.squishX) * 0.15;
+                this.squishY += (1.0 - this.squishY) * 0.15;
+
+                // Bounce off Top & Bottom Walls
+                if (this.y - this.ry < 10) {
+                    this.y = 10 + this.ry;
+                    this.vy *= -1;
+                    this.squishY = 0.65;
+                    this.squishX = 1.3;
+                    audio.playBoing(1.3);
+                } else if (this.y + this.ry > canvasHeight - 10) {
+                    this.y = canvasHeight - 10 - this.ry;
+                    this.vy *= -1;
+                    this.squishY = 0.65;
+                    this.squishX = 1.3;
+                    audio.playBoing(1.3);
+                }
+            }
+
+            // Draw organic smooth egg silhouette with shine & spots
+            draw(ctx) {
+                if (this.isCracked) return;
+
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                ctx.scale(this.squishX, this.squishY);
+
+                // Subtle Egg Shadow
+                ctx.shadowColor = 'rgba(251, 191, 36, 0.3)';
+                ctx.shadowBlur = 15;
+
+                // Egg Bezier Silhouette Path
+                ctx.beginPath();
+                const w = this.rx * 1.8;
+                const h = this.ry * 2.0;
+
+                // Drawing realistic asymmetrical egg shape (narrower top, wider bottom)
+                ctx.moveTo(0, -h / 2);
+                ctx.bezierCurveTo(w / 1.8, -h / 2, w / 1.5, h / 2, 0, h / 2);
+                ctx.bezierCurveTo(-w / 1.5, h / 2, -w / 1.8, -h / 2, 0, -h / 2);
+                ctx.closePath();
+
+                // Egg Shell Gradient Fill
+                const eggGrad = ctx.createRadialGradient(-w*0.2, -h*0.2, 2, 0, 0, h);
+                eggGrad.addColorStop(0, '#ffffff');      // Bright highlight
+                eggGrad.addColorStop(0.35, '#fef3c7');   // Warm cream shell
+                eggGrad.addColorStop(0.85, '#fde68a');   // Golden egg tint
+                eggGrad.addColorStop(1, '#f59e0b');      // Outer shadow edge
+
+                ctx.fillStyle = eggGrad;
+                ctx.fill();
+
+                ctx.strokeStyle = '#d97706';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // Egg Shiny Highlight Spot
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.beginPath();
+                ctx.ellipse(-w * 0.25, -h * 0.25, w * 0.2, h * 0.12, -Math.PI / 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Cute Egg Spots / Patterns
+                ctx.fillStyle = 'rgba(217, 119, 6, 0.15)';
+                ctx.beginPath();
+                ctx.arc(w * 0.2, h * 0.1, 3.5, 0, Math.PI * 2);
+                ctx.arc(-w * 0.1, h * 0.25, 4.5, 0, Math.PI * 2);
+                ctx.arc(w * 0.05, -h * 0.15, 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        /* Particle System for Egg Cracking, Shell Shards, Yolk Splat & Sparks */
+        class ParticleSystem {
+            constructor() {
+                this.particles = [];
+            }
+
+            // Create splat + shards when egg breaks on goal score
+            breakEgg(x, y) {
+                // Shell Shards
+                for (let i = 0; i < 18; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 3 + Math.random() * 8;
+                    this.particles.push({
+                        x: x,
+                        y: y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed - 2,
+                        size: 6 + Math.random() * 10,
+                        color: Math.random() > 0.3 ? '#fef3c7' : '#fde68a',
+                        type: 'shard',
+                        rot: Math.random() * Math.PI,
+                        vRot: (Math.random() - 0.5) * 0.3,
+                        alpha: 1,
+                        gravity: 0.35
+                    });
+                }
+
+                // Gooey Yolk Splat Particles
+                for (let i = 0; i < 25; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 2 + Math.random() * 6;
+                    this.particles.push({
+                        x: x,
+                        y: y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        size: 8 + Math.random() * 14,
+                        color: Math.random() > 0.4 ? '#f59e0b' : '#fbbf24',
+                        type: 'yolk',
+                        alpha: 1,
+                        gravity: 0.2
+                    });
+                }
+            }
+
+            // Bounce Impact Trampoline Sparks
+            addBounceSparks(x, y, isLeft) {
+                for (let i = 0; i < 12; i++) {
+                    const angle = (Math.random() - 0.5) * Math.PI * 0.8 + (isLeft ? 0 : Math.PI);
+                    const speed = 3 + Math.random() * 7;
+                    this.particles.push({
+                        x: x,
+                        y: y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        size: 3 + Math.random() * 5,
+                        color: isLeft ? '#38bdf8' : '#f43f5e',
+                        type: 'spark',
+                        alpha: 1,
+                        gravity: 0.1
+                    });
+                }
+            }
+
+            update() {
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += p.gravity;
+                    p.alpha -= 0.018;
+
+                    if (p.type === 'shard') {
+                        p.rot += p.vRot;
+                    }
+
+                    if (p.alpha <= 0) {
+                        this.particles.splice(i, 1);
+                    }
+                }
+            }
+
+            draw(ctx) {
+                this.particles.forEach(p => {
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, p.alpha);
+
+                    if (p.type === 'shard') {
+                        ctx.translate(p.x, p.y);
+                        ctx.rotate(p.rot);
+                        ctx.fillStyle = p.color;
+                        ctx.beginPath();
+                        ctx.moveTo(-p.size / 2, -p.size / 2);
+                        ctx.lineTo(p.size / 2, -p.size / 3);
+                        ctx.lineTo(0, p.size / 2);
+                        ctx.closePath();
+                        ctx.fill();
+                    } else if (p.type === 'yolk') {
+                        ctx.fillStyle = p.color;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else { // spark
+                        ctx.fillStyle = p.color;
+                        ctx.shadowColor = p.color;
+                        ctx.shadowBlur = 8;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+
+                    ctx.restore();
+                });
+            }
+        }
+
+        /* ===================================================================
+           Main Game Engine & AI Logic
+           =================================================================== */
+        class TrampolinePongGame {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+
+                this.playerScore = 0;
+                this.aiScore = 0;
+
+                this.difficulty = 'easy'; // 'easy', 'medium', 'hard', 'unbeatable'
+                this.gameState = 'menu';   // 'menu', 'playing', 'scoring', 'paused'
+
+                this.playerPaddle = new TrampolinePaddle(true);
+                this.aiPaddle = new TrampolinePaddle(false);
+                this.egg = new GiantEgg();
+                this.particles = new ParticleSystem();
+
+                this.scoreText = '';
+                this.scoreTextTimer = 0;
+
+                this.initEvents();
+                this.resize();
+            }
+
+            resize() {
+                const container = this.canvas.parentElement;
+                this.canvas.width = container.clientWidth;
+                this.canvas.height = container.clientHeight;
+
+                // Adjust Paddles Positions
+                const padOffset = 35;
+                this.playerPaddle.x = padOffset;
+                this.aiPaddle.x = this.canvas.width - padOffset - this.aiPaddle.width;
+
+                if (this.gameState === 'menu') {
+                    this.playerPaddle.y = this.canvas.height / 2;
+                    this.playerPaddle.targetY = this.canvas.height / 2;
+                    this.aiPaddle.y = this.canvas.height / 2;
+                    this.aiPaddle.targetY = this.canvas.height / 2;
+                    this.egg.reset(this.canvas.width / 2, this.canvas.height / 2);
+                }
+            }
+
+            initEvents() {
+                window.addEventListener('resize', () => this.resize());
+
+                // Mouse & Touch Movement for Player Paddle
+                const handlePointer = (clientY) => {
+                    const rect = this.canvas.getBoundingClientRect();
+                    const relativeY = clientY - rect.top;
+                    this.playerPaddle.targetY = relativeY;
+                };
+
+                window.addEventListener('mousemove', (e) => {
+                    if (this.gameState === 'playing') {
+                        handlePointer(e.clientY);
+                    }
+                });
+
+                window.addEventListener('touchmove', (e) => {
+                    if (this.gameState === 'playing' && e.touches.length > 0) {
+                        handlePointer(e.touches[0].clientY);
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+
+                // Keyboard Controls
+                this.keys = {};
+                window.addEventListener('keydown', (e) => {
+                    this.keys[e.code] = true;
+                });
+                window.addEventListener('keyup', (e) => {
+                    this.keys[e.code] = false;
+                });
+            }
+
+            setDifficulty(diff) {
+                this.difficulty = diff;
+                document.querySelectorAll('.btn-diff').forEach(btn => {
+                    if (btn.dataset.diff === diff) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+
+                const statusLabel = document.getElementById('ai-status');
+                const diffNames = {
+                    easy: 'AI: Easy Mode 🟢',
+                    medium: 'AI: Medium Mode 🟡',
+                    hard: 'AI: Hard Mode 🔴',
+                    unbeatable: 'AI: Unbeatable 😈'
+                };
+                statusLabel.textContent = diffNames[diff] || 'AI Mode';
+            }
+
+            // AI Paddle Movement & Trajectory Math
+            updateAI() {
+                const e = this.egg;
+                const ai = this.aiPaddle;
+
+                let targetY = this.canvas.height / 2; // Default center position
+
+                if (this.difficulty === 'easy') {
+                    // Slow response with random offset error
+                    if (e.vx > 0) {
+                        const error = Math.sin(Date.now() * 0.003) * 45;
+                        targetY = e.y + error;
+                    }
+                    ai.y += (targetY - ai.y) * 0.08;
+
+                } else if (this.difficulty === 'medium') {
+                    // Moderate tracking speed
+                    if (e.vx > 0) {
+                        targetY = e.y;
+                    }
+                    ai.y += (targetY - ai.y) * 0.16;
+
+                } else if (this.difficulty === 'hard') {
+                    // Fast tracking with bounce prediction
+                    if (e.vx > 0) {
+                        targetY = this.predictEggY();
+                    }
+                    ai.y += (targetY - ai.y) * 0.28;
+
+                } else if (this.difficulty === 'unbeatable') {
+                    // Perfect mathematical trajectory prediction
+                    if (e.vx > 0) {
+                        targetY = this.predictEggY();
+                    } else {
+                        targetY = this.canvas.height / 2;
+                    }
+                    // Instant precise movement
+                    ai.y += (targetY - ai.y) * 0.55;
+                }
+
+                ai.targetY = ai.y;
+            }
+
+            // Predict where the egg will land on the AI paddle line after bouncing off walls
+            predictEggY() {
+                let tempX = this.egg.x;
+                let tempY = this.egg.y;
+                let tempVx = this.egg.vx;
+                let tempVy = this.egg.vy;
+
+                const targetX = this.aiPaddle.x;
+
+                // Simulate physics step by step
+                let steps = 0;
+                while (tempX < targetX && steps < 300) {
+                    tempX += tempVx;
+                    tempY += tempVy;
+
+                    if (tempY - this.egg.ry <= 10 || tempY + this.egg.ry >= this.canvas.height - 10) {
+                        tempVy *= -1;
+                    }
+                    steps++;
+                }
+
+                return tempY;
+            }
+
+            // Handle Keyboard Input for Player
+            handleKeyboardInput() {
+                const step = 16;
+                if (this.keys['KeyW'] || this.keys['ArrowUp']) {
+                    this.playerPaddle.targetY -= step;
+                }
+                if (this.keys['KeyS'] || this.keys['ArrowDown']) {
+                    this.playerPaddle.targetY += step;
+                }
+            }
+
+            // Check Ball and Trampoline Paddle Collision
+            checkCollisions() {
+                const e = this.egg;
+
+                // 1. Player Trampoline Collision (Left)
+                const p = this.playerPaddle;
+                const pMatX = p.x + p.width - 4;
+
+                if (e.vx < 0 &&
+                    e.x - e.rx <= pMatX &&
+                    e.x + e.rx >= p.x &&
+                    e.y + e.ry >= p.y - p.height / 2 &&
+                    e.y - e.ry <= p.y + p.height / 2) {
+
+                    // Reverse & Boost Velocity
+                    e.x = pMatX + e.rx;
+                    e.vx = Math.abs(e.vx) * 1.05; // Acceleration on hit!
+                    if (e.vx > 22) e.vx = 22;      // Cap max speed
+
+                    // Calculate spin & angle offset based on impact point
+                    const hitOffset = (e.y - p.y) / (p.height / 2);
+                    e.vy += hitOffset * 4.5;
+                    e.rotSpeed = hitOffset * 0.25;
+
+                    // Deform Egg Elastic Squish
+                    e.squishX = 0.55;
+                    e.squishY = 1.4;
+
+                    // Flex Trampoline Mat
+                    p.impact(-26);
+
+                    // Sound & Spark Effects
+                    audio.playBoing(0.9);
+                    this.particles.addBounceSparks(e.x, e.y, true);
+                }
+
+                // 2. AI Trampoline Collision (Right)
+                const ai = this.aiPaddle;
+                const aiMatX = ai.x + 4;
+
+                if (e.vx > 0 &&
+                    e.x + e.rx >= aiMatX &&
+                    e.x - e.rx <= ai.x + ai.width &&
+                    e.y + e.ry >= ai.y - ai.height / 2 &&
+                    e.y - e.ry <= ai.y + ai.height / 2) {
+
+                    // Reverse & Boost Velocity
+                    e.x = aiMatX - e.rx;
+                    e.vx = -Math.abs(e.vx) * 1.05;
+                    if (e.vx < -22) e.vx = -22;
+
+                    const hitOffset = (e.y - ai.y) / (ai.height / 2);
+                    e.vy += hitOffset * 4.5;
+                    e.rotSpeed = hitOffset * 0.25;
+
+                    // Deform Egg Elastic Squish
+                    e.squishX = 0.55;
+                    e.squishY = 1.4;
+
+                    // Flex Trampoline Mat
+                    ai.impact(26);
+
+                    // Sound & Spark Effects
+                    audio.playBoing(1.1);
+                    this.particles.addBounceSparks(e.x, e.y, false);
+                }
+
+                // 3. Goal Scoring Check
+                if (e.x < 0) {
+                    // AI Scores! Player missed.
+                    this.handleGoal(false);
+                } else if (e.x > this.canvas.width) {
+                    // Player Scores! AI missed.
+                    this.handleGoal(true);
+                }
+            }
+
+            // Goal Trigger Event
+            handleGoal(playerScored) {
+                this.gameState = 'scoring';
+                this.egg.isCracked = true;
+
+                // Trigger Egg Destruction & Wah-Wah Sound
+                this.particles.breakEgg(this.egg.x, this.egg.y);
+                audio.playSplat();
+                audio.playWahWah();
+
+                if (playerScored) {
+                    this.playerScore++;
+                    this.scoreText = 'EGG-SCELLENT SCORE! 🍳';
+                } else {
+                    this.aiScore++;
+                    this.scoreText = 'SPLATTED! 🥚💥';
+                }
+
+                this.scoreTextTimer = 110; // Frames to show text popup
+                this.updateScoreUI();
+
+                // Respawn egg after crack animation finishes
+                setTimeout(() => {
+                    if (this.gameState === 'scoring') {
+                        const serveDirection = playerScored ? -1 : 1;
+                        this.egg.reset(this.canvas.width / 2, this.canvas.height / 2, serveDirection);
+                        this.gameState = 'playing';
+                    }
+                }, 1600);
+            }
+
+            updateScoreUI() {
+                document.getElementById('player-score').textContent = this.playerScore;
+                document.getElementById('ai-score').textContent = this.aiScore;
+            }
+
+            resetGame() {
+                this.playerScore = 0;
+                this.aiScore = 0;
+                this.updateScoreUI();
+                this.egg.reset(this.canvas.width / 2, this.canvas.height / 2);
+                this.gameState = 'playing';
+                document.getElementById('overlay').classList.add('hidden');
+            }
+
+            update() {
+                if (this.gameState === 'playing') {
+                    this.handleKeyboardInput();
+                    this.playerPaddle.update(this.canvas.height);
+                    this.updateAI();
+                    this.aiPaddle.update(this.canvas.height);
+                    this.egg.update(this.canvas.width, this.canvas.height);
+                    this.checkCollisions();
+                } else if (this.gameState === 'scoring') {
+                    this.playerPaddle.update(this.canvas.height);
+                    this.aiPaddle.update(this.canvas.height);
+                }
+
+                this.particles.update();
+
+                if (this.scoreTextTimer > 0) {
+                    this.scoreTextTimer--;
+                }
+            }
+
+            drawBackground() {
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+
+                // Center Court Line (Dashed Trampoline Net)
+                this.ctx.save();
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+                this.ctx.lineWidth = 4;
+                this.ctx.setLineDash([12, 12]);
+                this.ctx.beginPath();
+                this.ctx.moveTo(w / 2, 10);
+                this.ctx.lineTo(w / 2, h - 10);
+                this.ctx.stroke();
+                this.ctx.restore();
+
+                // Center Circle
+                this.ctx.save();
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+                this.ctx.lineWidth = 3;
+                this.ctx.beginPath();
+                this.ctx.arc(w / 2, h / 2, 70, 0, Math.PI * 2);
+                this.ctx.stroke();
+                this.ctx.restore();
+            }
+
+            drawFloatingText() {
+                if (this.scoreTextTimer > 0) {
+                    this.ctx.save();
+                    this.ctx.font = 'bold 32px "Fredoka", sans-serif';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillStyle = '#f59e0b';
+                    this.ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                    this.ctx.shadowBlur = 10;
+
+                    const alpha = Math.min(1, this.scoreTextTimer / 30);
+                    this.ctx.globalAlpha = alpha;
+                    this.ctx.fillText(this.scoreText, this.canvas.width / 2, this.canvas.height / 2 - 90);
+                    this.ctx.restore();
+                }
+            }
+
+            render() {
+                // Clear Canvas
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // Render Layers
+                this.drawBackground();
+                this.playerPaddle.draw(this.ctx);
+                this.aiPaddle.draw(this.ctx);
+                this.egg.draw(this.ctx);
+                this.particles.draw(this.ctx);
+                this.drawFloatingText();
+            }
+
+            loop() {
+                this.update();
+                this.render();
+                requestAnimationFrame(() => this.loop());
+            }
+        }
+
+        // Initialize Game Instance
+        window.onload = () => {
+            const game = new TrampolinePongGame();
+            game.loop();
+
+            // UI Button Handlers
+            const overlay = document.getElementById('overlay');
+            const btnStart = document.getElementById('btn-start');
+            const btnReset = document.getElementById('btn-reset');
+            const btnPause = document.getElementById('btn-pause');
+            const btnSound = document.getElementById('btn-sound');
+
+            btnStart.addEventListener('click', () => {
+                audio.init();
+                game.resetGame();
+            });
+
+            btnReset.addEventListener('click', () => {
+                audio.init();
+                game.resetGame();
+            });
+
+            btnPause.addEventListener('click', () => {
+                if (game.gameState === 'playing') {
+                    game.gameState = 'paused';
+                    document.getElementById('overlay-title').textContent = 'Game Paused ⏸️';
+                    document.getElementById('overlay-desc').textContent = 'Take a breather!';
+                    btnStart.textContent = 'RESUME';
+                    overlay.classList.remove('hidden');
+                } else if (game.gameState === 'paused') {
+                    game.gameState = 'playing';
+                    overlay.classList.add('hidden');
+                }
+            });
+
+            // Toggle Audio Sound Engine
+            btnSound.addEventListener('click', () => {
+                audio.enabled = !audio.enabled;
+                btnSound.textContent = audio.enabled ? '🔊' : '🔇';
+                btnSound.classList.toggle('opacity-50', !audio.enabled);
+            });
+
+            // Difficulty Buttons
+            document.querySelectorAll('.btn-diff').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const diff = e.target.dataset.diff;
+                    game.setDifficulty(diff);
+                });
+            });
+        };
+    </script>
+</body>
+</html>
