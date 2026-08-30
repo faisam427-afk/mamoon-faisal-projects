@@ -32,7 +32,7 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .glass-card {
-            background: rgba(17, 24, 39, 0.7);
+            background: rgba(15, 23, 42, 0.75);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
@@ -40,12 +40,9 @@
             border-color: rgba(6, 182, 212, 0.4);
             box-shadow: 0 10px 25px -5px rgba(6, 182, 212, 0.15);
         }
-        .owner-only {
-            display: none !important;
-        }
-        body.owner-authenticated .owner-only {
-            display: inline-flex !important;
-        }
+        /* Hide scrollbars for filter bar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-cyan-500 selection:text-slate-950">
@@ -53,83 +50,82 @@
     <header class="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
             <div class="flex items-center space-x-3">
-                <button id="ownerModeBtn" onclick="openOwnerModal()" class="flex items-center space-x-2 text-xs font-medium px-3.5 py-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all hover:border-slate-500">
-                    <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                    <span id="ownerBtnLabel">🔥 Owner Login</span>
-                </button>
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white shadow-md shadow-cyan-950/50">
+                    ⚡
+                </div>
+                <div>
+                    <h1 class="text-sm font-bold text-white tracking-wide">Developer Hub</h1>
+                    <p class="text-[11px] text-slate-400 font-mono">Personal Project Showcase</p>
+                </div>
             </div>
 
-            <div class="flex items-center space-x-3">
-                <span class="text-xs font-mono text-slate-400">🔥 Developer Project Hub</span>
+            <div class="flex items-center space-x-2">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-mono font-medium bg-cyan-950/80 text-cyan-400 border border-cyan-800/60">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse mr-1.5"></span>
+                    Live Portfolio
+                </span>
             </div>
         </div>
     </header>
 
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
-        <!-- Access Notice Alert -->
-        <div class="rounded-2xl bg-slate-900/60 border border-slate-800 p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div class="flex items-start space-x-3.5">
-                <div class="p-2.5 bg-slate-800/80 rounded-xl text-cyan-400 border border-slate-700/60 flex-shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </div>
-                <div>
-                    <h2 class="text-sm font-semibold text-slate-200">🔥 Public & Owner Access Guidelines</h2>
-                    <p class="text-xs text-slate-400 mt-0.5 max-w-3xl leading-relaxed">
-                        <strong class="text-slate-300">Visitors:</strong> View and test active applications and interactive game demos. 
-                        <strong class="text-slate-300">Owner:</strong> Log in to add, edit, or manage project cards locally.
-                    </p>
-                </div>
+        <!-- Welcome Hero Banner -->
+        <div class="rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border border-slate-800 p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl relative overflow-hidden">
+            <div class="absolute -right-10 -top-10 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="space-y-2 max-w-2xl relative z-10">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                    Building & Exploring with Code
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                    Welcome to my interactive portfolio. Explore live web games, utility tools, and experiment modules built using modern web techniques.
+                </p>
             </div>
         </div>
 
-        <!-- Controls & Filtering Bar -->
         <div class="flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center">
-            <!-- Search Bar -->
+            <!-- Search Input -->
             <div class="relative flex-grow max-w-md">
                 <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <input type="text" id="searchInput" oninput="filterProjects()" placeholder="Search projects by title, tech stack, or description..." class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all">
+                <input type="text" id="searchInput" oninput="filterProjects()" placeholder="Search projects by name or tech stack..." class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all">
             </div>
 
-            <!-- Category Filter Pills -->
-            <div class="flex items-center space-x-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none text-xs font-medium">
-                <button onclick="setCategoryFilter('all')" class="cat-filter-btn px-3 py-2 rounded-lg bg-cyan-600 text-white font-semibold shadow-sm transition-all" data-cat="all">🔥 All Projects</button>
-                <button onclick="setCategoryFilter('maintained')" class="cat-filter-btn px-3 py-2 rounded-lg bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 transition-all" data-cat="maintained">Maintained</button>
-                <button onclick="setCategoryFilter('experiment')" class="cat-filter-btn px-3 py-2 rounded-lg bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 transition-all" data-cat="experiment">Experiments</button>
-                <button onclick="setCategoryFilter('archive')" class="cat-filter-btn px-3 py-2 rounded-lg bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 transition-all" data-cat="archive">Archive</button>
+            <!-- Category Filters -->
+            <div class="flex items-center space-x-1.5 overflow-x-auto pb-1 sm:pb-0 no-scrollbar text-xs font-medium">
+                <button onclick="setCategoryFilter('all')" class="cat-filter-btn px-3.5 py-2 rounded-xl bg-cyan-600 text-white font-semibold shadow-sm transition-all" data-cat="all">All Projects</button>
+                <button onclick="setCategoryFilter('maintained')" class="cat-filter-btn px-3.5 py-2 rounded-xl bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 transition-all" data-cat="maintained">Maintained</button>
+                <button onclick="setCategoryFilter('experiment')" class="cat-filter-btn px-3.5 py-2 rounded-xl bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 transition-all" data-cat="experiment">Experiments</button>
+                <button onclick="setCategoryFilter('archive')" class="cat-filter-btn px-3.5 py-2 rounded-xl bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 transition-all" data-cat="archive">Archive</button>
             </div>
         </div>
 
-        <!-- Section: Maintained Projects -->
         <section id="sectionMaintained" class="space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2 tracking-wide uppercase">
                     <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
-                    🔥 Maintained Projects & Applications
+                    Maintained Projects & Interactive Games
                 </h3>
                 <span class="text-xs font-mono text-slate-400" id="countMaintained">0 Projects</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="maintainedGrid"></div>
         </section>
 
-        <!-- Section: Experiments & Utilities -->
         <section id="sectionExperiments" class="space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2 tracking-wide uppercase">
                     <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
-                    🔥 Experiments & Utilities
+                    Experiments & Utilities
                 </h3>
                 <span class="text-xs font-mono text-slate-400" id="countExperiments">0 Modules</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="experimentsGrid"></div>
         </section>
 
-        <!-- Section: Archive -->
         <section id="sectionArchive" class="space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2 tracking-wide uppercase">
                     <span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
-                    🔥 Archive & Deprecated Codebases
+                    Archive & Early Prototypes
                 </h3>
                 <span class="text-xs font-mono text-slate-400" id="countArchive">0 Entries</span>
             </div>
@@ -138,18 +134,17 @@
 
     </main>
 
-    <!-- Modal: Live Interactive Game Frame -->
     <div id="gameModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-lg hidden flex items-center justify-center p-2 sm:p-4">
         <div class="w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl flex flex-col h-[90vh] overflow-hidden">
             <div class="px-4 py-3 border-b border-slate-800 bg-slate-950 flex items-center justify-between">
                 <div class="flex items-center space-x-2">
-                    <span class="w-3 h-3 rounded-full bg-red-500 inline-block cursor-pointer" onclick="closeGameModal()"></span>
-                    <span class="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span>
-                    <span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span>
-                    <span id="gameModalTitle" class="text-xs font-mono font-bold text-slate-200 ml-2">Launching Game...</span>
+                    <button onclick="closeGameModal()" class="w-3.5 h-3.5 rounded-full bg-red-500 hover:bg-red-400 transition-colors cursor-pointer" title="Close Preview"></button>
+                    <span class="w-3.5 h-3.5 rounded-full bg-yellow-500 inline-block"></span>
+                    <span class="w-3.5 h-3.5 rounded-full bg-green-500 inline-block"></span>
+                    <span id="gameModalTitle" class="text-xs font-mono font-bold text-slate-200 ml-2">Launching Demo...</span>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <a id="gameModalExternalLink" href="#" target="_blank" class="text-xs text-cyan-400 hover:underline font-mono px-2 py-1 rounded bg-slate-800 border border-slate-700">Open Full Window ↗</a>
+                    <a id="gameModalExternalLink" href="#" target="_blank" class="text-xs text-cyan-400 hover:underline font-mono px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700">Open Full Window ↗</a>
                     <button onclick="closeGameModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
@@ -161,123 +156,12 @@
         </div>
     </div>
 
-    <!-- Modal: Owner Management -->
-    <div id="ownerModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 space-y-6 max-h-[90vh] overflow-y-auto">
-            
-            <div class="flex items-start justify-between border-b border-slate-800 pb-4">
-                <div class="flex items-center space-x-3">
-                    <div class="p-2 bg-cyan-950 text-cyan-400 rounded-xl border border-cyan-800">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    </div>
-                    <div>
-                        <h3 class="text-base font-bold text-white" id="ownerModalHeading">🔥 Owner Authentication</h3>
-                        <p class="text-xs text-slate-400" id="ownerModalSubheading">Log in with owner credentials to unlock administration tools</p>
-                    </div>
-                </div>
-                <button onclick="closeOwnerModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-
-            <!-- Login View -->
-            <div id="ownerLoginFormView" class="space-y-4">
-                <form onsubmit="handleOwnerLogin(event)" class="space-y-4">
-                    <div id="loginErrorMessage" class="hidden p-3 rounded-xl bg-red-950/80 border border-red-800/80 text-red-300 text-xs flex items-center gap-2">
-                        <svg class="w-4 h-4 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span id="loginErrorText">Incorrect username or password.</span>
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <label class="block text-xs font-semibold text-slate-300">Owner Username</label>
-                        <input type="text" id="ownerUsername" placeholder="owner" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500">
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <label class="block text-xs font-semibold text-slate-300">Owner Password</label>
-                        <input type="password" id="ownerPassword" placeholder="owneriscool" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500">
-                    </div>
-
-                    <div class="pt-2 flex items-center justify-between">
-                        <span class="text-[11px] text-slate-500">Default: owner / owneriscool</span>
-                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold text-xs transition-all shadow-lg shadow-cyan-950/50">
-                            Log In as Owner
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Authenticated Dashboard View -->
-            <div id="ownerDashboardView" class="hidden space-y-5">
-                <div class="p-3.5 rounded-xl bg-emerald-950/60 border border-emerald-800/70 flex items-center justify-between">
-                    <div class="flex items-center space-x-2.5">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span class="text-xs font-semibold text-emerald-300">🔥 Logged in as Owner</span>
-                    </div>
-                    <button onclick="handleOwnerLogout()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-red-950 hover:text-red-300 border border-slate-700 text-slate-300 text-xs transition-all">
-                        Log Out
-                    </button>
-                </div>
-
-                <!-- Add Project Tool -->
-                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
-                    <h4 class="font-bold text-cyan-400 text-xs uppercase tracking-wider">🔥 Add New Project Card</h4>
-                    <form onsubmit="handleAddNewProject(event)" class="space-y-3">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-[11px] text-slate-400 mb-1">Project Title</label>
-                                <input type="text" id="newProjTitle" placeholder="e.g. Trampoline Egg Pong" required class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-500">
-                            </div>
-                            <div>
-                                <label class="block text-[11px] text-slate-400 mb-1">Category</label>
-                                <select id="newProjCategory" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-500">
-                                    <option value="maintained">Maintained Project</option>
-                                    <option value="experiment">Experiment / Module</option>
-                                    <option value="archive">Archive Entry</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-[11px] text-slate-400 mb-1">Description</label>
-                            <input type="text" id="newProjDesc" placeholder="Short overview of what this project does..." required class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-500">
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-[11px] text-slate-400 mb-1">Tech Stack (comma separated)</label>
-                                <input type="text" id="newProjStack" placeholder="e.g. Canvas, JavaScript, HTML5" required class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-500">
-                            </div>
-                            <div>
-                                <label class="block text-[11px] text-slate-400 mb-1">Project / Repository Link</label>
-                                <input type="text" id="newProjLink" placeholder="e.g. meteordash.html or eggcilent-pong.html" required class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-500">
-                            </div>
-                        </div>
-
-                        <div class="flex justify-end pt-1">
-                            <button type="submit" class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold transition-all">
-                                Add Project
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <div class="flex justify-end pt-2 border-t border-slate-800/80">
-                <button onclick="closeOwnerModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700">
-                    Close Window
-                </button>
-            </div>
-        </div>
-    </div>
-
     <script>
         let projectsData = [];
         let currentCat = 'all';
-        let isOwnerLoggedIn = false;
 
         document.addEventListener('DOMContentLoaded', () => {
-            initAuthAndSync();
+            initPortfolio();
         });
 
         function escapeHtml(str) {
@@ -290,18 +174,18 @@
                 .replace(/'/g, '&#39;');
         }
 
+        /* --- Default Project Seed Data --- */
         const defaultProjectsSeed = [
             {
                 id: 'proj-egg-pong',
                 title: '🥚 Trampoline Egg Pong',
                 category: 'maintained',
-                desc: 'Dynamic physics arcade game! Keep the egg bouncing on the trampoline paddle and beat your personal high score.',
+                desc: 'Dynamic physics arcade game! Keep the egg bouncing on the trampoline paddle and beat your high score.',
                 stack: ['HTML5 Canvas', 'JavaScript', 'Physics API'],
-                link: 'eggcilent-pong/index.html', // Pointing directly to file name
+                link: 'eggcilent-pong/index.html',
                 tag: 'Active',
                 tagClass: 'bg-emerald-950/80 text-emerald-400 border-emerald-800/60',
-                isGame: true,
-                createdAt: Date.now()
+                isGame: true
             },
             {
                 id: 'proj-meteor-dash',
@@ -309,135 +193,79 @@
                 category: 'maintained',
                 desc: 'Retro space shooter featuring vector movement, laser weapons, power-up orbs, and space dreadnought boss battles.',
                 stack: ['HTML5 Canvas', 'JavaScript', 'Tailwind CSS'],
-                link: 'meteor-dodge/index.html', // Fixed target path to resolve 404
+                link: 'meteor-dodge/index.html',
                 tag: 'Active',
                 tagClass: 'bg-emerald-950/80 text-emerald-400 border-emerald-800/60',
-                isGame: true,
-                createdAt: Date.now() - 5000
+                isGame: true
             },
             {
                 id: 'proj-alpha',
-                title: '⚡ Project-Alpha',
+                title: '⚡ Project-Alpha Backend',
                 category: 'maintained',
-                desc: 'Primary application backend and high-performance API service infrastructure managing real-time websocket connections.',
+                desc: 'High-performance API service infrastructure managing real-time websocket connections and user sessions.',
                 stack: ['TypeScript', 'Node.js', 'Express'],
-                link: 'https://github.com/user/project-alpha',
+                link: 'https://github.com',
                 tag: 'Active',
                 tagClass: 'bg-emerald-950/80 text-emerald-400 border-emerald-800/60',
-                isGame: false,
-                createdAt: Date.now() - 10000
+                isGame: false
             },
             {
                 id: 'proj-beta',
-                title: '🛠️ Project-Beta',
+                title: '🛠️ Deployment CLI Tool',
                 category: 'maintained',
-                desc: 'Command-line utility for automated cloud deployment, container management, and Kubernetes synchronization.',
-                stack: ['Go', 'Docker', 'Kubernetes'],
-                link: 'https://github.com/user/project-beta',
+                desc: 'Command-line utility for automated static site deployment, asset minification, and repository sync checks.',
+                stack: ['Go', 'Docker', 'CLI'],
+                link: 'https://github.com',
                 tag: 'Maintenance',
                 tagClass: 'bg-amber-950/80 text-amber-400 border-amber-800/60',
-                isGame: false,
-                createdAt: Date.now() - 20000
+                isGame: false
             },
             {
                 id: 'exp-automation',
-                title: '🧪 script-automation',
+                title: '🧪 Script Automation',
                 category: 'experiment',
-                desc: 'Internal shell and Python scripts for CI/CD workflow automation, automated backups, and log parsing utilities.',
+                desc: 'Internal shell and Python scripts for workflow automation, site backups, and asset optimization.',
                 stack: ['Python', 'Bash'],
-                link: 'https://github.com/user/script-automation',
+                link: 'https://github.com',
                 typeLabel: 'Python / Bash',
-                isGame: false,
-                createdAt: Date.now() - 30000
+                isGame: false
             },
             {
                 id: 'exp-prototype',
-                title: '🧪 ui-prototype',
+                title: '🧪 UI Layout Experiments',
                 category: 'experiment',
-                desc: 'Interactive component playground testing frontend DOM rendering performance and custom Tailwind layout shaders.',
+                desc: 'Interactive component playground testing frontend DOM performance and custom Tailwind layout glassmorphism.',
                 stack: ['React', 'Tailwind'],
-                link: 'https://github.com/user/ui-prototype',
+                link: 'https://github.com',
                 typeLabel: 'React / Tailwind',
-                isGame: false,
-                createdAt: Date.now() - 40000
+                isGame: false
             },
             {
                 id: 'arc-legacy-v1',
-                title: '📦 legacy-v1-api',
+                title: '📦 Legacy Portfolio v1',
                 category: 'archive',
-                desc: 'Deprecated API design replaced in late 2024.',
-                stack: ['Legacy'],
+                desc: 'Original static portfolio layout from earlier iterations.',
+                stack: ['HTML/CSS'],
                 link: '#',
                 typeLabel: 'Archived',
-                isGame: false,
-                createdAt: Date.now() - 50000
+                isGame: false
             },
             {
                 id: 'arc-hackathon',
-                title: '📦 hackathon-2023',
+                title: '📦 Hackathon Prototype 2023',
                 category: 'archive',
-                desc: 'Submission entry for prototype hackathon challenge.',
-                stack: ['Prototype'],
+                desc: 'Submission entry for initial rapid prototype hackathon challenge.',
+                stack: ['JavaScript'],
                 link: '#',
                 typeLabel: 'Archived',
-                isGame: false,
-                createdAt: Date.now() - 60000
+                isGame: false
             }
         ];
 
-        function initAuthAndSync() {
-            subscribeToProjects();
-        }
-
-        function subscribeToProjects() {
-            const stored = localStorage.getItem('portfolio_projects_data');
-            if (stored) {
-                try {
-                    const parsed = JSON.parse(stored);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                        projectsData = parsed;
-                    } else {
-                        seedInitialData();
-                        return;
-                    }
-                } catch(e) {
-                    seedInitialData();
-                    return;
-                }
-            } else {
-                seedInitialData();
-                return;
-            }
-            renderProjectsUI();
-        }
-
-        function seedInitialData() {
+        function initPortfolio() {
             projectsData = [...defaultProjectsSeed];
-            saveProjectsToSync();
             renderProjectsUI();
         }
-
-        function saveProjectsToSync() {
-            try {
-                localStorage.setItem('portfolio_projects_data', JSON.stringify(projectsData));
-            } catch(e) {
-                console.error('Failed to save projects to localStorage:', e);
-            }
-        }
-
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'portfolio_projects_data' && e.newValue) {
-                try {
-                    const parsed = JSON.parse(e.newValue);
-                    if (Array.isArray(parsed)) {
-                        projectsData = parsed;
-                        renderProjectsUI();
-                    }
-                } catch(err) {
-                    console.error('Storage sync error:', err);
-                }
-            }
-        });
 
         function renderProjectsUI() {
             const maintainedGrid = document.getElementById('maintainedGrid');
@@ -450,9 +278,7 @@
             experimentsGrid.innerHTML = '';
             archiveGrid.innerHTML = '';
 
-            const sortedProjects = [...projectsData].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-
-            sortedProjects.forEach(proj => {
+            projectsData.forEach(proj => {
                 const searchTags = `${proj.title} ${proj.desc} ${proj.typeLabel || ''} ${(proj.stack || []).join(' ')}`.toLowerCase();
                 
                 if (proj.category === 'maintained') {
@@ -483,21 +309,14 @@
                     <span>Play Live Demo</span>
                 </button>` :
                 `<a href="${escapeHtml(proj.link)}" target="_blank" class="w-full inline-flex items-center justify-center space-x-2 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-xs transition-all">
-                    <span>View Repository</span>
+                    <span>View Project</span>
                     <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </a>`;
-
-            const deleteBtn = `<button onclick="removeProjectCard('${escapeHtml(proj.id)}')" title="Delete Project" class="owner-only text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-950/50 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-            </button>`;
 
             div.innerHTML = `
                 <div class="space-y-3">
                     <div class="flex items-start justify-between gap-2">
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold border ${escapeHtml(proj.tagClass || 'bg-cyan-950/80 text-cyan-400 border-cyan-800/60')}">${escapeHtml(proj.tag || 'Active')}</span>
-                        <div class="flex items-center gap-2">
-                            ${deleteBtn}
-                        </div>
                     </div>
                     <h4 class="text-base font-bold text-white group-hover:text-cyan-400 transition-colors">${escapeHtml(proj.title)}</h4>
                     <p class="text-xs text-slate-300 leading-relaxed">${escapeHtml(proj.desc)}</p>
@@ -520,15 +339,10 @@
                 `<span class="px-2 py-0.5 text-[10px] font-mono rounded bg-slate-800 text-purple-300 border border-slate-700/60">${escapeHtml(s)}</span>`
             ).join(' ');
 
-            const deleteBtn = `<button onclick="removeProjectCard('${escapeHtml(proj.id)}')" title="Delete Project" class="owner-only text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-950/50 transition-colors">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-            </button>`;
-
             div.innerHTML = `
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-mono text-purple-400 font-semibold">${escapeHtml(proj.typeLabel || 'Experiment')}</span>
-                        ${deleteBtn}
                     </div>
                     <h4 class="text-sm font-bold text-white group-hover:text-purple-300 transition-colors">${escapeHtml(proj.title)}</h4>
                     <p class="text-xs text-slate-400 leading-relaxed">${escapeHtml(proj.desc)}</p>
@@ -546,10 +360,6 @@
             div.setAttribute('data-category', 'archive');
             div.setAttribute('data-tags', escapeHtml(searchTags));
 
-            const deleteBtn = `<button onclick="removeProjectCard('${escapeHtml(proj.id)}')" title="Delete Project" class="owner-only text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-950/50 transition-colors">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-            </button>`;
-
             div.innerHTML = `
                 <div class="space-y-1">
                     <h4 class="text-xs font-bold text-slate-300">${escapeHtml(proj.title)}</h4>
@@ -557,13 +367,11 @@
                 </div>
                 <div class="flex items-center space-x-2">
                     <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800">${escapeHtml(proj.typeLabel || 'Archived')}</span>
-                    ${deleteBtn}
                 </div>
             `;
             return div;
         }
 
-        /* --- Modal & Launcher Logic --- */
         function launchGameModalById(id) {
             const proj = projectsData.find(p => p.id === id);
             if (!proj) return;
@@ -588,89 +396,13 @@
             if (modal) modal.classList.add('hidden');
         }
 
-        /* --- Owner Modal & Auth Logic --- */
-        function openOwnerModal() {
-            const modal = document.getElementById('ownerModal');
-            if (modal) modal.classList.remove('hidden');
-        }
-
-        function closeOwnerModal() {
-            const modal = document.getElementById('ownerModal');
-            if (modal) modal.classList.add('hidden');
-        }
-
-        function handleOwnerLogin(e) {
-            e.preventDefault();
-            const user = document.getElementById('ownerUsername').value;
-            const pass = document.getElementById('ownerPassword').value;
-            const errDiv = document.getElementById('loginErrorMessage');
-
-            if (user === 'owner' && pass === 'owneriscool') {
-                isOwnerLoggedIn = true;
-                document.body.classList.add('owner-authenticated');
-                document.getElementById('ownerLoginFormView').classList.add('hidden');
-                document.getElementById('ownerDashboardView').classList.remove('hidden');
-                document.getElementById('ownerBtnLabel').textContent = '⚡ Owner Active';
-                if (errDiv) errDiv.classList.add('hidden');
-            } else {
-                if (errDiv) errDiv.classList.remove('hidden');
-            }
-        }
-
-        function handleOwnerLogout() {
-            isOwnerLoggedIn = false;
-            document.body.classList.remove('owner-authenticated');
-            document.getElementById('ownerLoginFormView').classList.remove('hidden');
-            document.getElementById('ownerDashboardView').classList.add('hidden');
-            document.getElementById('ownerBtnLabel').textContent = '🔥 Owner Login';
-        }
-
-        function handleAddNewProject(e) {
-            e.preventDefault();
-            const title = document.getElementById('newProjTitle').value.trim();
-            const category = document.getElementById('newProjCategory').value;
-            const desc = document.getElementById('newProjDesc').value.trim();
-            const stack = document.getElementById('newProjStack').value.split(',').map(s => s.trim()).filter(Boolean);
-            const link = document.getElementById('newProjLink').value.trim();
-
-            const isGame = link.endsWith('.html') || link.includes('pong') || link.includes('meteor') || link.includes('game');
-
-            const newProj = {
-                id: 'proj-' + Date.now(),
-                title: title,
-                category: category,
-                desc: desc,
-                stack: stack,
-                link: link,
-                tag: category === 'maintained' ? 'Active' : 'Dev',
-                tagClass: 'bg-emerald-950/80 text-emerald-400 border-emerald-800/60',
-                isGame: isGame,
-                createdAt: Date.now()
-            };
-
-            projectsData.unshift(newProj);
-            saveProjectsToSync();
-            renderProjectsUI();
-            e.target.reset();
-            closeOwnerModal();
-        }
-
-        function removeProjectCard(id) {
-            if (confirm('Are you sure you want to delete this project?')) {
-                projectsData = projectsData.filter(p => p.id !== id);
-                saveProjectsToSync();
-                renderProjectsUI();
-            }
-        }
-
-        /* --- Filtering & Search Logic --- */
         function setCategoryFilter(cat) {
             currentCat = cat;
             document.querySelectorAll('.cat-filter-btn').forEach(btn => {
                 if (btn.getAttribute('data-cat') === cat) {
-                    btn.className = 'cat-filter-btn px-3 py-2 rounded-lg bg-cyan-600 text-white font-semibold shadow-sm transition-all';
+                    btn.className = 'cat-filter-btn px-3.5 py-2 rounded-xl bg-cyan-600 text-white font-semibold shadow-sm transition-all';
                 } else {
-                    btn.className = 'cat-filter-btn px-3 py-2 rounded-lg bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 transition-all';
+                    btn.className = 'cat-filter-btn px-3.5 py-2 rounded-xl bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 transition-all';
                 }
             });
 
