@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cricket Players Ratings App - Leaderboard</title>
+  <script src="[https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2)"></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #f59e0b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --gold: #eab308;
+      --silver: #94a3b8;
+      --bronze: #b45309;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 20px; line-height: 1.5; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    h1 { font-size: 1.8rem; color: var(--accent); }
+    .btn { background: var(--accent); color: #000; font-weight: bold; padding: 10px 18px; text-decoration: none; border-radius: 8px; border: none; cursor: pointer; }
+    .btn:hover { opacity: 0.9; }
+
+    /* Stats & Controls */
+    .toolbar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; background: var(--card-bg); padding: 16px; border-radius: 12px; }
+    .stat-badge { background: #334155; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; }
+    select { background: #0f172a; color: #fff; border: 1px solid #475569; padding: 8px 12px; border-radius: 6px; }
+
+    /* Hero Section - Top 3 */
+    .hero-title { margin-bottom: 12px; font-size: 1.2rem; color: var(--accent); border-left: 4px solid var(--accent); padding-left: 8px; }
+    .top3-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 32px; }
+
+    /* FIFA Card Style */
+    .fifa-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 2px solid #334155; border-radius: 16px; padding: 16px; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.3); word-break: break-word; }
+    .fifa-card.gold { border-color: var(--gold); }
+    .fifa-card.silver { border-color: var(--silver); }
+    .fifa-card.bronze { border-color: var(--bronze); }
+
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .ovr-badge { font-size: 2rem; font-weight: 900; line-height: 1; }
+    .gold .ovr-badge { color: var(--gold); }
+    .silver .ovr-badge { color: var(--silver); }
+    .bronze .ovr-badge { color: var(--bronze); }
+    .role-tag { background: #334155; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .player-name { font-size: 1.3rem; font-weight: bold; margin-bottom: 4px; }
+    .evaluator { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; }
+    .scouting-notes { font-size: 0.9rem; background: #0f172a; padding: 10px; border-radius: 8px; max-height: 90px; overflow-y: auto; border-left: 3px solid var(--accent); }
+
+    /* Cards Grid */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; max-height: 600px; overflow-y: auto; padding-right: 4px; }
+
+    /* Empty State */
+    .empty-state { text-align: center; padding: 48px 16px; background: var(--card-bg); border-radius: 12px; border: 2px dashed #475569; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🏏 Club Cricket OVR Tracker</h1>
+      <a href="add.html" class="btn">+ Rate New Player</a>
+    </header>
+
+    <div class="toolbar">
+      <div class="stat-badge" id="total-count">Total Rated: 0</div>
+      <div>
+        <label for="filter-role">Filter Role:</label>
+        <select id="filter-role" onchange="loadRatings()">
+          <option value="ALL">All Roles</option>
+          <option value="Batter">Batter</option>
+          <option value="Fast Bowler">Fast Bowler</option>
+          <option value="Spin Bowler">Spin Bowler</option>
+          <option value="All-Rounder">All-Rounder</option>
+        </select>
+      </div>
+      <div>
+        <label for="sort-by">Sort By:</label>
+        <select id="sort-by" onchange="loadRatings()">
+          <option value="ovr_desc">Highest OVR</option>
+          <option value="ovr_asc">Lowest OVR</option>
+          <option value="newest">Newest First</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Top 3 Featured Section -->
+    <div id="top3-container" style="display: none;">
+      <h2 class="hero-title">⭐ Team of the Week (Top 3 OVR)</h2>
+      <div class="top3-grid" id="top3-grid"></div>
+    </div>
+
+    <h2 class="hero-title">All Player Cards</h2>
+    <div id="main-content">
+      <div class="grid" id="cards-grid"></div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    function getTierClass(score) {
+      if (score >= 85) return 'gold';
+      if (score >= 75) return 'silver';
+      return 'bronze';
+    }
+
+    function renderCardHTML(player) {
+      const tier = getTierClass(player.overall_rating);
+      return `
+        <div class="fifa-card ${tier}">
+          <div class="card-header">
+            <div class="ovr-badge">${player.overall_rating}</div>
+            <div class="role-tag">${player.role}</div>
+          </div>
+          <div class="player-name">${escapeHTML(player.player_name)}</div>
+          <div class="evaluator">Rated by: ${escapeHTML(player.evaluator_name)}</div>
+          <div class="scouting-notes">"${escapeHTML(player.scouting_notes)}"</div>
+        </div>
+      `;
+    }
+
+    function escapeHTML(str) {
+      return str.replace(/[&<>'"]/g, 
+        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+    }
+
+    async function loadRatings() {
+      const roleFilter = document.getElementById('filter-role').value;
+      const sortBy = document.getElementById('sort-by').value;
+
+      let query = supabase.from('fifa_cricket_ratings').select('*');
+
+      if (roleFilter !== 'ALL') {
+        query = query.eq('role', roleFilter);
+      }
+
+      if (sortBy === 'ovr_desc') {
+        query = query.order('overall_rating', { ascending: false });
+      } else if (sortBy === 'ovr_asc') {
+        query = query.order('overall_rating', { ascending: true });
+      } else if (sortBy === 'newest') {
+        query = query.order('added_at', { ascending: false });
+      }
+
+      // Large Dataset Rule: Limit query to 30 items
+      query = query.limit(30);
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Error fetching data:', error);
+        return;
+      }
+
+      // Update total count
+      document.getElementById('total-count').textContent = `Total Rated: ${data.length}`;
+
+      const grid = document.getElementById('cards-grid');
+      const top3Container = document.getElementById('top3-container');
+      const top3Grid = document.getElementById('top3-grid');
+
+      // Edge Case 1: Empty Database
+      if (data.length === 0) {
+        top3Container.style.display = 'none';
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column: 1/-1;">
+            <h3>No player cards generated yet!</h3>
+            <p style="color: var(--text-muted); margin: 8px 0 16px;">Be the first to rate a club player and build the team leaderboard.</p>
+            <a href="add.html" class="btn">+ Submit First Card</a>
+          </div>
+        `;
+        return;
+      }
+
+      // Render Top 3 Hero Section (Only when sorting by highest OVR and no role filter)
+      if (roleFilter === 'ALL' && sortBy === 'ovr_desc' && data.length >= 1) {
+        top3Container.style.display = 'block';
+        const top3 = data.slice(0, 3);
+        top3Grid.innerHTML = top3.map(renderCardHTML).join('');
+      } else {
+        top3Container.style.display = 'none';
+      }
+
+      // Render Main Grid
+      grid.innerHTML = data.map(renderCardHTML).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', loadRatings);
+  </script>
+</body>
+</html>
