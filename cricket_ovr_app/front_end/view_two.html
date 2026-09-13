@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rate Club Player - FIFA Style</title>
+  <script src="[https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2)"></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #f59e0b;
+      --text: #f8fafc;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
+    .container { max-width: 500px; margin: 40px auto; background: var(--card-bg); padding: 24px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+    h1 { color: var(--accent); font-size: 1.5rem; margin-bottom: 20px; text-align: center; }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-weight: bold; margin-bottom: 6px; font-size: 0.9rem; }
+    input, select, textarea { width: 100%; padding: 10px; background: #0f172a; border: 1px solid #475569; border-radius: 8px; color: #fff; font-size: 1rem; }
+    textarea { resize: vertical; min-height: 80px; }
+    .btn-submit { width: 100%; background: var(--accent); color: #000; font-weight: bold; padding: 12px; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; margin-top: 10px; }
+    .btn-submit:hover { opacity: 0.9; }
+    .back-link { display: block; text-align: center; margin-top: 16px; color: #94a3b8; text-decoration: none; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🏏 Rate Club Player</h1>
+    <form id="rating-form">
+      <div class="form-group">
+        <label for="player_name">Player Name</label>
+        <input type="text" id="player_name" required placeholder="e.g., David Warner">
+      </div>
+
+      <div class="form-group">
+        <label for="role">Player Role (Pick from List)</label>
+        <select id="role" required>
+          <option value="" disabled selected>Select Role...</option>
+          <option value="Batter">Batter</option>
+          <option value="Fast Bowler">Fast Bowler</option>
+          <option value="Spin Bowler">Spin Bowler</option>
+          <option value="All-Rounder">All-Rounder</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="overall_rating">Overall OVR Rating (1 - 100)</label>
+        <input type="number" id="overall_rating" min="1" max="100" required placeholder="e.g., 88">
+      </div>
+
+      <div class="form-group">
+        <label for="evaluator_name">Your Name (Evaluator)</label>
+        <input type="text" id="evaluator_name" required placeholder="e.g., Coach Smith">
+      </div>
+
+      <div class="form-group">
+        <label for="scouting_notes">Scouting Notes / Highlights</label>
+        <textarea id="scouting_notes" maxlength="250" required placeholder="Key performances, strengths, recent match commentary..."></textarea>
+      </div>
+
+      <button type="submit" class="btn-submit">Submit Rating Card</button>
+      <a href="index.html" class="back-link">← Cancel and Back to Leaderboard</a>
+    </form>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    document.getElementById('rating-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const player_name = document.getElementById('player_name').value.trim();
+      const role = document.getElementById('role').value;
+      const overall_rating = parseInt(document.getElementById('overall_rating').value, 10);
+      const evaluator_name = document.getElementById('evaluator_name').value.trim();
+      const scouting_notes = document.getElementById('scouting_notes').value.trim();
+
+      // Client-side Validation (Edge Case 2)
+      if (!player_name || !role || isNaN(overall_rating) || overall_rating < 1 || overall_rating > 100 || !evaluator_name || !scouting_notes) {
+        alert('Please fill in all fields correctly with an OVR score between 1 and 100.');
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('fifa_cricket_ratings')
+        .insert([
+          { player_name, role, overall_rating, evaluator_name, scouting_notes }
+        ]);
+
+      if (error) {
+        alert('Error saving player card: ' + error.message);
+        console.error(error);
+      } else {
+        window.location.href = 'index.html';
+      }
+    });
+  </script>
+</body>
+</html>
