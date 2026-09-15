@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cricket Player Evaluation System</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
+    .container { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+    .card-panel { background: #1e293b; padding: 24px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
+    h2 { margin-top: 0; color: #38bdf8; }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; }
+    input, select, textarea { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #fff; box-sizing: border-box; }
+    button { width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+    button:hover { background: #1d4ed8; }
+    .player-card { background: #334155; border-radius: 8px; padding: 16px; margin-bottom: 12px; border-left: 5px solid #38bdf8; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; }
+    .badge-national { background-color: #ffd700; color: #1a1a1a; border: 1px solid #b39700; }
+    .badge-club { background-color: #2563eb; color: #ffffff; }
+    .rating-display { font-size: 1.5rem; font-weight: bold; color: #38bdf8; float: right; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card-panel">
+      <h2>Create Player Card</h2>
+      <form id="evaluation-form">
+        <div class="form-group">
+          <label for="player_name">Player Name</label>
+          <input type="text" id="player_name" placeholder="e.g. Babar Azam" required>
+        </div>
+        <div class="form-group">
+          <label for="team_name">Team Name</label>
+          <input type="text" id="team_name" placeholder="e.g. Lahore Qalandars" value="General">
+        </div>
+        <div class="form-group">
+          <label for="card_type">Card Category</label>
+          <select id="card_type" required>
+            <option value="Club" selected>Club</option>
+            <option value="National Team">National Team</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="role">Role</label>
+          <select id="role" required>
+            <option value="Batter">Batter</option>
+            <option value="Fast Bowler">Fast Bowler</option>
+            <option value="Spin Bowler">Spin Bowler</option>
+            <option value="All-Rounder">All-Rounder</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="overall_rating">Overall Rating (1-100)</label>
+          <input type="number" id="overall_rating" min="1" max="100" placeholder="e.g. 88" required>
+        </div>
+        <div class="form-group">
+          <label for="season_year">Season Year</label>
+          <input type="number" id="season_year" value="2026" required>
+        </div>
+        <div class="form-group">
+          <label for="evaluator_name">Evaluator Name</label>
+          <input type="text" id="evaluator_name" placeholder="Your name" required>
+        </div>
+        <div class="form-group">
+          <label for="scouting_notes">Scouting Notes</label>
+          <textarea id="scouting_notes" rows="3" placeholder="Strengths, weaknesses..."></textarea>
+        </div>
+        <button type="submit">Submit Player Card</button>
+      </form>
+    </div>
+
+    <div class="card-panel">
+      <h2>Player Leaderboard</h2>
+      <div id="leaderboard">Loading player cards...</div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://ytwaurpeefnvfjguxoin.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0d2F1cnBlZWZudmZqZ3V4b2luIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0MTI4NjgsImV4cCI6MjEwMzk4ODg2OH0.imxs2Rou9lrShyB5idvqvZ93pheAKlZU5T7T3NOjGTQ';
+
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function fetchLeaderboard() {
+      const leaderboardContainer = document.getElementById('leaderboard');
+      const { data, error } = await supabaseClient
+        .from('fifa_cricket_ratings')
+        .select('*')
+        .order('overall_rating', { ascending: false });
+
+      if (error) {
+        leaderboardContainer.innerHTML = `<p style="color:#ef4444;">Database Error: ${error.message}</p>`;
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        leaderboardContainer.innerHTML = '<p>No player cards created yet. Submit one using the form!</p>';
+        return;
+      }
+
+      leaderboardContainer.innerHTML = data.map(card => {
+        const badgeClass = card.card_type === 'National Team' ? 'badge-national' : 'badge-club';
+        return `
+          <div class="player-card">
+            <span class="rating-display">${card.overall_rating}</span>
+            <span class="badge ${badgeClass}">${card.card_type}</span>
+            <h3 style="margin: 0 0 4px 0;">${card.player_name}</h3>
+            <p style="margin: 0 0 8px 0; font-size: 0.85rem; color: #94a3b8;">
+              ${card.team_name} (${card.season_year}) | ${card.role} | Evaluated by ${card.evaluator_name}
+            </p>
+            ${card.scouting_notes ? `<p style="margin: 0; font-size: 0.9rem;">"${card.scouting_notes}"</p>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    document.getElementById('evaluation-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const cardData = {
+        player_name: document.getElementById('player_name').value,
+        team_name: document.getElementById('team_name').value || 'General',
+        card_type: document.getElementById('card_type').value,
+        role: document.getElementById('role').value,
+        overall_rating: Number(document.getElementById('overall_rating').value),
+        season_year: Number(document.getElementById('season_year').value),
+        evaluator_name: document.getElementById('evaluator_name').value,
+        scouting_notes: document.getElementById('scouting_notes').value
+      };
+
+      const { error } = await supabaseClient
+        .from('fifa_cricket_ratings')
+        .insert([cardData]);
+
+      if (error) {
+        alert('Failed to save card: ' + error.message);
+      } else {
+        document.getElementById('evaluation-form').reset();
+        document.getElementById('season_year').value = 2026;
+        document.getElementById('team_name').value = 'General';
+        fetchLeaderboard();
+      }
+    });
+
+    fetchLeaderboard();
+  </script>
+</body>
+</html>
