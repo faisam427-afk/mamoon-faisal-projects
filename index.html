@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to Game Hub - Interactive Web Games</title>
     <link rel="icon" type="image/x-icon" href="./favicon.ico">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">    <!-- Tailwind CSS -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Google Fonts -->
@@ -546,16 +548,16 @@
                     const gain = this.ctx.createGain();
                     osc.type = 'sawtooth';
                     osc.frequency.setValueAtTime(800, this.ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.15);
+                    osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.15);
 
-                    gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
 
                     osc.connect(gain);
                     gain.connect(this.ctx.destination);
                     osc.start();
                     osc.stop(this.ctx.currentTime + 0.15);
-                } catch(e){}
+                } catch (e){}
             }
 
             playExplosion() {
@@ -567,14 +569,14 @@
                     osc.frequency.setValueAtTime(150, this.ctx.currentTime);
                     osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.3);
 
-                    gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
 
                     osc.connect(gain);
                     gain.connect(this.ctx.destination);
                     osc.start();
                     osc.stop(this.ctx.currentTime + 0.3);
-                } catch(e){}
+                } catch (e){}
             }
 
             playPowerup() {
@@ -582,60 +584,59 @@
                 try {
                     const osc = this.ctx.createOscillator();
                     const gain = this.ctx.createGain();
-                    osc.type = 'triangle';
+                    osc.type = 'sine';
                     osc.frequency.setValueAtTime(300, this.ctx.currentTime);
-                    osc.frequency.setValueAtTime(450, this.ctx.currentTime + 0.08);
-                    osc.frequency.setValueAtTime(600, this.ctx.currentTime + 0.16);
+                    osc.frequency.exponentialRampToValueAtTime(900, this.ctx.currentTime + 0.2);
 
-                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+                    gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
 
                     osc.connect(gain);
                     gain.connect(this.ctx.destination);
                     osc.start();
-                    osc.stop(this.ctx.currentTime + 0.25);
-                } catch(e){}
+                    osc.stop(this.ctx.currentTime + 0.2);
+                } catch (e){}
             }
         }
 
-        const sfx = new SoundFX();
-
-        function toggleMute() {
-            sfx.muted = !sfx.muted;
-            const icon = document.getElementById('soundIcon');
-            if (sfx.muted) {
-                icon.className = 'fa-solid fa-volume-xmark text-lg text-rose-400';
-            } else {
-                icon.className = 'fa-solid fa-volume-high text-lg text-cyan-400';
-            }
-        }
+        const sound = new SoundFX();
 
         /* ==========================================================================
-           2. HUB CONTROLLER & STORAGE & HISTORY BACK BUTTON SUPPORT
+           2. STATE & LOCAL STORAGE MANAGERS
            ========================================================================== */
-        let state = {
-            username: localStorage.getItem('hub_github_username') || 'faisal427-afk',
-            activeGameId: null, // 'egg-pong' or 'meteor-dash'
-            isPaused: false,
-            isGameOver: false,
-            scores: {
-                'egg-pong': parseInt(localStorage.getItem('hub_egg_pong_hs') || '0'),
-                'meteor-dash': parseInt(localStorage.getItem('hub_meteor_dash_hs') || '0'),
-            },
-            stats: {
-                totalPlayed: parseInt(localStorage.getItem('hub_total_played') || '0')
-            }
-        };
+        let currentUsername = localStorage.getItem('gh_username') || 'faisal427-afk';
+        let eggPongBest = parseInt(localStorage.getItem('gh_egg_pong_best') || '0', 10);
+        let meteorDashBest = parseInt(localStorage.getItem('gh_meteor_dash_best') || '0', 10);
+        let totalPlayed = parseInt(localStorage.getItem('gh_total_played') || '0', 10);
 
-        function updateUsernameDisplays() {
-            const elements = document.querySelectorAll('.gh-username-display');
-            elements.forEach(el => {
-                el.innerText = state.username;
+        let activeGame = null;
+        let isPaused = false;
+        let isGameOver = false;
+        let animationFrameId = null;
+        let currentScore = 0;
+
+        function updateUIStats() {
+            document.querySelectorAll('.gh-username-display').forEach(el => {
+                el.textContent = currentUsername;
             });
+            document.getElementById('eggPongHighScoreDisplay').textContent = `${eggPongBest} pts`;
+            document.getElementById('meteorDashHighScoreDisplay').textContent = `${meteorDashBest} pts`;
+            document.getElementById('statTotalPlayed').textContent = totalPlayed;
+            document.getElementById('statCombinedScore').textContent = eggPongBest + meteorDashBest;
+        }
+
+        function toggleMute() {
+            sound.muted = !sound.muted;
+            const icon = document.getElementById('soundIcon');
+            if (sound.muted) {
+                icon.className = 'fa-solid fa-volume-xmark text-lg text-rose-400';
+            } else {
+                icon.className = 'fa-solid fa-volume-high text-lg text-slate-300';
+            }
         }
 
         function editUsernamePrompt() {
-            document.getElementById('ghUsernameInput').value = state.username === 'faisal427-afk' ? '' : state.username;
+            document.getElementById('ghUsernameInput').value = currentUsername;
             document.getElementById('usernameModal').classList.remove('hidden');
         }
 
@@ -644,935 +645,446 @@
         }
 
         function saveUsernameFromInput() {
-            const input = document.getElementById('ghUsernameInput').value.trim();
-            if (input) {
-                state.username = input;
-            } else {
-                state.username = 'faisal427-afk';
+            const val = document.getElementById('ghUsernameInput').value.trim();
+            if (val) {
+                currentUsername = val;
+                localStorage.setItem('gh_username', val);
+                updateUIStats();
             }
-            localStorage.setItem('hub_github_username', state.username);
-            updateUsernameDisplays();
             closeUsernameModal();
         }
 
-        function updateHubStatsUI() {
-            document.getElementById('eggPongHighScoreDisplay').innerText = `${state.scores['egg-pong']} pts`;
-            document.getElementById('meteorDashHighScoreDisplay').innerText = `${state.scores['meteor-dash']} pts`;
-            document.getElementById('statTotalPlayed').innerText = state.stats.totalPlayed;
-            document.getElementById('statCombinedScore').innerText = state.scores['egg-pong'] + state.scores['meteor-dash'];
-            updateUsernameDisplays();
-        }
+        /* ==========================================================================
+           3. STARFIELD BACKGROUND ANIMATION
+           ========================================================================== */
+        const bgCanvas = document.getElementById('bgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let stars = [];
 
-        function saveHighScore(gameId, score) {
-            if (score > state.scores[gameId]) {
-                state.scores[gameId] = score;
-                localStorage.setItem(`hub_${gameId.replace('-', '_')}_hs`, score.toString());
-                updateHubStatsUI();
-                return true; // New High Score!
+        function initStarfield() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+            stars = [];
+            for (let i = 0; i < 80; i++) {
+                stars.push({
+                    x: Math.random() * bgCanvas.width,
+                    y: Math.random() * bgCanvas.height,
+                    radius: Math.random() * 1.5 + 0.5,
+                    vy: Math.random() * 0.3 + 0.1,
+                    alpha: Math.random()
+                });
             }
-            return false;
         }
 
-        function incrementGamesPlayed() {
-            state.stats.totalPlayed++;
-            localStorage.setItem('hub_total_played', state.stats.totalPlayed.toString());
-            updateHubStatsUI();
+        function drawStarfield() {
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+            bgCtx.fillStyle = '#ffffff';
+            stars.forEach(s => {
+                s.y += s.vy;
+                if (s.y > bgCanvas.height) s.y = 0;
+                bgCtx.globalAlpha = s.alpha;
+                bgCtx.beginPath();
+                bgCtx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+                bgCtx.fill();
+            });
+            requestAnimationFrame(drawStarfield);
         }
 
-        // View Switchers with Browser / Google Back Button PushState Support
-        function showHubView(pushHistory = true) {
-            stopCurrentGame();
-            state.activeGameId = null;
+        window.addEventListener('resize', initStarfield);
+        initStarfield();
+        drawStarfield();
 
+        /* ==========================================================================
+           4. ROUTING & CONTROLS
+           ========================================================================== */
+        const mainCanvas = document.getElementById('activeCanvas');
+        const ctx = mainCanvas.getContext('2d');
+
+        function resizeMainCanvas() {
+            const wrapper = document.getElementById('canvasWrapper');
+            if (wrapper && mainCanvas) {
+                mainCanvas.width = wrapper.clientWidth;
+                mainCanvas.height = wrapper.clientHeight;
+            }
+        }
+
+        function showHubView() {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            activeGame = null;
             document.getElementById('hubView').classList.remove('hidden');
             document.getElementById('gameView').classList.add('hidden');
             document.getElementById('activeGameHeaderControls').classList.add('hidden');
             document.getElementById('pauseOverlay').classList.add('hidden');
             document.getElementById('gameOverOverlay').classList.add('hidden');
-
-            updateHubStatsUI();
-
-            // Push History state safely
-            if (pushHistory) {
-                safePushState({ view: 'hub' }, '');
-            }
+            document.getElementById('touchControls').classList.add('hidden');
+            updateUIStats();
+            safePushState({ view: 'hub' }, 'Game Hub', '');
         }
 
-        function launchGame(gameId, pushHistory = true) {
-            sfx.init();
-            incrementGamesPlayed();
+        function launchGame(gameId) {
+            sound.init();
+            totalPlayed++;
+            localStorage.setItem('gh_total_played', totalPlayed);
 
-            state.activeGameId = gameId;
-            state.isPaused = false;
-            state.isGameOver = false;
+            activeGame = gameId;
+            isPaused = false;
+            isGameOver = false;
+            currentScore = 0;
 
             document.getElementById('hubView').classList.add('hidden');
             document.getElementById('gameView').classList.remove('hidden');
             document.getElementById('activeGameHeaderControls').classList.remove('hidden');
             document.getElementById('pauseOverlay').classList.add('hidden');
             document.getElementById('gameOverOverlay').classList.add('hidden');
+            document.getElementById('touchControls').classList.remove('hidden');
 
-            // Touch controls setup
-            if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-                document.getElementById('touchControls').classList.remove('hidden');
-            }
+            resizeMainCanvas();
 
             if (gameId === 'egg-pong') {
-                document.getElementById('activeGameTitle').innerText = '🥚 Trampoline Egg Pong';
-                document.getElementById('gameInstructions').children[0].innerHTML = '<i class="fa-solid fa-keyboard mr-2"></i> Move trampoline with <strong>Arrow Keys / A-D</strong> or <strong>Mouse/Touch Drag</strong>. Catch the bouncing egg!';
-                startEggPongGame();
+                document.getElementById('activeGameTitle').textContent = 'Trampoline Egg Pong';
+                document.getElementById('gameBestScore').textContent = eggPongBest;
+                document.getElementById('instructionsText').innerHTML = '<i class="fa-solid fa-keyboard mr-2"></i> Move Paddle with Mouse / Arrow Keys to catch falling eggs!';
+                initEggPong();
             } else if (gameId === 'meteor-dash') {
-                document.getElementById('activeGameTitle').innerText = '🎮 Meteor Dash';
-                document.getElementById('gameInstructions').children[0].innerHTML = '<i class="fa-solid fa-keyboard mr-2"></i> Move with <strong>WASD / Arrows</strong>. Fire with <strong>SPACE / Touch Button</strong>. Destroy meteors and bosses!';
-                startMeteorDashGame();
+                document.getElementById('activeGameTitle').textContent = 'Meteor Dash';
+                document.getElementById('gameBestScore').textContent = meteorDashBest;
+                document.getElementById('instructionsText').innerHTML = '<i class="fa-solid fa-keyboard mr-2"></i> Use Left/Right Arrow to Rotate, Space or Click to Blast Meteors!';
+                initMeteorDash();
             }
 
-            // Push History entry safely so Back button navigates back to Hub homepage
-            if (pushHistory) {
-                safePushState({ view: 'game', gameId: gameId }, '', '#' + gameId);
-            }
+            document.getElementById('gameCurrentScore').textContent = '0';
+            safePushState({ view: 'game', game: gameId }, gameId, '#' + gameId);
         }
-
-        // Handle Browser / Google Back Button Events
-        window.addEventListener('popstate', (event) => {
-            if (event.state && event.state.view === 'game') {
-                launchGame(event.state.gameId, false);
-            } else {
-                showHubView(false);
-            }
-        });
 
         function togglePauseGame() {
-            if (state.isGameOver || !state.activeGameId) return;
-            state.isPaused = !state.isPaused;
-            const pauseOverlay = document.getElementById('pauseOverlay');
-            const pauseIcon = document.getElementById('pauseIcon');
-
-            if (state.isPaused) {
-                pauseOverlay.classList.remove('hidden');
-                pauseIcon.className = 'fa-solid fa-play';
+            if (!activeGame || isGameOver) return;
+            isPaused = !isPaused;
+            const overlay = document.getElementById('pauseOverlay');
+            const icon = document.getElementById('pauseIcon');
+            if (isPaused) {
+                overlay.classList.remove('hidden');
+                icon.className = 'fa-solid fa-play';
             } else {
-                pauseOverlay.classList.add('hidden');
-                pauseIcon.className = 'fa-solid fa-pause';
+                overlay.classList.add('hidden');
+                icon.className = 'fa-solid fa-pause';
+                if (activeGame === 'egg-pong') loopEggPong();
+                else if (activeGame === 'meteor-dash') loopMeteorDash();
             }
         }
 
-        function showGameOver(finalScore, gameId) {
-            state.isGameOver = true;
-            const isNewBest = saveHighScore(gameId, finalScore);
-            
-            document.getElementById('finalScoreVal').innerText = finalScore;
-            document.getElementById('finalBestVal').innerText = state.scores[gameId];
-            document.getElementById('gameOverSubtext').innerText = isNewBest ? '🎉 New Personal High Score Record!' : 'Great attempt! Keep bouncing/dodging.';
-            document.getElementById('gameOverOverlay').classList.remove('hidden');
+        function triggerGameOver() {
+            isGameOver = true;
+            sound.playExplosion();
+            document.getElementById('finalScoreVal').textContent = currentScore;
 
-            sfx.playExplosion();
+            if (activeGame === 'egg-pong') {
+                if (currentScore > eggPongBest) {
+                    eggPongBest = currentScore;
+                    localStorage.setItem('gh_egg_pong_best', eggPongBest);
+                }
+                document.getElementById('finalBestVal').textContent = eggPongBest;
+            } else if (activeGame === 'meteor-dash') {
+                if (currentScore > meteorDashBest) {
+                    meteorDashBest = currentScore;
+                    localStorage.setItem('gh_meteor_dash_best', meteorDashBest);
+                }
+                document.getElementById('finalBestVal').textContent = meteorDashBest;
+            }
+            document.getElementById('gameOverOverlay').classList.remove('hidden');
         }
 
         function restartCurrentGame() {
-            if (state.activeGameId) {
-                launchGame(state.activeGameId, false);
-            }
+            if (activeGame) launchGame(activeGame);
         }
 
-        function stopCurrentGame() {
-            if (eggPongLoopId) cancelAnimationFrame(eggPongLoopId);
-            if (meteorDashLoopId) cancelAnimationFrame(meteorDashLoopId);
-        }
-
-        /* ==========================================================================
-           3. AMBIENT BACKGROUND ANIMATION
-           ========================================================================== */
-        const bgCanvas = document.getElementById('bgCanvas');
-        const bgCtx = bgCanvas.getContext('2d');
-        let bgStars = [];
-
-        function resizeBgCanvas() {
-            bgCanvas.width = window.innerWidth;
-            bgCanvas.height = window.innerHeight;
-            bgStars = [];
-            for (let i = 0; i < 80; i++) {
-                bgStars.push({
-                    x: Math.random() * bgCanvas.width,
-                    y: Math.random() * bgCanvas.height,
-                    size: Math.random() * 2 + 0.5,
-                    speed: Math.random() * 0.5 + 0.1,
-                    opacity: Math.random()
-                });
-            }
-        }
-        window.addEventListener('resize', resizeBgCanvas);
-        resizeBgCanvas();
-
-        function renderBg() {
-            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
-            bgCtx.fillStyle = '#ffffff';
-            for (let star of bgStars) {
-                star.y += star.speed;
-                if (star.y > bgCanvas.height) star.y = 0;
-                bgCtx.globalAlpha = star.opacity * (0.3 + 0.7 * Math.sin(Date.now() * 0.002 + star.x));
-                bgCtx.beginPath();
-                bgCtx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-                bgCtx.fill();
-            }
-            requestAnimationFrame(renderBg);
-        }
-        renderBg();
-
-        /* ==========================================================================
-           4. GAME 1: TRAMPOLINE EGG PONG
-           ========================================================================== */
-        let eggPongLoopId = null;
-        let activeCanvas = document.getElementById('activeCanvas');
-        let ctx = activeCanvas.getContext('2d');
-
-        let eggGame = {
-            score: 0,
-            lives: 3,
-            width: 800,
-            height: 600,
-            egg: {
-                x: 400,
-                y: 100,
-                vx: 3,
-                vy: 0,
-                radiusX: 14,
-                radiusY: 18,
-                rotation: 0,
-                rotVel: 0.02,
-                squish: 1,
-            },
-            paddle: {
-                x: 400,
-                y: 520,
-                width: 140,
-                height: 18,
-                springCurve: 0,
-                targetCurve: 0
-            },
-            powerups: [],
-            particles: [],
-            keys: { left: false, right: false }
-        };
-
-        function startEggPongGame() {
-            stopCurrentGame();
-            resizeActiveCanvas();
-
-            eggGame.score = 0;
-            eggGame.lives = 3;
-            eggGame.egg.x = activeCanvas.width / 2;
-            eggGame.egg.y = 120;
-            eggGame.egg.vx = (Math.random() - 0.5) * 6;
-            eggGame.egg.vy = 2;
-            eggGame.paddle.x = activeCanvas.width / 2;
-            eggGame.paddle.y = activeCanvas.height - 70;
-            eggGame.powerups = [];
-            eggGame.particles = [];
-
-            document.getElementById('gameCurrentScore').innerText = '0';
-            document.getElementById('gameBestScore').innerText = state.scores['egg-pong'];
-
-            let lastTime = performance.now();
-            function loop(now) {
-                let dt = (now - lastTime) / 1000;
-                lastTime = now;
-                if (dt > 0.1) dt = 0.1;
-
-                if (!state.isPaused && !state.isGameOver) {
-                    updateEggPong(dt);
-                }
-                renderEggPong();
-                eggPongLoopId = requestAnimationFrame(loop);
-            }
-            eggPongLoopId = requestAnimationFrame(loop);
-        }
-
-        function updateEggPong(dt) {
-            const paddle = eggGame.paddle;
-            const egg = eggGame.egg;
-            const speedMultiplier = 1 + Math.min(eggGame.score * 0.02, 1.5);
-
-            const pSpeed = 600 * dt;
-            if (eggGame.keys.left) paddle.x -= pSpeed;
-            if (eggGame.keys.right) paddle.x += pSpeed;
-
-            paddle.x = Math.max(paddle.width / 2, Math.min(activeCanvas.width - paddle.width / 2, paddle.x));
-
-            paddle.springCurve += (paddle.targetCurve - paddle.springCurve) * 0.2;
-            paddle.targetCurve *= 0.85;
-
-            egg.vy += 650 * dt;
-            egg.x += egg.vx * dt * 60;
-            egg.y += egg.vy * dt * 60;
-            egg.rotation += egg.rotVel;
-
-            if (egg.x - egg.radiusX < 0) {
-                egg.x = egg.radiusX;
-                egg.vx *= -0.9;
-                sfx.playBounce();
-            } else if (egg.x + egg.radiusX > activeCanvas.width) {
-                egg.x = activeCanvas.width - egg.radiusX;
-                egg.vx *= -0.9;
-                sfx.playBounce();
-            }
-
-            if (egg.y - egg.radiusY < 0) {
-                egg.y = egg.radiusY;
-                egg.vy *= -0.8;
-            }
-
-            const paddleTop = paddle.y - paddle.height / 2;
-            if (
-                egg.vy > 0 &&
-                egg.y + egg.radiusY >= paddleTop &&
-                egg.y - egg.radiusY <= paddleTop + paddle.height &&
-                egg.x >= paddle.x - paddle.width / 2 - 10 &&
-                egg.x <= paddle.x + paddle.width / 2 + 10
-            ) {
-                egg.y = paddleTop - egg.radiusY;
-                
-                const offset = (egg.x - paddle.x) / (paddle.width / 2);
-                egg.vx = offset * 7 * speedMultiplier;
-                egg.vy = -Math.abs(egg.vy) * 0.92 - 4.5 * speedMultiplier;
-                if (Math.abs(egg.vy) < 10) egg.vy = -11 * speedMultiplier;
-
-                egg.rotVel = offset * 0.15;
-                paddle.targetCurve = 25;
-                egg.squish = 0.6;
-
-                eggGame.score += 10;
-                document.getElementById('gameCurrentScore').innerText = eggGame.score;
-                sfx.playBounce();
-
-                for (let i = 0; i < 8; i++) {
-                    eggGame.particles.push({
-                        x: egg.x,
-                        y: egg.y + egg.radiusY,
-                        vx: (Math.random() - 0.5) * 4,
-                        vy: (Math.random() - 0.5) * 3 - 2,
-                        color: '#ffb700',
-                        size: Math.random() * 4 + 2,
-                        life: 1.0
-                    });
-                }
-
-                if (Math.random() < 0.25) {
-                    eggGame.powerups.push({
-                        x: Math.random() * (activeCanvas.width - 60) + 30,
-                        y: -20,
-                        vy: 2,
-                        type: Math.random() < 0.5 ? 'wide' : 'bonus'
-                    });
-                }
-            }
-
-            egg.squish += (1 - egg.squish) * 0.1;
-
-            if (egg.y - egg.radiusY > activeCanvas.height) {
-                for (let i = 0; i < 20; i++) {
-                    eggGame.particles.push({
-                        x: egg.x,
-                        y: activeCanvas.height - 10,
-                        vx: (Math.random() - 0.5) * 8,
-                        vy: -Math.random() * 6 - 2,
-                        color: Math.random() < 0.6 ? '#fef08a' : '#f97316',
-                        size: Math.random() * 5 + 3,
-                        life: 1.0
-                    });
-                }
-
-                eggGame.lives--;
-                if (eggGame.lives <= 0) {
-                    showGameOver(eggGame.score, 'egg-pong');
-                } else {
-                    egg.x = activeCanvas.width / 2;
-                    egg.y = 100;
-                    egg.vx = (Math.random() - 0.5) * 6;
-                    egg.vy = 2;
-                    sfx.playExplosion();
-                }
-            }
-
-            for (let p of eggGame.powerups) {
-                p.y += p.vy;
-                if (
-                    Math.abs(p.x - paddle.x) < paddle.width / 2 + 15 &&
-                    Math.abs(p.y - paddle.y) < paddle.height / 2 + 15
-                ) {
-                    if (p.type === 'wide') {
-                        paddle.width = Math.min(220, paddle.width + 30);
-                    } else {
-                        eggGame.score += 50;
-                        document.getElementById('gameCurrentScore').innerText = eggGame.score;
-                    }
-                    sfx.playPowerup();
-                    p.collected = true;
-                }
-            }
-            eggGame.powerups = eggGame.powerups.filter(p => !p.collected && p.y < activeCanvas.height + 20);
-
-            for (let pt of eggGame.particles) {
-                pt.x += pt.vx;
-                pt.y += pt.vy;
-                pt.life -= dt * 2;
-            }
-            eggGame.particles = eggGame.particles.filter(pt => pt.life > 0);
-        }
-
-        function renderEggPong() {
-            ctx.clearRect(0, 0, activeCanvas.width, activeCanvas.height);
-
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
-            ctx.lineWidth = 1;
-            for (let x = 0; x < activeCanvas.width; x += 40) {
-                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, activeCanvas.height); ctx.stroke();
-            }
-            for (let y = 0; y < activeCanvas.height; y += 40) {
-                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(activeCanvas.width, y); ctx.stroke();
-            }
-
-            const paddle = eggGame.paddle;
-            const pLeft = paddle.x - paddle.width / 2;
-            const pRight = paddle.x + paddle.width / 2;
-            const pTop = paddle.y;
-
-            ctx.beginPath();
-            ctx.moveTo(pLeft, pTop);
-            ctx.quadraticCurveTo(paddle.x, pTop + paddle.springCurve, pRight, pTop);
-            ctx.strokeStyle = '#00f3ff';
-            ctx.lineWidth = 5;
-            ctx.shadowColor = '#00f3ff';
-            ctx.shadowBlur = 12;
-            ctx.stroke();
-            ctx.shadowBlur = 0;
-
-            ctx.fillStyle = '#475569';
-            ctx.fillRect(pLeft - 6, pTop, 8, 24);
-            ctx.fillRect(pRight - 2, pTop, 8, 24);
-
-            for (let p of eggGame.powerups) {
-                ctx.font = '22px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(p.type === 'wide' ? '🪶' : '⭐', p.x, p.y);
-            }
-
-            for (let pt of eggGame.particles) {
-                ctx.fillStyle = pt.color;
-                ctx.globalAlpha = Math.max(0, pt.life);
-                ctx.beginPath();
-                ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            ctx.globalAlpha = 1.0;
-
-            const egg = eggGame.egg;
-            ctx.save();
-            ctx.translate(egg.x, egg.y);
-            ctx.rotate(egg.rotation);
-            ctx.scale(2 - egg.squish, egg.squish);
-
-            let grad = ctx.createRadialGradient(-3, -4, 2, 0, 0, 18);
-            grad.addColorStop(0, '#ffffff');
-            grad.addColorStop(0.7, '#fef08a');
-            grad.addColorStop(1, '#f59e0b');
-
-            ctx.fillStyle = grad;
-            ctx.beginPath();
-            ctx.ellipse(0, 0, egg.radiusX, egg.radiusY, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = '#d97706';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-            ctx.beginPath();
-            ctx.ellipse(-4, -6, 4, 7, Math.PI / 4, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.restore();
-
-            ctx.font = '18px sans-serif';
-            ctx.textAlign = 'left';
-            for (let i = 0; i < eggGame.lives; i++) {
-                ctx.fillText('🥚', 20 + i * 28, 35);
-            }
-        }
-
-        /* ==========================================================================
-           5. GAME 2: METEOR DASH
-           ========================================================================== */
-        let meteorDashLoopId = null;
-
-        let spaceGame = {
-            score: 0,
-            ship: {
-                x: 400,
-                y: 500,
-                vx: 0,
-                vy: 0,
-                angle: -Math.PI / 2,
-                radius: 18,
-                hp: 100,
-                maxHp: 100,
-                shield: 100,
-                tripleLaserTimer: 0
-            },
-            bullets: [],
-            meteors: [],
-            powerups: [],
-            particles: [],
-            boss: null,
-            keys: { up: false, down: false, left: false, right: false, fire: false },
-            lastFireTime: 0
-        };
-
-        function startMeteorDashGame() {
-            stopCurrentGame();
-            resizeActiveCanvas();
-
-            spaceGame.score = 0;
-            spaceGame.ship.x = activeCanvas.width / 2;
-            spaceGame.ship.y = activeCanvas.height - 100;
-            spaceGame.ship.vx = 0;
-            spaceGame.ship.vy = 0;
-            spaceGame.ship.hp = 100;
-            spaceGame.ship.shield = 100;
-            spaceGame.ship.tripleLaserTimer = 0;
-            spaceGame.bullets = [];
-            spaceGame.meteors = [];
-            spaceGame.powerups = [];
-            spaceGame.particles = [];
-            spaceGame.boss = null;
-
-            document.getElementById('gameCurrentScore').innerText = '0';
-            document.getElementById('gameBestScore').innerText = state.scores['meteor-dash'];
-
-            for (let i = 0; i < 5; i++) {
-                spawnMeteor(activeCanvas.width, activeCanvas.height, 3);
-            }
-
-            let lastTime = performance.now();
-            function loop(now) {
-                let dt = (now - lastTime) / 1000;
-                lastTime = now;
-                if (dt > 0.1) dt = 0.1;
-
-                if (!state.isPaused && !state.isGameOver) {
-                    updateMeteorDash(dt, now);
-                }
-                renderMeteorDash();
-                meteorDashLoopId = requestAnimationFrame(loop);
-            }
-            meteorDashLoopId = requestAnimationFrame(loop);
-        }
-
-        function spawnMeteor(w, h, sizeTier, parentX, parentY) {
-            let radius = sizeTier === 3 ? 38 : (sizeTier === 2 ? 22 : 12);
-            let x = parentX !== undefined ? parentX : Math.random() * w;
-            let y = parentY !== undefined ? parentY : -40;
-            let speed = (4 - sizeTier) * 60 + Math.random() * 40;
-            let angle = Math.random() * Math.PI * 2;
-
-            let points = [];
-            let numPoints = 8 + Math.floor(Math.random() * 4);
-            for (let i = 0; i < numPoints; i++) {
-                let a = (i / numPoints) * Math.PI * 2;
-                let varRad = radius * (0.8 + Math.random() * 0.4);
-                points.push({ x: Math.cos(a) * varRad, y: Math.sin(a) * varRad });
-            }
-
-            spaceGame.meteors.push({
-                x: x,
-                y: y,
-                vx: Math.cos(angle) * speed * 0.5,
-                vy: Math.sin(angle) * speed * 0.5 + 40,
-                radius: radius,
-                tier: sizeTier,
-                points: points,
-                rot: 0,
-                rotSpeed: (Math.random() - 0.5) * 2
-            });
-        }
-
-        function updateMeteorDash(dt, now) {
-            const ship = spaceGame.ship;
-            const keys = spaceGame.keys;
-
-            const accel = 600 * dt;
-            if (keys.left) ship.vx -= accel;
-            if (keys.right) ship.vx += accel;
-            if (keys.up) ship.vy -= accel;
-            if (keys.down) ship.vy += accel;
-
-            ship.vx *= 0.92;
-            ship.vy *= 0.92;
-
-            ship.x += ship.vx * dt * 60;
-            ship.y += ship.vy * dt * 60;
-
-            ship.x = Math.max(ship.radius, Math.min(activeCanvas.width - ship.radius, ship.x));
-            ship.y = Math.max(ship.radius, Math.min(activeCanvas.height - ship.radius, ship.y));
-
-            if (keys.fire && now - spaceGame.lastFireTime > 140) {
-                spaceGame.lastFireTime = now;
-                sfx.playLaser();
-
-                if (ship.tripleLaserTimer > 0) {
-                    spaceGame.bullets.push({ x: ship.x, y: ship.y - 15, vx: 0, vy: -14, color: '#00f3ff' });
-                    spaceGame.bullets.push({ x: ship.x - 10, y: ship.y - 10, vx: -3, vy: -13, color: '#00f3ff' });
-                    spaceGame.bullets.push({ x: ship.x + 10, y: ship.y - 10, vx: 3, vy: -13, color: '#00f3ff' });
-                } else {
-                    spaceGame.bullets.push({ x: ship.x, y: ship.y - 18, vx: 0, vy: -14, color: '#00f3ff' });
-                }
-            }
-
-            if (ship.tripleLaserTimer > 0) ship.tripleLaserTimer -= dt;
-
-            if (ship.shield < 100) ship.shield = Math.min(100, ship.shield + dt * 5);
-
-            for (let b of spaceGame.bullets) {
-                b.x += b.vx;
-                b.y += b.vy;
-            }
-            spaceGame.bullets = spaceGame.bullets.filter(b => b.y > -20 && b.x > -20 && b.x < activeCanvas.width + 20);
-
-            if (spaceGame.meteors.length < 6 && !spaceGame.boss) {
-                spawnMeteor(activeCanvas.width, activeCanvas.height, 3);
-            }
-
-            if (spaceGame.score >= 500 && !spaceGame.boss) {
-                spaceGame.boss = {
-                    x: activeCanvas.width / 2,
-                    y: -100,
-                    targetY: 100,
-                    width: 140,
-                    height: 60,
-                    hp: 300,
-                    maxHp: 300,
-                    lastAttack: now
-                };
-            }
-
-            if (spaceGame.boss) {
-                const boss = spaceGame.boss;
-                if (boss.y < boss.targetY) boss.y += dt * 50;
-                boss.x += Math.sin(now * 0.002) * 2;
-
-                if (now - boss.lastAttack > 1500) {
-                    boss.lastAttack = now;
-                    sfx.playLaser();
-                    for (let a = -0.5; a <= 0.5; a += 0.25) {
-                        spaceGame.bullets.push({
-                            x: boss.x,
-                            y: boss.y + 30,
-                            vx: Math.sin(a) * 5,
-                            vy: Math.cos(a) * 5 + 3,
-                            isEnemy: true,
-                            color: '#ff007f'
-                        });
-                    }
-                }
-            }
-
-            for (let m of spaceGame.meteors) {
-                m.x += m.vx * dt;
-                m.y += m.vy * dt;
-                m.rot += m.rotSpeed * dt;
-
-                if (m.y > activeCanvas.height + 40) {
-                    m.y = -40;
-                    m.x = Math.random() * activeCanvas.width;
-                }
-
-                let distToShip = Math.hypot(m.x - ship.x, m.y - ship.y);
-                if (distToShip < m.radius + ship.radius) {
-                    sfx.playExplosion();
-                    let damage = m.radius * 0.8;
-                    if (ship.shield > 0) {
-                        ship.shield = Math.max(0, ship.shield - damage);
-                    } else {
-                        ship.hp -= damage;
-                    }
-
-                    m.destroyed = true;
-                    if (ship.hp <= 0) {
-                        showGameOver(spaceGame.score, 'meteor-dash');
-                    }
-                }
-            }
-
-            for (let b of spaceGame.bullets) {
-                if (b.isEnemy) {
-                    let dist = Math.hypot(b.x - ship.x, b.y - ship.y);
-                    if (dist < ship.radius) {
-                        b.destroyed = true;
-                        if (ship.shield > 0) ship.shield = Math.max(0, ship.shield - 15);
-                        else ship.hp -= 15;
-                        sfx.playExplosion();
-                        if (ship.hp <= 0) showGameOver(spaceGame.score, 'meteor-dash');
-                    }
-                    continue;
-                }
-
-                if (spaceGame.boss) {
-                    const boss = spaceGame.boss;
-                    if (Math.abs(b.x - boss.x) < boss.width / 2 && Math.abs(b.y - boss.y) < boss.height / 2) {
-                        b.destroyed = true;
-                        boss.hp -= 10;
-                        sfx.playBounce();
-                        if (boss.hp <= 0) {
-                            spaceGame.score += 250;
-                            document.getElementById('gameCurrentScore').innerText = spaceGame.score;
-                            sfx.playExplosion();
-                            spaceGame.boss = null;
-                        }
-                    }
-                }
-
-                for (let m of spaceGame.meteors) {
-                    if (m.destroyed) continue;
-                    let dist = Math.hypot(b.x - m.x, b.y - m.y);
-                    if (dist < m.radius) {
-                        b.destroyed = true;
-                        m.destroyed = true;
-                        sfx.playExplosion();
-
-                        spaceGame.score += (4 - m.tier) * 10;
-                        document.getElementById('gameCurrentScore').innerText = spaceGame.score;
-
-                        if (m.tier > 1) {
-                            spawnMeteor(activeCanvas.width, activeCanvas.height, m.tier - 1, m.x, m.y);
-                            spawnMeteor(activeCanvas.width, activeCanvas.height, m.tier - 1, m.x, m.y);
-                        }
-
-                        if (Math.random() < 0.2) {
-                            spaceGame.powerups.push({
-                                x: m.x,
-                                y: m.y,
-                                vy: 2,
-                                type: Math.random() < 0.5 ? 'triple' : 'shield'
-                            });
-                        }
-                    }
-                }
-            }
-
-            spaceGame.bullets = spaceGame.bullets.filter(b => !b.destroyed);
-            spaceGame.meteors = spaceGame.meteors.filter(m => !m.destroyed);
-
-            for (let p of spaceGame.powerups) {
-                p.y += p.vy;
-                let dist = Math.hypot(p.x - ship.x, p.y - ship.y);
-                if (dist < ship.radius + 15) {
-                    if (p.type === 'triple') ship.tripleLaserTimer = 8;
-                    else ship.shield = 100;
-                    sfx.playPowerup();
-                    p.collected = true;
-                }
-            }
-            spaceGame.powerups = spaceGame.powerups.filter(p => !p.collected && p.y < activeCanvas.height + 20);
-        }
-
-        function renderMeteorDash() {
-            ctx.clearRect(0, 0, activeCanvas.width, activeCanvas.height);
-
-            ctx.strokeStyle = '#94a3b8';
-            ctx.lineWidth = 2;
-            for (let m of spaceGame.meteors) {
-                ctx.save();
-                ctx.translate(m.x, m.y);
-                ctx.rotate(m.rot);
-                ctx.beginPath();
-                ctx.moveTo(m.points[0].x, m.points[0].y);
-                for (let i = 1; i < m.points.length; i++) {
-                    ctx.lineTo(m.points[i].x, m.points[i].y);
-                }
-                ctx.closePath();
-                ctx.fillStyle = '#1e293b';
-                ctx.fill();
-                ctx.stroke();
-                ctx.restore();
-            }
-
-            for (let b of spaceGame.bullets) {
-                ctx.strokeStyle = b.color || '#00f3ff';
-                ctx.lineWidth = 3;
-                ctx.shadowColor = b.color || '#00f3ff';
-                ctx.shadowBlur = 8;
-                ctx.beginPath();
-                ctx.moveTo(b.x, b.y);
-                ctx.lineTo(b.x - b.vx, b.y - b.vy * 0.8);
-                ctx.stroke();
-                ctx.shadowBlur = 0;
-            }
-
-            for (let p of spaceGame.powerups) {
-                ctx.font = '20px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(p.type === 'triple' ? '⚡' : '🛡️', p.x, p.y);
-            }
-
-            if (spaceGame.boss) {
-                const boss = spaceGame.boss;
-                ctx.save();
-                ctx.translate(boss.x, boss.y);
-                
-                ctx.fillStyle = '#ff007f';
-                ctx.shadowColor = '#ff007f';
-                ctx.shadowBlur = 15;
-                ctx.beginPath();
-                ctx.moveTo(0, 30);
-                ctx.lineTo(-70, -20);
-                ctx.lineTo(-30, -30);
-                ctx.lineTo(30, -30);
-                ctx.lineTo(70, -20);
-                ctx.closePath();
-                ctx.fill();
-                ctx.shadowBlur = 0;
-
-                ctx.fillStyle = '#334155';
-                ctx.fillRect(-50, -45, 100, 6);
-                ctx.fillStyle = '#ff007f';
-                ctx.fillRect(-50, -45, (boss.hp / boss.maxHp) * 100, 6);
-
-                ctx.restore();
-            }
-
-            const ship = spaceGame.ship;
-            ctx.save();
-            ctx.translate(ship.x, ship.y);
-
-            if (ship.shield > 0) {
-                ctx.strokeStyle = `rgba(0, 243, 255, ${ship.shield / 100})`;
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(0, 0, ship.radius + 8, 0, Math.PI * 2);
-                ctx.stroke();
-            }
-
-            ctx.fillStyle = '#00f3ff';
-            ctx.shadowColor = '#00f3ff';
-            ctx.shadowBlur = 12;
-            ctx.beginPath();
-            ctx.moveTo(0, -22);
-            ctx.lineTo(-16, 16);
-            ctx.lineTo(0, 8);
-            ctx.lineTo(16, 16);
-            ctx.closePath();
-            ctx.fill();
-            ctx.shadowBlur = 0;
-
-            ctx.restore();
-
-            ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
-            ctx.fillRect(15, activeCanvas.height - 30, 140, 16);
-            ctx.fillStyle = '#00f3ff';
-            ctx.fillRect(17, activeCanvas.height - 28, (ship.hp / ship.maxHp) * 136, 12);
-        }
-
-        /* ==========================================================================
-           6. CONTROLS & EVENT LISTENERS
-           ========================================================================== */
-        function resizeActiveCanvas() {
-            const wrapper = document.getElementById('canvasWrapper');
-            if (wrapper && activeCanvas) {
-                activeCanvas.width = wrapper.clientWidth;
-                activeCanvas.height = Math.max(450, wrapper.clientHeight);
-                if (eggGame) {
-                    eggGame.paddle.y = activeCanvas.height - 70;
-                }
-            }
-        }
-        window.addEventListener('resize', resizeActiveCanvas);
-
-        // Keyboard Controls
-        window.addEventListener('keydown', (e) => {
+        // Keyboard & Mouse controls
+        const keys = {};
+        window.addEventListener('keydown', e => {
+            keys[e.key] = true;
             if (e.key === 'Escape') {
-                if (state.activeGameId) showHubView();
-            }
-            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
-                eggGame.keys.left = true;
-                spaceGame.keys.left = true;
-            }
-            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
-                eggGame.keys.right = true;
-                spaceGame.keys.right = true;
-            }
-            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') spaceGame.keys.up = true;
-            if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') spaceGame.keys.down = true;
-            if (e.key === ' ') spaceGame.keys.fire = true;
-        });
-
-        window.addEventListener('keyup', (e) => {
-            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
-                eggGame.keys.left = false;
-                spaceGame.keys.left = false;
-            }
-            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
-                eggGame.keys.right = false;
-                spaceGame.keys.right = false;
-            }
-            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') spaceGame.keys.up = false;
-            if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') spaceGame.keys.down = false;
-            if (e.key === ' ') spaceGame.keys.fire = false;
-        });
-
-        // Pointer Controls
-        activeCanvas.addEventListener('pointermove', (e) => {
-            const rect = activeCanvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-
-            if (state.activeGameId === 'egg-pong') {
-                eggGame.paddle.x = mouseX;
-            } else if (state.activeGameId === 'meteor-dash' && e.buttons === 1) {
-                spaceGame.ship.x = mouseX;
-                spaceGame.ship.y = mouseY;
+                if (isPaused) togglePauseGame();
+                else showHubView();
             }
         });
+        window.addEventListener('keyup', e => { keys[e.key] = false; });
 
-        activeCanvas.addEventListener('pointerdown', (e) => {
-            if (state.activeGameId === 'meteor-dash') {
-                spaceGame.keys.fire = true;
-            }
+        let mousePos = { x: 0, y: 0 };
+        mainCanvas.addEventListener('mousemove', e => {
+            const rect = mainCanvas.getBoundingClientRect();
+            mousePos.x = e.clientX - rect.left;
+            mousePos.y = e.clientY - rect.top;
         });
 
-        activeCanvas.addEventListener('pointerup', () => {
-            if (state.activeGameId === 'meteor-dash') {
-                spaceGame.keys.fire = false;
-            }
-        });
-
-        // Touch Control Buttons Wiring
+        // Touch control buttons setup
         const btnLeft = document.getElementById('btnTouchLeft');
         const btnRight = document.getElementById('btnTouchRight');
         const btnAction = document.getElementById('btnTouchAction');
 
-        btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); eggGame.keys.left = spaceGame.keys.left = true; });
-        btnLeft.addEventListener('touchend', (e) => { e.preventDefault(); eggGame.keys.left = spaceGame.keys.left = false; });
-
-        btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); eggGame.keys.right = spaceGame.keys.right = true; });
-        btnRight.addEventListener('touchend', (e) => { e.preventDefault(); eggGame.keys.right = spaceGame.keys.right = false; });
-
-        btnAction.addEventListener('touchstart', (e) => { e.preventDefault(); spaceGame.keys.fire = true; });
-        btnAction.addEventListener('touchend', (e) => { e.preventDefault(); spaceGame.keys.fire = false; });
-
-        // Initial state & Hash Router check on page load
-        window.onload = function() {
-            updateHubStatsUI();
-
-            // Set initial state safely for Back button history
-            safeReplaceState({ view: 'hub' }, '');
-
-            try {
-                if (window.location.hash === '#egg-pong') {
-                    launchGame('egg-pong', false);
-                } else if (window.location.hash === '#meteor-dash') {
-                    launchGame('meteor-dash', false);
-                }
-            } catch (e) {}
+        const bindTouch = (elem, keyName) => {
+            elem.addEventListener('touchstart', (e) => { e.preventDefault(); keys[keyName] = true; });
+            elem.addEventListener('touchend', (e) => { e.preventDefault(); keys[keyName] = false; });
         };
+        bindTouch(btnLeft, 'ArrowLeft');
+        bindTouch(btnRight, 'ArrowRight');
+        bindTouch(btnAction, ' ');
+
+        /* ==========================================================================
+           5. GAME 1: TRAMPOLINE EGG PONG
+           ========================================================================== */
+        let paddle, egg, feathers;
+
+        function initEggPong() {
+            paddle = {
+                width: 120,
+                height: 18,
+                x: mainCanvas.width / 2 - 60,
+                y: mainCanvas.height - 40
+            };
+            egg = {
+                x: mainCanvas.width / 2,
+                y: 60,
+                vx: 3,
+                vy: 2,
+                radius: 12,
+                gravity: 0.2
+            };
+            feathers = [];
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            loopEggPong();
+        }
+
+        function loopEggPong() {
+            if (isPaused || isGameOver) return;
+
+            // Clear
+            ctx.fillStyle = '#020617';
+            ctx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
+
+            // Controls
+            if (keys['ArrowLeft'] || keys['a']) paddle.x -= 8;
+            if (keys['ArrowRight'] || keys['d']) paddle.x += 8;
+            if (mousePos.x > 0) paddle.x = mousePos.x - paddle.width / 2;
+
+            // Clamp Paddle
+            paddle.x = Math.max(0, Math.min(mainCanvas.width - paddle.width, paddle.x));
+
+            // Physics Egg
+            egg.vy += egg.gravity;
+            egg.x += egg.vx;
+            egg.y += egg.vy;
+
+            // Wall Collision
+            if (egg.x - egg.radius < 0) { egg.x = egg.radius; egg.vx *= -1; }
+            if (egg.x + egg.radius > mainCanvas.width) { egg.x = mainCanvas.width - egg.radius; egg.vx *= -1; }
+            if (egg.y - egg.radius < 0) { egg.y = egg.radius; egg.vy *= -1; }
+
+            // Paddle Bounce
+            if (egg.y + egg.radius >= paddle.y && egg.y - egg.radius <= paddle.y + paddle.height &&
+                egg.x >= paddle.x && egg.x <= paddle.x + paddle.width && egg.vy > 0) {
+                
+                egg.vy = -Math.abs(egg.vy) - 0.2;
+                const hitOffset = (egg.x - (paddle.x + paddle.width / 2)) / (paddle.width / 2);
+                egg.vx = hitOffset * 6;
+                currentScore += 10;
+                document.getElementById('gameCurrentScore').textContent = currentScore;
+                sound.playBounce();
+
+                // Spawn feather randomly
+                if (Math.random() < 0.4) {
+                    feathers.push({ x: Math.random() * (mainCanvas.width - 20) + 10, y: 0, vy: 2 });
+                }
+            }
+
+            // Game over condition
+            if (egg.y - egg.radius > mainCanvas.height) {
+                triggerGameOver();
+                return;
+            }
+
+            // Draw Paddle
+            ctx.fillStyle = '#00f3ff';
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#00f3ff';
+            ctx.beginPath();
+            ctx.roundRect(paddle.x, paddle.y, paddle.width, paddle.height, 9);
+            ctx.fill();
+
+            // Draw Egg
+            ctx.fillStyle = '#ffb700';
+            ctx.shadowColor = '#ffb700';
+            ctx.beginPath();
+            ctx.ellipse(egg.x, egg.y, egg.radius * 0.8, egg.radius, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Process Feathers
+            feathers.forEach((f, index) => {
+                f.y += f.vy;
+                ctx.fillStyle = '#ff007f';
+                ctx.beginPath();
+                ctx.arc(f.x, f.y, 6, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Feather catch
+                if (f.y >= paddle.y && f.x >= paddle.x && f.x <= paddle.x + paddle.width) {
+                    currentScore += 25;
+                    document.getElementById('gameCurrentScore').textContent = currentScore;
+                    sound.playPowerup();
+                    feathers.splice(index, 1);
+                }
+            });
+
+            animationFrameId = requestAnimationFrame(loopEggPong);
+        }
+
+        /* ==========================================================================
+           6. GAME 2: METEOR DASH
+           ========================================================================== */
+        let ship, lasers, meteors;
+
+        function initMeteorDash() {
+            ship = {
+                x: mainCanvas.width / 2,
+                y: mainCanvas.height - 60,
+                angle: -Math.PI / 2,
+                rotationSpeed: 0.08
+            };
+            lasers = [];
+            meteors = [];
+
+            // Initial meteors
+            for (let i = 0; i < 5; i++) {
+                spawnMeteor();
+            }
+
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            loopMeteorDash();
+        }
+
+        function spawnMeteor() {
+            meteors.push({
+                x: Math.random() * mainCanvas.width,
+                y: -30,
+                radius: Math.random() * 20 + 15,
+                vx: (Math.random() - 0.5) * 3,
+                vy: Math.random() * 2 + 1
+            });
+        }
+
+        let canShoot = true;
+        mainCanvas.onclick = () => { if (activeGame === 'meteor-dash' && !isPaused && !isGameOver) fireLaser(); };
+
+        function fireLaser() {
+            lasers.push({
+                x: ship.x + Math.cos(ship.angle) * 20,
+                y: ship.y + Math.sin(ship.angle) * 20,
+                vx: Math.cos(ship.angle) * 8,
+                vy: Math.sin(ship.angle) * 8
+            });
+            sound.playLaser();
+        }
+
+        function loopMeteorDash() {
+            if (isPaused || isGameOver) return;
+
+            ctx.fillStyle = '#020617';
+            ctx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
+
+            // Ship rotation controls
+            if (keys['ArrowLeft'] || keys['a']) ship.angle -= ship.rotationSpeed;
+            if (keys['ArrowRight'] || keys['d']) ship.angle += ship.rotationSpeed;
+            
+            if ((keys[' '] || keys['ArrowUp']) && canShoot) {
+                fireLaser();
+                canShoot = false;
+                setTimeout(() => canShoot = true, 200);
+            }
+
+            // Draw Ship
+            ctx.save();
+            ctx.translate(ship.x, ship.y);
+            ctx.rotate(ship.angle);
+            ctx.strokeStyle = '#00f3ff';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#00f3ff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(18, 0);
+            ctx.lineTo(-12, -10);
+            ctx.lineTo(-6, 0);
+            ctx.lineTo(-12, 10);
+            ctx.closePath();
+            ctx.stroke();
+            ctx.restore();
+
+            // Lasers
+            lasers.forEach((l, li) => {
+                l.x += l.vx;
+                l.y += l.vy;
+                ctx.fillStyle = '#00ff66';
+                ctx.beginPath();
+                ctx.arc(l.x, l.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (l.x < 0 || l.x > mainCanvas.width || l.y < 0 || l.y > mainCanvas.height) {
+                    lasers.splice(li, 1);
+                }
+            });
+
+            // Meteors
+            if (Math.random() < 0.02) spawnMeteor();
+
+            meteors.forEach((m, mi) => {
+                m.x += m.vx;
+                m.y += m.vy;
+
+                // Draw Meteor
+                ctx.strokeStyle = '#ab00ff';
+                ctx.shadowColor = '#ab00ff';
+                ctx.shadowBlur = 8;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Laser Hit
+                lasers.forEach((l, li) => {
+                    const dist = Math.hypot(l.x - m.x, l.y - m.y);
+                    if (dist < m.radius) {
+                        sound.playExplosion();
+                        meteors.splice(mi, 1);
+                        lasers.splice(li, 1);
+                        currentScore += 15;
+                        document.getElementById('gameCurrentScore').textContent = currentScore;
+                    }
+                });
+
+                // Ship Collision
+                const shipDist = Math.hypot(ship.x - m.x, ship.y - m.y);
+                if (shipDist < m.radius + 10) {
+                    triggerGameOver();
+                    return;
+                }
+
+                // Screen Boundary Wrap/Cleanup
+                if (m.y > mainCanvas.height + 40) meteors.splice(mi, 1);
+            });
+
+            ctx.shadowBlur = 0;
+            animationFrameId = requestAnimationFrame(loopMeteorDash);
+        }
+
+        // History Back Event Listener
+        window.onpopstate = function(e) {
+            if (e.state && e.state.view === 'game') {
+                launchGame(e.state.game);
+            } else {
+                showHubView();
+            }
+        };
+
+        // Initialize UI Stats on Load
+        updateUIStats();
     </script>
 </body>
 </html>
