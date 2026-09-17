@@ -216,12 +216,11 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                     
                     <!-- GAME CARD 1: Trampoline Egg Pong -->
                     <div class="glass-card rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group">
                         <div class="space-y-4">
-                            <!-- Header & Tech Badge -->
                             <div class="flex items-start justify-between gap-4">
                                 <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-slate-950 text-2xl font-bold shadow-lg shadow-amber-500/20 group-hover:scale-110 transition-transform">
                                     🥚
@@ -231,7 +230,6 @@
                                 </span>
                             </div>
 
-                            <!-- Title & Description -->
                             <div>
                                 <h4 class="font-display text-xl font-bold text-slate-100 group-hover:text-amber-400 transition-colors">
                                     Trampoline Egg Pong
@@ -241,7 +239,6 @@
                                 </p>
                             </div>
 
-                            <!-- Tech Stack List -->
                             <div class="space-y-1.5 pt-2">
                                 <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Tech Stack</span>
                                 <div class="flex flex-wrap gap-2">
@@ -252,7 +249,6 @@
                             </div>
                         </div>
 
-                        <!-- Card Footer & Play Action -->
                         <div class="pt-6 mt-6 border-t border-slate-800/80 flex items-center justify-between">
                             <div>
                                 <span class="text-[11px] text-slate-400 block">High Score</span>
@@ -268,7 +264,6 @@
                     <!-- GAME CARD 2: Meteor Dash -->
                     <div class="glass-card rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group">
                         <div class="space-y-4">
-                            <!-- Header & Tech Badge -->
                             <div class="flex items-start justify-between gap-4">
                                 <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-400 to-purple-600 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-cyan-500/20 group-hover:scale-110 transition-transform">
                                     🎮
@@ -278,7 +273,6 @@
                                 </span>
                             </div>
 
-                            <!-- Title & Description -->
                             <div>
                                 <h4 class="font-display text-xl font-bold text-slate-100 group-hover:text-cyan-400 transition-colors">
                                     Meteor Dash
@@ -288,7 +282,6 @@
                                 </p>
                             </div>
 
-                            <!-- Tech Stack List -->
                             <div class="space-y-1.5 pt-2">
                                 <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Tech Stack</span>
                                 <div class="flex flex-wrap gap-2">
@@ -299,7 +292,6 @@
                             </div>
                         </div>
 
-                        <!-- Card Footer & Play Action -->
                         <div class="pt-6 mt-6 border-t border-slate-800/80 flex items-center justify-between">
                             <div>
                                 <span class="text-[11px] text-slate-400 block">High Score</span>
@@ -309,6 +301,49 @@
                                 <span>Launch Game</span>
                                 <i class="fa-solid fa-arrow-right text-xs"></i>
                             </button>
+                        </div>
+                    </div>
+
+                    <!-- GAME CARD 3: Cricket OVR -->
+                    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group">
+                        <div class="space-y-4">
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+                                    🏏
+                                </div>
+                                <span class="px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
+                                    Retro Sports
+                                </span>
+                            </div>
+
+                            <div>
+                                <h4 class="font-display text-xl font-bold text-slate-100 group-hover:text-emerald-400 transition-colors">
+                                    Cricket OVR
+                                </h4>
+                                <p class="text-slate-300 text-xs sm:text-sm mt-2 leading-relaxed">
+                                    Step up to the crease! Master timing, hit massive boundaries, dodge fast bowlers, and dominate overs-based arcade cricket action.
+                                </p>
+                            </div>
+
+                            <div class="space-y-1.5 pt-2">
+                                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Tech Stack</span>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="px-2.5 py-1 rounded-md bg-slate-800/80 text-slate-300 text-xs border border-slate-700">HTML5 Canvas</span>
+                                    <span class="px-2.5 py-1 rounded-md bg-slate-800/80 text-slate-300 text-xs border border-slate-700">Timing Physics</span>
+                                    <span class="px-2.5 py-1 rounded-md bg-slate-800/80 text-slate-300 text-xs border border-slate-700">JavaScript</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-6 mt-6 border-t border-slate-800/80 flex items-center justify-between">
+                            <div>
+                                <span class="text-[11px] text-slate-400 block">High Score</span>
+                                <span id="cricketOvrHighScoreDisplay" class="font-display font-bold text-base text-emerald-400">0 pts</span>
+                            </div>
+                            <a href="cricket_ovr_app/front_end/frontend.html" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-green-600 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 hover:brightness-110 shadow-lg shadow-emerald-500/20 transition group-hover:px-6">
+                                <span>Launch Game</span>
+                                <i class="fa-solid fa-arrow-right text-xs"></i>
+                            </a>
                         </div>
                     </div>
 
@@ -471,7 +506,7 @@
 
     <script>
         /* ==========================================================================
-           0. SAFE HISTORY NAVIGATION HELPERS FOR IFRAME / BLOB PREVIEW CONTEXT
+           0. SAFE HISTORY NAVIGATION HELPERS
            ========================================================================== */
         function safePushState(stateObj, title, url) {
             try {
@@ -547,16 +582,16 @@
                     const osc = this.ctx.createOscillator();
                     const gain = this.ctx.createGain();
                     osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(800, this.ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.15);
+                    osc.frequency.setValueAtTime(880, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(110, this.ctx.currentTime + 0.08);
 
                     gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
 
                     osc.connect(gain);
                     gain.connect(this.ctx.destination);
                     osc.start();
-                    osc.stop(this.ctx.currentTime + 0.15);
+                    osc.stop(this.ctx.currentTime + 0.08);
                 } catch (e){}
             }
 
@@ -566,10 +601,10 @@
                     const osc = this.ctx.createOscillator();
                     const gain = this.ctx.createGain();
                     osc.type = 'square';
-                    osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                    osc.frequency.setValueAtTime(140, this.ctx.currentTime);
                     osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.3);
 
-                    gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
 
                     osc.connect(gain);
@@ -582,61 +617,63 @@
             playPowerup() {
                 if (this.muted || !this.ctx) return;
                 try {
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(300, this.ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(900, this.ctx.currentTime + 0.2);
+                    const notes = [330, 440, 554, 659];
+                    notes.forEach((freq, idx) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.05);
 
-                    gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+                        gain.gain.setValueAtTime(0.2, this.ctx.currentTime + idx * 0.05);
+                        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + idx * 0.05 + 0.1);
 
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-                    osc.start();
-                    osc.stop(this.ctx.currentTime + 0.2);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(this.ctx.currentTime + idx * 0.05);
+                        osc.stop(this.ctx.currentTime + idx * 0.05 + 0.1);
+                    });
                 } catch (e){}
             }
         }
 
-        const sound = new SoundFX();
+        const soundFX = new SoundFX();
 
         /* ==========================================================================
-           2. STATE & LOCAL STORAGE MANAGERS
+           2. GLOBAL HUB APP STATE
            ========================================================================== */
-        let currentUsername = localStorage.getItem('gh_username') || 'faisal427-afk';
-        let eggPongBest = parseInt(localStorage.getItem('gh_egg_pong_best') || '0', 10);
-        let meteorDashBest = parseInt(localStorage.getItem('gh_meteor_dash_best') || '0', 10);
-        let totalPlayed = parseInt(localStorage.getItem('gh_total_played') || '0', 10);
-
         let activeGame = null;
         let isPaused = false;
-        let isGameOver = false;
-        let animationFrameId = null;
-        let currentScore = 0;
+        let currentGameLoop = null;
 
-        function updateUIStats() {
-            document.querySelectorAll('.gh-username-display').forEach(el => {
-                el.textContent = currentUsername;
-            });
-            document.getElementById('eggPongHighScoreDisplay').textContent = `${eggPongBest} pts`;
-            document.getElementById('meteorDashHighScoreDisplay').textContent = `${meteorDashBest} pts`;
-            document.getElementById('statTotalPlayed').textContent = totalPlayed;
-            document.getElementById('statCombinedScore').textContent = eggPongBest + meteorDashBest;
+        const scores = {
+            'egg-pong': parseInt(localStorage.getItem('gh_score_egg_pong') || '0'),
+            'meteor-dash': parseInt(localStorage.getItem('gh_score_meteor_dash') || '0'),
+            'cricket-ovr': parseInt(localStorage.getItem('gh_score_cricket_ovr') || '0')
+        };
+
+        let totalGamesPlayed = parseInt(localStorage.getItem('gh_total_played') || '0');
+
+        function updateHubStats() {
+            document.getElementById('eggPongHighScoreDisplay').innerText = `${scores['egg-pong']} pts`;
+            document.getElementById('meteorDashHighScoreDisplay').innerText = `${scores['meteor-dash']} pts`;
+            document.getElementById('cricketOvrHighScoreDisplay').innerText = `${scores['cricket-ovr']} pts`;
+            
+            document.getElementById('statTotalPlayed').innerText = totalGamesPlayed;
+            const combined = scores['egg-pong'] + scores['meteor-dash'] + scores['cricket-ovr'];
+            document.getElementById('statCombinedScore').innerText = combined;
         }
 
-        function toggleMute() {
-            sound.muted = !sound.muted;
-            const icon = document.getElementById('soundIcon');
-            if (sound.muted) {
-                icon.className = 'fa-solid fa-volume-xmark text-lg text-rose-400';
-            } else {
-                icon.className = 'fa-solid fa-volume-high text-lg text-slate-300';
-            }
+        /* User Profile Logic */
+        let username = localStorage.getItem('gh_username') || 'faisal427-afk';
+
+        function applyUsername() {
+            document.querySelectorAll('.gh-username-display').forEach(el => {
+                el.innerText = username;
+            });
         }
 
         function editUsernamePrompt() {
-            document.getElementById('ghUsernameInput').value = currentUsername;
+            document.getElementById('ghUsernameInput').value = username;
             document.getElementById('usernameModal').classList.remove('hidden');
         }
 
@@ -647,444 +684,503 @@
         function saveUsernameFromInput() {
             const val = document.getElementById('ghUsernameInput').value.trim();
             if (val) {
-                currentUsername = val;
-                localStorage.setItem('gh_username', val);
-                updateUIStats();
+                username = val;
+                localStorage.setItem('gh_username', username);
+                applyUsername();
             }
             closeUsernameModal();
         }
 
-        /* ==========================================================================
-           3. STARFIELD BACKGROUND ANIMATION
-           ========================================================================== */
-        const bgCanvas = document.getElementById('bgCanvas');
-        const bgCtx = bgCanvas.getContext('2d');
-        let stars = [];
-
-        function initStarfield() {
-            bgCanvas.width = window.innerWidth;
-            bgCanvas.height = window.innerHeight;
-            stars = [];
-            for (let i = 0; i < 80; i++) {
-                stars.push({
-                    x: Math.random() * bgCanvas.width,
-                    y: Math.random() * bgCanvas.height,
-                    radius: Math.random() * 1.5 + 0.5,
-                    vy: Math.random() * 0.3 + 0.1,
-                    alpha: Math.random()
-                });
+        function toggleMute() {
+            soundFX.muted = !soundFX.muted;
+            const icon = document.getElementById('soundIcon');
+            if (soundFX.muted) {
+                icon.className = 'fa-solid fa-volume-xmark text-rose-400 text-lg';
+            } else {
+                icon.className = 'fa-solid fa-volume-high text-lg';
             }
         }
 
-        function drawStarfield() {
-            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
-            bgCtx.fillStyle = '#ffffff';
-            stars.forEach(s => {
-                s.y += s.vy;
-                if (s.y > bgCanvas.height) s.y = 0;
-                bgCtx.globalAlpha = s.alpha;
-                bgCtx.beginPath();
-                bgCtx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
-                bgCtx.fill();
-            });
-            requestAnimationFrame(drawStarfield);
-        }
-
-        window.addEventListener('resize', initStarfield);
-        initStarfield();
-        drawStarfield();
-
-        /* ==========================================================================
-           4. ROUTING & CONTROLS
-           ========================================================================== */
-        const mainCanvas = document.getElementById('activeCanvas');
-        const ctx = mainCanvas.getContext('2d');
-
-        function resizeMainCanvas() {
-            const wrapper = document.getElementById('canvasWrapper');
-            if (wrapper && mainCanvas) {
-                mainCanvas.width = wrapper.clientWidth;
-                mainCanvas.height = wrapper.clientHeight;
-            }
-        }
-
+        /* View Switching Navigation */
         function showHubView() {
-            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            if (currentGameLoop) {
+                cancelAnimationFrame(currentGameLoop);
+                currentGameLoop = null;
+            }
             activeGame = null;
+
             document.getElementById('hubView').classList.remove('hidden');
             document.getElementById('gameView').classList.add('hidden');
             document.getElementById('activeGameHeaderControls').classList.add('hidden');
+            
             document.getElementById('pauseOverlay').classList.add('hidden');
             document.getElementById('gameOverOverlay').classList.add('hidden');
-            document.getElementById('touchControls').classList.add('hidden');
-            updateUIStats();
-            safePushState({ view: 'hub' }, 'Game Hub', '');
+
+            updateHubStats();
+            safeReplaceState({}, 'Game Hub', window.location.pathname);
         }
 
         function launchGame(gameId) {
-            sound.init();
-            totalPlayed++;
-            localStorage.setItem('gh_total_played', totalPlayed);
+            soundFX.init();
+            if (currentGameLoop) {
+                cancelAnimationFrame(currentGameLoop);
+            }
 
             activeGame = gameId;
-            isPaused = false;
-            isGameOver = false;
-            currentScore = 0;
+            totalGamesPlayed++;
+            localStorage.setItem('gh_total_played', totalGamesPlayed);
 
             document.getElementById('hubView').classList.add('hidden');
             document.getElementById('gameView').classList.remove('hidden');
             document.getElementById('activeGameHeaderControls').classList.remove('hidden');
+
             document.getElementById('pauseOverlay').classList.add('hidden');
             document.getElementById('gameOverOverlay').classList.add('hidden');
-            document.getElementById('touchControls').classList.remove('hidden');
+            isPaused = false;
 
-            resizeMainCanvas();
+            const titleElem = document.getElementById('activeGameTitle');
+            const instructionsElem = document.getElementById('instructionsText');
 
             if (gameId === 'egg-pong') {
-                document.getElementById('activeGameTitle').textContent = 'Trampoline Egg Pong';
-                document.getElementById('gameBestScore').textContent = eggPongBest;
-                document.getElementById('instructionsText').innerHTML = '<i class="fa-solid fa-keyboard mr-2"></i> Move Paddle with Mouse / Arrow Keys to catch falling eggs!';
+                titleElem.innerText = 'Trampoline Egg Pong';
+                instructionsElem.innerHTML = '<i class="fa-solid fa-keyboard mr-2"></i> Move: Arrow Keys / Mouse. Keep eggs bouncing on the trampoline!';
                 initEggPong();
             } else if (gameId === 'meteor-dash') {
-                document.getElementById('activeGameTitle').textContent = 'Meteor Dash';
-                document.getElementById('gameBestScore').textContent = meteorDashBest;
-                document.getElementById('instructionsText').innerHTML = '<i class="fa-solid fa-keyboard mr-2"></i> Use Left/Right Arrow to Rotate, Space or Click to Blast Meteors!';
+                titleElem.innerText = 'Meteor Dash';
+                instructionsElem.innerHTML = '<i class="fa-solid fa-keyboard mr-2"></i> Move: Arrow Keys / A & D | Shoot: Spacebar. Destroy meteors!';
                 initMeteorDash();
             }
 
-            document.getElementById('gameCurrentScore').textContent = '0';
-            safePushState({ view: 'game', game: gameId }, gameId, '#' + gameId);
+            safePushState({ game: gameId }, `${gameId.toUpperCase()} - Game Hub`, `#${gameId}`);
         }
 
         function togglePauseGame() {
-            if (!activeGame || isGameOver) return;
+            if (!activeGame) return;
             isPaused = !isPaused;
-            const overlay = document.getElementById('pauseOverlay');
-            const icon = document.getElementById('pauseIcon');
+            const pauseOverlay = document.getElementById('pauseOverlay');
+            const pauseIcon = document.getElementById('pauseIcon');
+
             if (isPaused) {
-                overlay.classList.remove('hidden');
-                icon.className = 'fa-solid fa-play';
+                pauseOverlay.classList.remove('hidden');
+                pauseIcon.className = 'fa-solid fa-play';
             } else {
-                overlay.classList.add('hidden');
-                icon.className = 'fa-solid fa-pause';
-                if (activeGame === 'egg-pong') loopEggPong();
-                else if (activeGame === 'meteor-dash') loopMeteorDash();
+                pauseOverlay.classList.add('hidden');
+                pauseIcon.className = 'fa-solid fa-pause';
             }
-        }
-
-        function triggerGameOver() {
-            isGameOver = true;
-            sound.playExplosion();
-            document.getElementById('finalScoreVal').textContent = currentScore;
-
-            if (activeGame === 'egg-pong') {
-                if (currentScore > eggPongBest) {
-                    eggPongBest = currentScore;
-                    localStorage.setItem('gh_egg_pong_best', eggPongBest);
-                }
-                document.getElementById('finalBestVal').textContent = eggPongBest;
-            } else if (activeGame === 'meteor-dash') {
-                if (currentScore > meteorDashBest) {
-                    meteorDashBest = currentScore;
-                    localStorage.setItem('gh_meteor_dash_best', meteorDashBest);
-                }
-                document.getElementById('finalBestVal').textContent = meteorDashBest;
-            }
-            document.getElementById('gameOverOverlay').classList.remove('hidden');
         }
 
         function restartCurrentGame() {
-            if (activeGame) launchGame(activeGame);
-        }
-
-        // Keyboard & Mouse controls
-        const keys = {};
-        window.addEventListener('keydown', e => {
-            keys[e.key] = true;
-            if (e.key === 'Escape') {
-                if (isPaused) togglePauseGame();
-                else showHubView();
+            if (activeGame) {
+                launchGame(activeGame);
             }
-        });
-        window.addEventListener('keyup', e => { keys[e.key] = false; });
-
-        let mousePos = { x: 0, y: 0 };
-        mainCanvas.addEventListener('mousemove', e => {
-            const rect = mainCanvas.getBoundingClientRect();
-            mousePos.x = e.clientX - rect.left;
-            mousePos.y = e.clientY - rect.top;
-        });
-
-        // Touch control buttons setup
-        const btnLeft = document.getElementById('btnTouchLeft');
-        const btnRight = document.getElementById('btnTouchRight');
-        const btnAction = document.getElementById('btnTouchAction');
-
-        const bindTouch = (elem, keyName) => {
-            elem.addEventListener('touchstart', (e) => { e.preventDefault(); keys[keyName] = true; });
-            elem.addEventListener('touchend', (e) => { e.preventDefault(); keys[keyName] = false; });
-        };
-        bindTouch(btnLeft, 'ArrowLeft');
-        bindTouch(btnRight, 'ArrowRight');
-        bindTouch(btnAction, ' ');
-
-        /* ==========================================================================
-           5. GAME 1: TRAMPOLINE EGG PONG
-           ========================================================================== */
-        let paddle, egg, feathers;
-
-        function initEggPong() {
-            paddle = {
-                width: 120,
-                height: 18,
-                x: mainCanvas.width / 2 - 60,
-                y: mainCanvas.height - 40
-            };
-            egg = {
-                x: mainCanvas.width / 2,
-                y: 60,
-                vx: 3,
-                vy: 2,
-                radius: 12,
-                gravity: 0.2
-            };
-            feathers = [];
-            if (animationFrameId) cancelAnimationFrame(animationFrameId);
-            loopEggPong();
         }
 
-        function loopEggPong() {
-            if (isPaused || isGameOver) return;
-
-            // Clear
-            ctx.fillStyle = '#020617';
-            ctx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
-
-            // Controls
-            if (keys['ArrowLeft'] || keys['a']) paddle.x -= 8;
-            if (keys['ArrowRight'] || keys['d']) paddle.x += 8;
-            if (mousePos.x > 0) paddle.x = mousePos.x - paddle.width / 2;
-
-            // Clamp Paddle
-            paddle.x = Math.max(0, Math.min(mainCanvas.width - paddle.width, paddle.x));
-
-            // Physics Egg
-            egg.vy += egg.gravity;
-            egg.x += egg.vx;
-            egg.y += egg.vy;
-
-            // Wall Collision
-            if (egg.x - egg.radius < 0) { egg.x = egg.radius; egg.vx *= -1; }
-            if (egg.x + egg.radius > mainCanvas.width) { egg.x = mainCanvas.width - egg.radius; egg.vx *= -1; }
-            if (egg.y - egg.radius < 0) { egg.y = egg.radius; egg.vy *= -1; }
-
-            // Paddle Bounce
-            if (egg.y + egg.radius >= paddle.y && egg.y - egg.radius <= paddle.y + paddle.height &&
-                egg.x >= paddle.x && egg.x <= paddle.x + paddle.width && egg.vy > 0) {
-                
-                egg.vy = -Math.abs(egg.vy) - 0.2;
-                const hitOffset = (egg.x - (paddle.x + paddle.width / 2)) / (paddle.width / 2);
-                egg.vx = hitOffset * 6;
-                currentScore += 10;
-                document.getElementById('gameCurrentScore').textContent = currentScore;
-                sound.playBounce();
-
-                // Spawn feather randomly
-                if (Math.random() < 0.4) {
-                    feathers.push({ x: Math.random() * (mainCanvas.width - 20) + 10, y: 0, vy: 2 });
-                }
-            }
-
-            // Game over condition
-            if (egg.y - egg.radius > mainCanvas.height) {
-                triggerGameOver();
-                return;
-            }
-
-            // Draw Paddle
-            ctx.fillStyle = '#00f3ff';
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = '#00f3ff';
-            ctx.beginPath();
-            ctx.roundRect(paddle.x, paddle.y, paddle.width, paddle.height, 9);
-            ctx.fill();
-
-            // Draw Egg
-            ctx.fillStyle = '#ffb700';
-            ctx.shadowColor = '#ffb700';
-            ctx.beginPath();
-            ctx.ellipse(egg.x, egg.y, egg.radius * 0.8, egg.radius, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-
-            // Process Feathers
-            feathers.forEach((f, index) => {
-                f.y += f.vy;
-                ctx.fillStyle = '#ff007f';
-                ctx.beginPath();
-                ctx.arc(f.x, f.y, 6, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Feather catch
-                if (f.y >= paddle.y && f.x >= paddle.x && f.x <= paddle.x + paddle.width) {
-                    currentScore += 25;
-                    document.getElementById('gameCurrentScore').textContent = currentScore;
-                    sound.playPowerup();
-                    feathers.splice(index, 1);
-                }
-            });
-
-            animationFrameId = requestAnimationFrame(loopEggPong);
-        }
-
-        /* ==========================================================================
-           6. GAME 2: METEOR DASH
-           ========================================================================== */
-        let ship, lasers, meteors;
-
-        function initMeteorDash() {
-            ship = {
-                x: mainCanvas.width / 2,
-                y: mainCanvas.height - 60,
-                angle: -Math.PI / 2,
-                rotationSpeed: 0.08
-            };
-            lasers = [];
-            meteors = [];
-
-            // Initial meteors
-            for (let i = 0; i < 5; i++) {
-                spawnMeteor();
-            }
-
-            if (animationFrameId) cancelAnimationFrame(animationFrameId);
-            loopMeteorDash();
-        }
-
-        function spawnMeteor() {
-            meteors.push({
-                x: Math.random() * mainCanvas.width,
-                y: -30,
-                radius: Math.random() * 20 + 15,
-                vx: (Math.random() - 0.5) * 3,
-                vy: Math.random() * 2 + 1
-            });
-        }
-
-        let canShoot = true;
-        mainCanvas.onclick = () => { if (activeGame === 'meteor-dash' && !isPaused && !isGameOver) fireLaser(); };
-
-        function fireLaser() {
-            lasers.push({
-                x: ship.x + Math.cos(ship.angle) * 20,
-                y: ship.y + Math.sin(ship.angle) * 20,
-                vx: Math.cos(ship.angle) * 8,
-                vy: Math.sin(ship.angle) * 8
-            });
-            sound.playLaser();
-        }
-
-        function loopMeteorDash() {
-            if (isPaused || isGameOver) return;
-
-            ctx.fillStyle = '#020617';
-            ctx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
-
-            // Ship rotation controls
-            if (keys['ArrowLeft'] || keys['a']) ship.angle -= ship.rotationSpeed;
-            if (keys['ArrowRight'] || keys['d']) ship.angle += ship.rotationSpeed;
-            
-            if ((keys[' '] || keys['ArrowUp']) && canShoot) {
-                fireLaser();
-                canShoot = false;
-                setTimeout(() => canShoot = true, 200);
-            }
-
-            // Draw Ship
-            ctx.save();
-            ctx.translate(ship.x, ship.y);
-            ctx.rotate(ship.angle);
-            ctx.strokeStyle = '#00f3ff';
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = '#00f3ff';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(18, 0);
-            ctx.lineTo(-12, -10);
-            ctx.lineTo(-6, 0);
-            ctx.lineTo(-12, 10);
-            ctx.closePath();
-            ctx.stroke();
-            ctx.restore();
-
-            // Lasers
-            lasers.forEach((l, li) => {
-                l.x += l.vx;
-                l.y += l.vy;
-                ctx.fillStyle = '#00ff66';
-                ctx.beginPath();
-                ctx.arc(l.x, l.y, 3, 0, Math.PI * 2);
-                ctx.fill();
-
-                if (l.x < 0 || l.x > mainCanvas.width || l.y < 0 || l.y > mainCanvas.height) {
-                    lasers.splice(li, 1);
-                }
-            });
-
-            // Meteors
-            if (Math.random() < 0.02) spawnMeteor();
-
-            meteors.forEach((m, mi) => {
-                m.x += m.vx;
-                m.y += m.vy;
-
-                // Draw Meteor
-                ctx.strokeStyle = '#ab00ff';
-                ctx.shadowColor = '#ab00ff';
-                ctx.shadowBlur = 8;
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
-                ctx.stroke();
-
-                // Laser Hit
-                lasers.forEach((l, li) => {
-                    const dist = Math.hypot(l.x - m.x, l.y - m.y);
-                    if (dist < m.radius) {
-                        sound.playExplosion();
-                        meteors.splice(mi, 1);
-                        lasers.splice(li, 1);
-                        currentScore += 15;
-                        document.getElementById('gameCurrentScore').textContent = currentScore;
-                    }
-                });
-
-                // Ship Collision
-                const shipDist = Math.hypot(ship.x - m.x, ship.y - m.y);
-                if (shipDist < m.radius + 10) {
-                    triggerGameOver();
-                    return;
-                }
-
-                // Screen Boundary Wrap/Cleanup
-                if (m.y > mainCanvas.height + 40) meteors.splice(mi, 1);
-            });
-
-            ctx.shadowBlur = 0;
-            animationFrameId = requestAnimationFrame(loopMeteorDash);
-        }
-
-        // History Back Event Listener
-        window.onpopstate = function(e) {
-            if (e.state && e.state.view === 'game') {
+        window.addEventListener('popstate', (e) => {
+            if (e.state && e.state.game) {
                 launchGame(e.state.game);
             } else {
                 showHubView();
             }
-        };
+        });
 
-        // Initialize UI Stats on Load
-        updateUIStats();
+        /* ==========================================================================
+           3. AMBIENT BACKGROUND STARFIELD ENGINE
+           ========================================================================== */
+        const bgCanvas = document.getElementById('bgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let bgStars = [];
+
+        function resizeBg() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+            bgStars = [];
+            for (let i = 0; i < 80; i++) {
+                bgStars.push({
+                    x: Math.random() * bgCanvas.width,
+                    y: Math.random() * bgCanvas.height,
+                    size: Math.random() * 2 + 0.5,
+                    speed: Math.random() * 0.5 + 0.2,
+                    alpha: Math.random()
+                });
+            }
+        }
+        window.addEventListener('resize', resizeBg);
+        resizeBg();
+
+        function renderBg() {
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+            bgStars.forEach(star => {
+                star.y += star.speed;
+                if (star.y > bgCanvas.height) star.y = 0;
+                star.alpha += (Math.random() - 0.5) * 0.02;
+                if (star.alpha < 0.2) star.alpha = 0.2;
+                if (star.alpha > 0.9) star.alpha = 0.9;
+
+                bgCtx.fillStyle = `rgba(0, 243, 255, ${star.alpha})`;
+                bgCtx.beginPath();
+                bgCtx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                bgCtx.fill();
+            });
+            requestAnimationFrame(renderBg);
+        }
+        renderBg();
+
+        /* ==========================================================================
+           4. MINI GAME ENGINE 1: TRAMPOLINE EGG PONG
+           ========================================================================== */
+        function initEggPong() {
+            const canvas = document.getElementById('activeCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+
+            let score = 0;
+            let lives = 3;
+            let bestScore = scores['egg-pong'];
+
+            document.getElementById('gameCurrentScore').innerText = score;
+            document.getElementById('gameBestScore').innerText = bestScore;
+
+            const paddle = {
+                width: 120,
+                height: 18,
+                x: canvas.width / 2 - 60,
+                y: canvas.height - 40,
+                speed: 8,
+                dx: 0
+            };
+
+            let eggs = [{
+                x: canvas.width / 2,
+                y: 80,
+                vx: 3,
+                vy: 2,
+                radius: 12,
+                rotation: 0
+            }];
+
+            let particles = [];
+            let keys = {};
+
+            const handleKeyDown = (e) => { keys[e.code] = true; };
+            const handleKeyUp = (e) => { keys[e.code] = false; };
+            const handleMouseMove = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                paddle.x = e.clientX - rect.left - paddle.width / 2;
+            };
+
+            window.addEventListener('keydown', handleKeyDown);
+            window.addEventListener('keyup', handleKeyUp);
+            canvas.addEventListener('mousemove', handleMouseMove);
+
+            function loop() {
+                if (activeGame !== 'egg-pong') {
+                    window.removeEventListener('keydown', handleKeyDown);
+                    window.removeEventListener('keyup', handleKeyUp);
+                    canvas.removeEventListener('mousemove', handleMouseMove);
+                    return;
+                }
+
+                if (!isPaused) {
+                    // Update paddle position
+                    if (keys['ArrowLeft'] || keys['KeyA']) paddle.x -= paddle.speed;
+                    if (keys['ArrowRight'] || keys['KeyD']) paddle.x += paddle.speed;
+                    paddle.x = Math.max(0, Math.min(canvas.width - paddle.width, paddle.x));
+
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    // Draw Trampoline Paddle
+                    ctx.fillStyle = '#00f3ff';
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#00f3ff';
+                    ctx.beginPath();
+                    ctx.roundRect(paddle.x, paddle.y, paddle.width, paddle.height, 8);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                    // Update and draw eggs
+                    eggs.forEach((egg, index) => {
+                        egg.vy += 0.15; // Gravity
+                        egg.x += egg.vx;
+                        egg.y += egg.vy;
+                        egg.rotation += 0.02;
+
+                        // Wall Bounces
+                        if (egg.x - egg.radius < 0 || egg.x + egg.radius > canvas.width) {
+                            egg.vx *= -1;
+                            soundFX.playBounce();
+                        }
+                        if (egg.y - egg.radius < 0) {
+                            egg.vy *= -1;
+                            soundFX.playBounce();
+                        }
+
+                        // Paddle Collision
+                        if (
+                            egg.y + egg.radius >= paddle.y &&
+                            egg.y - egg.radius <= paddle.y + paddle.height &&
+                            egg.x >= paddle.x &&
+                            egg.x <= paddle.x + paddle.width
+                        ) {
+                            egg.vy = -Math.abs(egg.vy) * 1.02;
+                            const hitPos = (egg.x - (paddle.x + paddle.width / 2)) / (paddle.width / 2);
+                            egg.vx = hitPos * 6;
+                            score += 10;
+                            document.getElementById('gameCurrentScore').innerText = score;
+                            soundFX.playBounce();
+
+                            // Bounce Particles
+                            for (let i = 0; i < 6; i++) {
+                                particles.push({
+                                    x: egg.x,
+                                    y: egg.y,
+                                    vx: (Math.random() - 0.5) * 4,
+                                    vy: -Math.random() * 3,
+                                    life: 1
+                                });
+                            }
+                        }
+
+                        // Missed Egg
+                        if (egg.y - egg.radius > canvas.height) {
+                            lives--;
+                            soundFX.playExplosion();
+                            if (lives <= 0) {
+                                gameOver();
+                                return;
+                            } else {
+                                egg.x = canvas.width / 2;
+                                egg.y = 80;
+                                egg.vx = (Math.random() - 0.5) * 6;
+                                egg.vy = 2;
+                            }
+                        }
+
+                        // Render Egg Sprite
+                        ctx.save();
+                        ctx.translate(egg.x, egg.y);
+                        ctx.rotate(egg.rotation);
+                        ctx.fillStyle = '#ffb700';
+                        ctx.beginPath();
+                        ctx.ellipse(0, 0, egg.radius * 0.8, egg.radius, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    });
+
+                    // Render Particles
+                    particles.forEach((p, idx) => {
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.life -= 0.03;
+                        if (p.life <= 0) {
+                            particles.splice(idx, 1);
+                        } else {
+                            ctx.fillStyle = `rgba(255, 183, 0, ${p.life})`;
+                            ctx.beginPath();
+                            ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    });
+
+                    // Draw Lives Indicators
+                    for (let i = 0; i < lives; i++) {
+                        ctx.font = '16px sans-serif';
+                        ctx.fillText('🥚', 20 + i * 25, 30);
+                    }
+                }
+
+                currentGameLoop = requestAnimationFrame(loop);
+            }
+
+            function gameOver() {
+                if (score > scores['egg-pong']) {
+                    scores['egg-pong'] = score;
+                    localStorage.setItem('gh_score_egg_pong', score);
+                }
+                document.getElementById('finalScoreVal').innerText = score;
+                document.getElementById('finalBestVal').innerText = scores['egg-pong'];
+                document.getElementById('gameOverOverlay').classList.remove('hidden');
+            }
+
+            currentGameLoop = requestAnimationFrame(loop);
+        }
+
+        /* ==========================================================================
+           5. MINI GAME ENGINE 2: METEOR DASH
+           ========================================================================== */
+        function initMeteorDash() {
+            const canvas = document.getElementById('activeCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+
+            let score = 0;
+            let bestScore = scores['meteor-dash'];
+            let gameOverState = false;
+
+            document.getElementById('gameCurrentScore').innerText = score;
+            document.getElementById('gameBestScore').innerText = bestScore;
+
+            const player = {
+                x: canvas.width / 2,
+                y: canvas.height - 50,
+                radius: 16,
+                speed: 7
+            };
+
+            let lasers = [];
+            let meteors = [];
+            let particles = [];
+            let keys = {};
+
+            const handleKeyDown = (e) => {
+                keys[e.code] = true;
+                if (e.code === 'Space' && !isPaused && !gameOverState) {
+                    lasers.push({ x: player.x, y: player.y - 15, vy: -12 });
+                    soundFX.playLaser();
+                }
+            };
+            const handleKeyUp = (e) => { keys[e.code] = false; };
+
+            window.addEventListener('keydown', handleKeyDown);
+            window.addEventListener('keyup', handleKeyUp);
+
+            function spawnMeteor() {
+                if (Math.random() < 0.04) {
+                    meteors.push({
+                        x: Math.random() * canvas.width,
+                        y: -30,
+                        radius: Math.random() * 20 + 15,
+                        vy: Math.random() * 2 + 1.5,
+                        vx: (Math.random() - 0.5) * 1.5
+                    });
+                }
+            }
+
+            function loop() {
+                if (activeGame !== 'meteor-dash') {
+                    window.removeEventListener('keydown', handleKeyDown);
+                    window.removeEventListener('keyup', handleKeyUp);
+                    return;
+                }
+
+                if (!isPaused && !gameOverState) {
+                    if (keys['ArrowLeft'] || keys['KeyA']) player.x -= player.speed;
+                    if (keys['ArrowRight'] || keys['KeyD']) player.x += player.speed;
+                    player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
+
+                    spawnMeteor();
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    // Draw Player Ship
+                    ctx.fillStyle = '#00f3ff';
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#00f3ff';
+                    ctx.beginPath();
+                    ctx.moveTo(player.x, player.y - player.radius);
+                    ctx.lineTo(player.x - player.radius, player.y + player.radius);
+                    ctx.lineTo(player.x + player.radius, player.y + player.radius);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                    // Update & Render Lasers
+                    lasers.forEach((l, lIdx) => {
+                        l.y += l.vy;
+                        ctx.fillStyle = '#ff007f';
+                        ctx.fillRect(l.x - 2, l.y, 4, 12);
+
+                        if (l.y < -10) lasers.splice(lIdx, 1);
+                    });
+
+                    // Update & Render Meteors
+                    meteors.forEach((m, mIdx) => {
+                        m.x += m.vx;
+                        m.y += m.vy;
+
+                        ctx.fillStyle = '#ab00ff';
+                        ctx.beginPath();
+                        ctx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // Collision with Player
+                        const dist = Math.hypot(player.x - m.x, player.y - m.y);
+                        if (dist < player.radius + m.radius) {
+                            soundFX.playExplosion();
+                            gameOver();
+                        }
+
+                        // Laser Collision
+                        lasers.forEach((l, lIdx) => {
+                            const lDist = Math.hypot(l.x - m.x, l.y - m.y);
+                            if (lDist < m.radius) {
+                                soundFX.playExplosion();
+                                score += 25;
+                                document.getElementById('gameCurrentScore').innerText = score;
+
+                                // Particles
+                                for (let p = 0; p < 8; p++) {
+                                    particles.push({
+                                        x: m.x,
+                                        y: m.y,
+                                        vx: (Math.random() - 0.5) * 5,
+                                        vy: (Math.random() - 0.5) * 5,
+                                        life: 1
+                                    });
+                                }
+
+                                meteors.splice(mIdx, 1);
+                                lasers.splice(lIdx, 1);
+                            }
+                        });
+
+                        if (m.y > canvas.height + 40) meteors.splice(mIdx, 1);
+                    });
+
+                    // Render Explosive Particles
+                    particles.forEach((p, pIdx) => {
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.life -= 0.04;
+                        if (p.life <= 0) {
+                            particles.splice(pIdx, 1);
+                        } else {
+                            ctx.fillStyle = `rgba(0, 243, 255, ${p.life})`;
+                            ctx.beginPath();
+                            ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    });
+                }
+
+                currentGameLoop = requestAnimationFrame(loop);
+            }
+
+            function gameOver() {
+                gameOverState = true;
+                if (score > scores['meteor-dash']) {
+                    scores['meteor-dash'] = score;
+                    localStorage.setItem('gh_score_meteor_dash', score);
+                }
+                document.getElementById('finalScoreVal').innerText = score;
+                document.getElementById('finalBestVal').innerText = scores['meteor-dash'];
+                document.getElementById('gameOverOverlay').classList.remove('hidden');
+            }
+
+            currentGameLoop = requestAnimationFrame(loop);
+        }
+
+        /* Initial Setup on Page Load */
+        window.addEventListener('load', () => {
+            applyUsername();
+            updateHubStats();
+
+            // Hash Deep Link Check
+            const hash = window.location.hash.replace('#', '');
+            if (hash === 'egg-pong' || hash === 'meteor-dash') {
+                launchGame(hash);
+            }
+        });
     </script>
 </body>
 </html>
