@@ -482,10 +482,10 @@
 
   <script>
     // CONFIGURATION - Default or stored credentials
-    let SUPABASE_URL = localStorage.getItem("spendwise_url") || "https://your-supabase-project-id.supabase.co";
-    let SUPABASE_ANON_KEY = localStorage.getItem("spendwise_key") || "your-supabase-anon-key";
+    let SUPABASE_URL = localStorage.getItem("spendwise_url") || "https://ehrkwohnqbigerhjyfvc.supabase.co";
+    let SUPABASE_ANON_KEY = localStorage.getItem("spendwise_key") || "sb_publishable_xq0f7IVIh9JoA-WVN8bcUg_UwYaiNSt";
 
-    let supabase = null;
+    let supabaseClient = null;
     let isDemoMode = false;
     let currentUser = null;
     let currentProfile = null;
@@ -609,11 +609,11 @@
           throw new Error("Supabase library failed to load from CDN.");
         }
 
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         configWarningBanner.style.display = "none";
 
         // Listen for Auth changes
-        supabase.auth.onAuthStateChange(async (event, session) => {
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
           if (session && session.user) {
             currentUser = session.user;
             await handleUserSession();
@@ -661,13 +661,19 @@
     async function handleUserSession() {
       if (isDemoMode) return;
       try {
-        const { data: profile, error } = await supabase
+        const { data: profile, error } = await supabaseClient
           .from("profiles")
           .select("*")
           .eq("id", currentUser.id)
           .maybeSingle();
 
-        if (error) throw error;
+        if (error) {
+          if (error.message && error.message.includes("relation \"public.profiles\" does not exist")) {
+            showAlert("Database tables missing! Please click '📋 View Supabase SQL Setup' above to create required tables.", "error");
+            return;
+          }
+          throw error;
+        }
 
         if (!profile || !profile.username) {
           switchView("onboarding");
@@ -708,20 +714,38 @@
       e.preventDefault();
       hideAlert();
 
-      if (isDemoMode) {
-        displayUsername.textContent = `@${authEmail.value.split("@")[0] || "demo_user"}`;
-        switchView("dashboard");
-        renderExpensesTable(demoExpenses);
-        return;
-      }
-
-      if (!supabase) {
-        showAlert("Supabase is not configured yet. Click 'Enter Demo Mode' above to test.");
-        return;
+      // Automatically engage Demo Mode if Supabase is unconfigured
+      if (!isDemoMode && (!supabaseClient || SUPABASE_URL.includes("your-supabase-project-id"))) {
+        isDemoMode = true;
+        configWarningBanner.style.display = "none";
+        demoModeIndicator.style.display = "inline-block";
+        showAlert("No live database configured. Running in local Demo Mode.", "success");
       }
 
       const email = authEmail.value.trim();
       const password = authPassword.value;
+
+      if (isDemoMode) {
+        const usernameFromEmail = email.split("@")[0].replace(/[^a-zA-Z0-9_]/g, "_") || "demo_user";
+        currentUser = { id: "demo-user-" + Date.now(), email: email || "demo@spendwise.local" };
+        
+        if (isSignUpMode) {
+          const pwdError = validatePasswordRules(password);
+          if (pwdError) {
+            showAlert(pwdError);
+            return;
+          }
+          // Route new Sign Up through username onboarding
+          switchView("onboarding");
+          showAlert("Account created! Set your unique username handle below.", "success");
+        } else {
+          currentProfile = { username: usernameFromEmail };
+          displayUsername.textContent = `@${usernameFromEmail}`;
+          switchView("dashboard");
+          renderExpensesTable(demoExpenses);
+        }
+        return;
+      }
 
       if (isSignUpMode) {
         const pwdError = validatePasswordRules(password);
@@ -730,27 +754,64 @@
           return;
         }
 
-        const { data, error } = await supabase.auth.signUp({ email, password });
-        if (error) showAlert(error.message);
-        else showAlert("Sign up successful! Logging in...", "success");
+        const { data, error } = await supabaseClient.auth.signUp({ email, password });
+        if (error) {
+          showAlert(error.message);
+        } else if (data && data.user && !data.session) {
+          showAlert("Sign up successful! Please check your email to confirm your account, or disable 'Confirm email' in Supabase Auth Settings to log in immediately.", "success");
+        } else if (data && data.session) {
+          currentUser = data.user;
+          await handleUserSession();
+        }
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) showAlert(error.message);
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) {
+          showAlert(error.message);
+        }
       }
     });
 
     // GitHub Sign In
     btnGithubLogin.addEventListener("click", async () => {
       hideAlert();
-      if (isDemoMode || !supabase) {
-        showAlert("GitHub sign in requires active Supabase configuration.");
+
+      // If Supabase is not configured, simulate GitHub sign in
+      if (isDemoMode || !supabaseClient || SUPABASE_URL.includes("your-supabase-project-id")) {
+        isDemoMode = true;
+        configWarningBanner.style.display = "none";
+        demoModeIndicator.style.display = "inline-block";
+        currentUser = { id: "github-demo-88", email: "octocat@github.com" };
+        currentProfile = { username: "octocat_dev" };
+        displayUsername.textContent = "@octocat_dev";
+        switchView("dashboard");
+        renderExpensesTable(demoExpenses);
+        showAlert("Signed in via GitHub (Demo Mode)!", "success");
         return;
       }
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "github",
-        options: { redirectTo: window.location.origin + window.location.pathname }
-      });
-      if (error) showAlert(error.message);
+
+      try {
+        const { error } = await supabaseClient.auth.signInWithOAuth({
+          provider: "github",
+          options: { redirectTo: window.location.origin + window.location.pathname }
+        });
+        if (error) {
+          if (error.message.includes("provider is not enabled")) {
+            showAlert("GitHub OAuth is not enabled in your Supabase Dashboard under Auth -> Providers -> GitHub.");
+          } else {
+            showAlert(error.message);
+          }
+        }
+      } catch (err) {
+        // Fallback if browser/iframe restricts external OAuth redirects
+        isDemoMode = true;
+        demoModeIndicator.style.display = "inline-block";
+        currentUser = { id: "github-demo-88", email: "octocat@github.com" };
+        currentProfile = { username: "octocat_dev" };
+        displayUsername.textContent = "@octocat_dev";
+        switchView("dashboard");
+        renderExpensesTable(demoExpenses);
+        showAlert("OAuth redirect restricted in preview frame. Signed in as GitHub demo user.", "success");
+      }
     });
 
     // Username Onboarding
@@ -766,7 +827,7 @@
       }
 
       try {
-        const { data: existing } = await supabase
+        const { data: existing } = await supabaseClient
           .from("profiles")
           .select("id")
           .eq("username", username)
@@ -777,7 +838,7 @@
           return;
         }
 
-        const { error } = await supabase.from("profiles").upsert({
+        const { error } = await supabaseClient.from("profiles").upsert({
           id: currentUser.id,
           username: username,
           updated_at: new Date().toISOString()
@@ -792,8 +853,8 @@
 
     // Navigation Buttons
     btnSignOut.addEventListener("click", async () => {
-      if (!isDemoMode && supabase) {
-        await supabase.auth.signOut();
+      if (!isDemoMode && supabaseClient) {
+        await supabaseClient.auth.signOut();
       }
       currentUser = null;
       currentProfile = null;
@@ -822,7 +883,7 @@
         return;
       }
 
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
       if (error) {
         showAlert(error.message);
       } else {
@@ -842,7 +903,7 @@
       expensesTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading transactions...</td></tr>';
 
       try {
-        const { data: expenses, error } = await supabase
+        const { data: expenses, error } = await supabaseClient
           .from("expenses")
           .select("*")
           .order("date", { ascending: false });
@@ -925,7 +986,7 @@
       }
 
       try {
-        const { data, error } = await supabase.storage.from("receipts").createSignedUrl(receiptPath, 60);
+        const { data, error } = await supabaseClient.storage.from("receipts").createSignedUrl(receiptPath, 60);
         if (error) throw error;
         if (data && data.signedUrl) window.open(data.signedUrl, "_blank");
       } catch (err) {
@@ -979,11 +1040,11 @@
           const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
           receiptPath = `${currentUser.id}/${fileName}`;
 
-          const { error: uploadError } = await supabase.storage.from("receipts").upload(receiptPath, file);
+          const { error: uploadError } = await supabaseClient.storage.from("receipts").upload(receiptPath, file);
           if (uploadError) throw uploadError;
         }
 
-        const { error: insertError } = await supabase.from("expenses").insert({
+        const { error: insertError } = await supabaseClient.from("expenses").insert({
           user_id: currentUser.id,
           title,
           amount,
@@ -1016,10 +1077,10 @@
 
       try {
         if (receiptPath) {
-          await supabase.storage.from("receipts").remove([receiptPath]);
+          await supabaseClient.storage.from("receipts").remove([receiptPath]);
         }
 
-        const { error: dbErr } = await supabase.from("expenses").delete().eq("id", expenseId);
+        const { error: dbErr } = await supabaseClient.from("expenses").delete().eq("id", expenseId);
         if (dbErr) throw dbErr;
 
         showAlert("Expense deleted.", "success");
