@@ -4,8 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SpendWise - Personal Expense Tracker</title>
-  <!-- Supabase JS Client library CDN -->
+  <!-- Supabase JS Client library CDN with fallback safety -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <style>
     :root {
       --primary: #2563eb;
@@ -18,6 +19,9 @@
       --danger: #ef4444;
       --danger-hover: #dc2626;
       --success: #10b981;
+      --warning-bg: #fef3c7;
+      --warning-border: #fde68a;
+      --warning-text: #92400e;
       --radius: 8px;
     }
 
@@ -110,6 +114,7 @@
 
     .btn-danger {
       background-color: var(--danger);
+      color: white;
     }
 
     .btn-danger:hover {
@@ -173,7 +178,7 @@
     }
 
     .auth-container {
-      max-width: 400px;
+      max-width: 420px;
       margin: 40px auto;
     }
 
@@ -190,7 +195,7 @@
     }
 
     .alert {
-      padding: 12px;
+      padding: 12px 16px;
       border-radius: var(--radius);
       font-size: 0.875rem;
       margin-bottom: 16px;
@@ -207,6 +212,21 @@
       background-color: #ecfdf5;
       color: #065f46;
       border: 1px solid #a7f3d0;
+    }
+
+    .config-banner {
+      background-color: var(--warning-bg);
+      border: 1px solid var(--warning-border);
+      color: var(--warning-text);
+      padding: 16px;
+      border-radius: var(--radius);
+      margin-bottom: 24px;
+      font-size: 0.875rem;
+    }
+
+    .config-banner h4 {
+      font-weight: 700;
+      margin-bottom: 6px;
     }
 
     .summary-card {
@@ -251,12 +271,13 @@
       background-color: #f8fafc;
     }
 
+    /* Views visibility */
     .view-section {
       display: none;
     }
 
-    .active-view {
-      display: block;
+    .view-section.active-view {
+      display: block !important;
     }
 
     .receipt-link {
@@ -275,6 +296,17 @@
       color: var(--text-muted);
       margin-top: 4px;
     }
+
+    .demo-badge {
+      display: inline-block;
+      background-color: #fef3c7;
+      color: #92400e;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-left: 8px;
+    }
   </style>
 </head>
 <body>
@@ -282,7 +314,7 @@
   <header id="main-header" style="display: none;">
     <div class="container nav">
       <div class="logo">
-        📊 SpendWise
+        📊 SpendWise <span id="demo-mode-indicator" class="demo-badge" style="display:none;">Demo Mode</span>
       </div>
       <div class="user-controls">
         <span class="username-badge" id="display-username">@user</span>
@@ -295,8 +327,22 @@
   <main class="container">
     <div id="alert-box" class="alert"></div>
 
-    <!-- VIEW 1: AUTHENTICATION (Sign In / Sign Up) -->
-    <section id="auth-view" class="view-section auth-container card">
+    <!-- CONFIGURATION ASSISTANT BANNER (Shows if keys are missing/default) -->
+    <div id="config-warning-banner" class="config-banner" style="display: none;">
+      <h4>⚙️ Supabase Configuration Required</h4>
+      <p style="margin-bottom: 10px;">To connect to your database, replace the placeholder URL and Anon Key below, or test the app layout right away using Demo Mode.</p>
+      <div class="form-row" style="margin-bottom: 10px;">
+        <input type="text" id="cfg-url" placeholder="Supabase Project URL (https://xyz.supabase.co)" />
+        <input type="text" id="cfg-key" placeholder="Supabase Anon Key (ey...)" />
+      </div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button type="button" class="btn" id="btn-apply-config">Connect Supabase</button>
+        <button type="button" class="btn btn-secondary" id="btn-use-demo">⚡ Enter Demo Mode (Offline Testing)</button>
+      </div>
+    </div>
+
+    <!-- VIEW 1: AUTHENTICATION (Sign In / Sign Up) - ACTIVE BY DEFAULT -->
+    <section id="auth-view" class="view-section auth-container card active-view">
       <h2 class="card-title" id="auth-title">Sign In to SpendWise</h2>
       
       <form id="auth-form">
@@ -434,8 +480,557 @@
     </section>
   </main>
 
-  <!-- Load Configuration first, then Application logic -->
-  <script src="config.js"></script>
-  <script src="app.js"></script>
+  <script>
+    // CONFIGURATION - Default or stored credentials
+    let SUPABASE_URL = localStorage.getItem("spendwise_url") || "https://your-supabase-project-id.supabase.co";
+    let SUPABASE_ANON_KEY = localStorage.getItem("spendwise_key") || "your-supabase-anon-key";
+
+    let supabase = null;
+    let isDemoMode = false;
+    let currentUser = null;
+    let currentProfile = null;
+    let isSignUpMode = false;
+
+    // Demo Mode state
+    let demoExpenses = [
+      { id: "1", title: "Whole Foods Market", amount: 84.50, category: "Food & Dining", date: new Date().toISOString().split("T")[0], receipt_path: null },
+      { id: "2", title: "Apple Store - USB Cable", amount: 29.00, category: "Tech & Hardware", date: new Date().toISOString().split("T")[0], receipt_path: null }
+    ];
+
+    // DOM References
+    const alertBox = document.getElementById("alert-box");
+    const mainHeader = document.getElementById("main-header");
+    const displayUsername = document.getElementById("display-username");
+    const configWarningBanner = document.getElementById("config-warning-banner");
+    const cfgUrlInput = document.getElementById("cfg-url");
+    const cfgKeyInput = document.getElementById("cfg-key");
+    const btnApplyConfig = document.getElementById("btn-apply-config");
+    const btnUseDemo = document.getElementById("btn-use-demo");
+    const demoModeIndicator = document.getElementById("demo-mode-indicator");
+
+    // Views
+    const views = {
+      auth: document.getElementById("auth-view"),
+      onboarding: document.getElementById("onboarding-view"),
+      dashboard: document.getElementById("dashboard-view"),
+      password: document.getElementById("password-view")
+    };
+
+    // Form inputs
+    const authForm = document.getElementById("auth-form");
+    const authTitle = document.getElementById("auth-title");
+    const authEmail = document.getElementById("auth-email");
+    const authPassword = document.getElementById("auth-password");
+    const passwordHint = document.getElementById("password-hint");
+    const btnAuthSubmit = document.getElementById("btn-auth-submit");
+    const authToggleLink = document.getElementById("auth-toggle-link");
+    const authToggleText = document.getElementById("auth-toggle-text");
+    const btnGithubLogin = document.getElementById("btn-github-login");
+
+    const onboardingForm = document.getElementById("onboarding-form");
+    const onboardingUsername = document.getElementById("onboarding-username");
+
+    const expenseForm = document.getElementById("expense-form");
+    const expenseTitle = document.getElementById("expense-title");
+    const expenseAmount = document.getElementById("expense-amount");
+    const expenseCategory = document.getElementById("expense-category");
+    const expenseDate = document.getElementById("expense-date");
+    const expenseReceipt = document.getElementById("expense-receipt");
+    const expensesTbody = document.getElementById("expenses-tbody");
+    const totalSpendingEl = document.getElementById("total-spending");
+
+    const passwordForm = document.getElementById("password-form");
+    const newPasswordInput = document.getElementById("new-password");
+
+    const btnNavPassword = document.getElementById("btn-nav-password");
+    const btnSignOut = document.getElementById("btn-sign-out");
+    const btnCancelPassword = document.getElementById("btn-cancel-password");
+
+    // Initialize Default Date
+    expenseDate.value = new Date().toISOString().split("T")[0];
+
+    // Helper: Alert Display
+    function showAlert(message, type = "error") {
+      alertBox.textContent = message;
+      alertBox.className = `alert alert-${type}`;
+      alertBox.style.display = "block";
+    }
+
+    function hideAlert() {
+      alertBox.style.display = "none";
+    }
+
+    // Helper: Switch Views safely
+    function switchView(viewName) {
+      hideAlert();
+      Object.keys(views).forEach(name => {
+        if (views[name]) views[name].classList.remove("active-view");
+      });
+      
+      if (views[viewName]) {
+        views[viewName].classList.add("active-view");
+      }
+
+      if (viewName === "dashboard" || viewName === "password") {
+        mainHeader.style.display = "block";
+      } else {
+        mainHeader.style.display = "none";
+      }
+    }
+
+    // Password Validation Rule
+    function validatePasswordRules(password) {
+      const minLength = password.length >= 8;
+      const hasUpper = /[A-Z]/.test(password);
+      const hasLower = /[a-z]/.test(password);
+      const hasNumber = /[0-9]/.test(password);
+
+      if (!minLength) return "Password must be at least 8 characters long.";
+      if (!hasUpper) return "Password must contain at least one uppercase letter.";
+      if (!hasLower) return "Password must contain at least one lowercase letter.";
+      if (!hasNumber) return "Password must contain at least one number.";
+      return null;
+    }
+
+    // Initialize App & Supabase Connection
+    function initApp() {
+      const isPlaceholder = SUPABASE_URL.includes("your-supabase-project-id") || SUPABASE_ANON_KEY.includes("your-supabase-anon-key");
+
+      if (isPlaceholder) {
+        configWarningBanner.style.display = "block";
+        cfgUrlInput.value = SUPABASE_URL.includes("your-supabase-project-id") ? "" : SUPABASE_URL;
+        cfgKeyInput.value = SUPABASE_ANON_KEY.includes("your-supabase-anon-key") ? "" : SUPABASE_ANON_KEY;
+        switchView("auth");
+        return;
+      }
+
+      try {
+        if (!window.supabase || typeof window.supabase.createClient !== "function") {
+          throw new Error("Supabase library failed to load from CDN.");
+        }
+
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        configWarningBanner.style.display = "none";
+
+        // Listen for Auth changes
+        supabase.auth.onAuthStateChange(async (event, session) => {
+          if (session && session.user) {
+            currentUser = session.user;
+            await handleUserSession();
+          } else {
+            currentUser = null;
+            currentProfile = null;
+            switchView("auth");
+          }
+        });
+
+      } catch (err) {
+        console.error("Initialization Error:", err);
+        configWarningBanner.style.display = "block";
+        showAlert("Failed to connect to Supabase: " + err.message);
+      }
+    }
+
+    // Config setup actions
+    btnApplyConfig.addEventListener("click", () => {
+      const u = cfgUrlInput.value.trim();
+      const k = cfgKeyInput.value.trim();
+      if (!u || !k) {
+        showAlert("Please enter both Supabase URL and Anon Key.");
+        return;
+      }
+      localStorage.setItem("spendwise_url", u);
+      localStorage.setItem("spendwise_key", k);
+      SUPABASE_URL = u;
+      SUPABASE_ANON_KEY = k;
+      initApp();
+    });
+
+    btnUseDemo.addEventListener("click", () => {
+      isDemoMode = true;
+      configWarningBanner.style.display = "none";
+      demoModeIndicator.style.display = "inline-block";
+      currentUser = { id: "demo-user-123", email: "demo@spendwise.local" };
+      currentProfile = { username: "demo_user" };
+      displayUsername.textContent = "@demo_user";
+      switchView("dashboard");
+      renderExpensesTable(demoExpenses);
+      showAlert("Logged in as Demo Mode. Data is kept in browser memory.", "success");
+    });
+
+    async function handleUserSession() {
+      if (isDemoMode) return;
+      try {
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", currentUser.id)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (!profile || !profile.username) {
+          switchView("onboarding");
+        } else {
+          currentProfile = profile;
+          displayUsername.textContent = `@${profile.username}`;
+          switchView("dashboard");
+          await loadExpenses();
+        }
+      } catch (err) {
+        showAlert(err.message || "Error loading profile session.");
+      }
+    }
+
+    // Toggle Sign In / Sign Up
+    authToggleLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      hideAlert();
+      isSignUpMode = !isSignUpMode;
+      
+      if (isSignUpMode) {
+        authTitle.textContent = "Create an Account";
+        btnAuthSubmit.textContent = "Sign Up";
+        authToggleText.textContent = "Already have an account?";
+        authToggleLink.textContent = "Sign In";
+        passwordHint.style.display = "block";
+      } else {
+        authTitle.textContent = "Sign In to SpendWise";
+        btnAuthSubmit.textContent = "Sign In";
+        authToggleText.textContent = "Don't have an account?";
+        authToggleLink.textContent = "Sign Up";
+        passwordHint.style.display = "none";
+      }
+    });
+
+    // Auth Form Submit
+    authForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideAlert();
+
+      if (isDemoMode) {
+        displayUsername.textContent = `@${authEmail.value.split("@")[0] || "demo_user"}`;
+        switchView("dashboard");
+        renderExpensesTable(demoExpenses);
+        return;
+      }
+
+      if (!supabase) {
+        showAlert("Supabase is not configured yet. Click 'Enter Demo Mode' above to test.");
+        return;
+      }
+
+      const email = authEmail.value.trim();
+      const password = authPassword.value;
+
+      if (isSignUpMode) {
+        const pwdError = validatePasswordRules(password);
+        if (pwdError) {
+          showAlert(pwdError);
+          return;
+        }
+
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if (error) showAlert(error.message);
+        else showAlert("Sign up successful! Logging in...", "success");
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) showAlert(error.message);
+      }
+    });
+
+    // GitHub Sign In
+    btnGithubLogin.addEventListener("click", async () => {
+      hideAlert();
+      if (isDemoMode || !supabase) {
+        showAlert("GitHub sign in requires active Supabase configuration.");
+        return;
+      }
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "github",
+        options: { redirectTo: window.location.origin + window.location.pathname }
+      });
+      if (error) showAlert(error.message);
+    });
+
+    // Username Onboarding
+    onboardingForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideAlert();
+      const username = onboardingUsername.value.trim().toLowerCase();
+
+      if (isDemoMode) {
+        displayUsername.textContent = `@${username}`;
+        switchView("dashboard");
+        return;
+      }
+
+      try {
+        const { data: existing } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("username", username)
+          .maybeSingle();
+
+        if (existing && existing.id !== currentUser.id) {
+          showAlert("Username is already taken. Please choose another.");
+          return;
+        }
+
+        const { error } = await supabase.from("profiles").upsert({
+          id: currentUser.id,
+          username: username,
+          updated_at: new Date().toISOString()
+        });
+
+        if (error) throw error;
+        await handleUserSession();
+      } catch (err) {
+        showAlert(err.message || "Failed to save username.");
+      }
+    });
+
+    // Navigation Buttons
+    btnSignOut.addEventListener("click", async () => {
+      if (!isDemoMode && supabase) {
+        await supabase.auth.signOut();
+      }
+      currentUser = null;
+      currentProfile = null;
+      switchView("auth");
+    });
+
+    btnNavPassword.addEventListener("click", () => switchView("password"));
+    btnCancelPassword.addEventListener("click", () => switchView("dashboard"));
+
+    // Password Update
+    passwordForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideAlert();
+      const newPassword = newPasswordInput.value;
+      const pwdError = validatePasswordRules(newPassword);
+
+      if (pwdError) {
+        showAlert(pwdError);
+        return;
+      }
+
+      if (isDemoMode) {
+        showAlert("Password updated (Demo Mode).", "success");
+        newPasswordInput.value = "";
+        setTimeout(() => switchView("dashboard"), 1000);
+        return;
+      }
+
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        showAlert(error.message);
+      } else {
+        showAlert("Password updated successfully!", "success");
+        newPasswordInput.value = "";
+        setTimeout(() => switchView("dashboard"), 1200);
+      }
+    });
+
+    // Load Expenses
+    async function loadExpenses() {
+      if (isDemoMode) {
+        renderExpensesTable(demoExpenses);
+        return;
+      }
+
+      expensesTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading transactions...</td></tr>';
+
+      try {
+        const { data: expenses, error } = await supabase
+          .from("expenses")
+          .select("*")
+          .order("date", { ascending: false });
+
+        if (error) throw error;
+        renderExpensesTable(expenses || []);
+      } catch (err) {
+        showAlert("Failed to load expenses: " + err.message);
+      }
+    }
+
+    // Render Expense Table
+    function renderExpensesTable(expenses) {
+      expensesTbody.innerHTML = "";
+      let total = 0;
+
+      if (!expenses || expenses.length === 0) {
+        expensesTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No expenses logged yet.</td></tr>';
+        totalSpendingEl.textContent = "$0.00";
+        return;
+      }
+
+      expenses.forEach(item => {
+        const amountNum = parseFloat(item.amount) || 0;
+        total += amountNum;
+
+        const tr = document.createElement("tr");
+
+        const tdDate = document.createElement("td");
+        tdDate.textContent = item.date;
+
+        const tdTitle = document.createElement("td");
+        tdTitle.textContent = item.title;
+
+        const tdCategory = document.createElement("td");
+        tdCategory.textContent = item.category;
+
+        const tdAmount = document.createElement("td");
+        tdAmount.style.fontWeight = "600";
+        tdAmount.textContent = `$${amountNum.toFixed(2)}`;
+
+        const tdReceipt = document.createElement("td");
+        if (item.receipt_path) {
+          const receiptBtn = document.createElement("span");
+          receiptBtn.className = "receipt-link";
+          receiptBtn.textContent = "📎 View";
+          receiptBtn.addEventListener("click", () => openReceipt(item.receipt_path));
+          tdReceipt.appendChild(receiptBtn);
+        } else {
+          tdReceipt.textContent = "—";
+        }
+
+        const tdAction = document.createElement("td");
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "btn btn-danger";
+        deleteBtn.style.padding = "4px 8px";
+        deleteBtn.style.fontSize = "0.75rem";
+        deleteBtn.textContent = "Delete";
+        deleteBtn.addEventListener("click", () => deleteExpense(item.id, item.receipt_path));
+        tdAction.appendChild(deleteBtn);
+
+        tr.appendChild(tdDate);
+        tr.appendChild(tdTitle);
+        tr.appendChild(tdCategory);
+        tr.appendChild(tdAmount);
+        tr.appendChild(tdReceipt);
+        tr.appendChild(tdAction);
+
+        expensesTbody.appendChild(tr);
+      });
+
+      totalSpendingEl.textContent = `$${total.toFixed(2)}`;
+    }
+
+    // Open Receipt
+    async function openReceipt(receiptPath) {
+      if (isDemoMode) {
+        showAlert("Receipt preview not available in offline Demo Mode.", "error");
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase.storage.from("receipts").createSignedUrl(receiptPath, 60);
+        if (error) throw error;
+        if (data && data.signedUrl) window.open(data.signedUrl, "_blank");
+      } catch (err) {
+        showAlert("Failed to open receipt: " + err.message);
+      }
+    }
+
+    // Add Expense
+    expenseForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideAlert();
+
+      const title = expenseTitle.value.trim();
+      const amount = parseFloat(expenseAmount.value);
+      const category = expenseCategory.value;
+      const date = expenseDate.value;
+      const file = expenseReceipt.files[0];
+
+      if (isDemoMode) {
+        const newEntry = {
+          id: String(Date.now()),
+          title,
+          amount,
+          category,
+          date,
+          receipt_path: file ? "demo/receipt.jpg" : null
+        };
+        demoExpenses.unshift(newEntry);
+        expenseForm.reset();
+        expenseDate.value = new Date().toISOString().split("T")[0];
+        showAlert("Expense added (Demo Mode)!", "success");
+        renderExpensesTable(demoExpenses);
+        return;
+      }
+
+      let receiptPath = null;
+
+      try {
+        if (file) {
+          const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
+          if (!allowedTypes.includes(file.type)) {
+            showAlert("Invalid file type. Only JPG, PNG, and PDF allowed.");
+            return;
+          }
+          if (file.size > 5 * 1024 * 1024) {
+            showAlert("File size exceeds 5 MB limit.");
+            return;
+          }
+
+          const fileExt = file.name.split(".").pop();
+          const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+          receiptPath = `${currentUser.id}/${fileName}`;
+
+          const { error: uploadError } = await supabase.storage.from("receipts").upload(receiptPath, file);
+          if (uploadError) throw uploadError;
+        }
+
+        const { error: insertError } = await supabase.from("expenses").insert({
+          user_id: currentUser.id,
+          title,
+          amount,
+          category,
+          date,
+          receipt_path: receiptPath
+        });
+
+        if (insertError) throw insertError;
+
+        expenseForm.reset();
+        expenseDate.value = new Date().toISOString().split("T")[0];
+        showAlert("Expense logged successfully!", "success");
+        await loadExpenses();
+      } catch (err) {
+        showAlert("Failed to save expense: " + err.message);
+      }
+    });
+
+    // Delete Expense
+    async function deleteExpense(expenseId, receiptPath) {
+      hideAlert();
+
+      if (isDemoMode) {
+        demoExpenses = demoExpenses.filter(item => item.id !== expenseId);
+        showAlert("Expense deleted (Demo Mode).", "success");
+        renderExpensesTable(demoExpenses);
+        return;
+      }
+
+      try {
+        if (receiptPath) {
+          await supabase.storage.from("receipts").remove([receiptPath]);
+        }
+
+        const { error: dbErr } = await supabase.from("expenses").delete().eq("id", expenseId);
+        if (dbErr) throw dbErr;
+
+        showAlert("Expense deleted.", "success");
+        await loadExpenses();
+      } catch (err) {
+        showAlert("Failed to delete entry: " + err.message);
+      }
+    }
+
+    // Run Initialization on Page Load
+    window.addEventListener("DOMContentLoaded", initApp);
+  </script>
 </body>
 </html>
