@@ -1,19 +1,21 @@
-// app.js
+// ==========================================
+// SPENDWISE CORE APPLICATION LOGIC
+// ==========================================
 
-// Initialize Supabase Client
+// Initialize the Supabase Client using configuration credentials
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Application State Variables
+// Global Application State Variables
 let currentUser = null;
 let currentProfile = null;
 let isSignUpMode = false;
 
-// DOM Element References
+// Alert Box & Common Header Elements
 const alertBox = document.getElementById("alert-box");
 const mainHeader = document.getElementById("main-header");
 const displayUsername = document.getElementById("display-username");
 
-// Views
+// View Container Elements
 const views = {
   auth: document.getElementById("auth-view"),
   onboarding: document.getElementById("onboarding-view"),
@@ -21,7 +23,7 @@ const views = {
   password: document.getElementById("password-view")
 };
 
-// Forms & Inputs
+// Auth Form Elements
 const authForm = document.getElementById("auth-form");
 const authTitle = document.getElementById("auth-title");
 const authEmail = document.getElementById("auth-email");
@@ -32,9 +34,11 @@ const authToggleLink = document.getElementById("auth-toggle-link");
 const authToggleText = document.getElementById("auth-toggle-text");
 const btnGithubLogin = document.getElementById("btn-github-login");
 
+// Onboarding Elements
 const onboardingForm = document.getElementById("onboarding-form");
 const onboardingUsername = document.getElementById("onboarding-username");
 
+// Expense Form & Table Elements
 const expenseForm = document.getElementById("expense-form");
 const expenseTitle = document.getElementById("expense-title");
 const expenseAmount = document.getElementById("expense-amount");
@@ -44,48 +48,54 @@ const expenseReceipt = document.getElementById("expense-receipt");
 const expensesTbody = document.getElementById("expenses-tbody");
 const totalSpendingEl = document.getElementById("total-spending");
 
+// Password Settings & Navigation Controls
 const passwordForm = document.getElementById("password-form");
 const newPasswordInput = document.getElementById("new-password");
-
-// Navigation Buttons
 const btnNavPassword = document.getElementById("btn-nav-password");
 const btnSignOut = document.getElementById("btn-sign-out");
 const btnCancelPassword = document.getElementById("btn-cancel-password");
 
-// Set default expense date input to today
-expenseDate.value = new Date().toISOString().split("T")[0];
+// Set default expense date picker to today's date
+if (expenseDate) {
+  expenseDate.value = new Date().toISOString().split("T")[0];
+}
 
-// Helper: Alert Display
+// Display feedback notifications to the user
 function showAlert(message, type = "error") {
+  if (!alertBox) return;
   alertBox.textContent = message;
   alertBox.className = `alert alert-${type}`;
   alertBox.style.display = "block";
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+// Hide alert notification box
 function hideAlert() {
-  alertBox.style.display = "none";
+  if (alertBox) alertBox.style.display = "none";
 }
 
-// Helper: Switch View Containers
+// Switch visible UI view cards smoothly
 function switchView(viewName) {
   hideAlert();
   Object.keys(views).forEach(name => {
-    views[name].classList.remove("active-view");
+    if (views[name]) views[name].classList.remove("active-view");
   });
-  
+
   if (views[viewName]) {
     views[viewName].classList.add("active-view");
   }
 
-  if (viewName === "dashboard" || viewName === "password") {
-    mainHeader.style.display = "block";
-  } else {
-    mainHeader.style.display = "none";
+  // Show navigation bar only for authenticated dashboard & settings views
+  if (mainHeader) {
+    if (viewName === "dashboard" || viewName === "password") {
+      mainHeader.style.display = "block";
+    } else {
+      mainHeader.style.display = "none";
+    }
   }
 }
 
-// Password Validation Rule Checker
+// Enforce strong password validation rules
 function validatePasswordRules(password) {
   const minLength = password.length >= 8;
   const hasUpper = /[A-Z]/.test(password);
@@ -99,7 +109,7 @@ function validatePasswordRules(password) {
   return null;
 }
 
-// AUTHENTICATION EVENT LISTENERS & STATE HANDLING
+// Listen to authentication state changes (login, logout, token refresh)
 supabase.auth.onAuthStateChange(async (event, session) => {
   if (session && session.user) {
     currentUser = session.user;
@@ -111,9 +121,9 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   }
 });
 
+// Verify user profile and direct to onboarding or dashboard
 async function handleUserSession() {
   try {
-    // Check if user has a profile record with a username
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("*")
@@ -126,170 +136,164 @@ async function handleUserSession() {
       switchView("onboarding");
     } else {
       currentProfile = profile;
-      displayUsername.textContent = `@${profile.username}`;
+      if (displayUsername) displayUsername.textContent = `@${profile.username}`;
       switchView("dashboard");
       await loadExpenses();
     }
   } catch (err) {
-    showAlert(err.message || "Error loading profile session.");
+    showAlert(err.message || "Error restoring user profile session.");
   }
 }
 
-// Toggle Sign In / Sign Up Modes
-authToggleLink.addEventListener("click", (e) => {
-  e.preventDefault();
-  hideAlert();
-  isSignUpMode = !isSignUpMode;
-  
-  if (isSignUpMode) {
-    authTitle.textContent = "Create an Account";
-    btnAuthSubmit.textContent = "Sign Up";
-    authToggleText.textContent = "Already have an account?";
-    authToggleLink.textContent = "Sign In";
-    passwordHint.style.display = "block";
-  } else {
-    authTitle.textContent = "Sign In to SpendWise";
-    btnAuthSubmit.textContent = "Sign In";
-    authToggleText.textContent = "Don't have an account?";
-    authToggleLink.textContent = "Sign Up";
-    passwordHint.style.display = "none";
-  }
-});
+// Toggle between Sign In and Sign Up modes
+if (authToggleLink) {
+  authToggleLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    hideAlert();
+    isSignUpMode = !isSignUpMode;
 
-// Submit Email/Password Form
-authForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  hideAlert();
+    if (isSignUpMode) {
+      if (authTitle) authTitle.textContent = "Create an Account";
+      if (btnAuthSubmit) btnAuthSubmit.textContent = "Sign Up";
+      if (authToggleText) authToggleText.textContent = "Already have an account?";
+      authToggleLink.textContent = "Sign In";
+      if (passwordHint) passwordHint.style.display = "block";
+    } else {
+      if (authTitle) authTitle.textContent = "Sign In to SpendWise";
+      if (btnAuthSubmit) btnAuthSubmit.textContent = "Sign In";
+      if (authToggleText) authToggleText.textContent = "Don't have an account?";
+      authToggleLink.textContent = "Sign Up";
+      if (passwordHint) passwordHint.style.display = "none";
+    }
+  });
+}
 
-  const email = authEmail.value.trim();
-  const password = authPassword.value;
+// Submit Authentication (Sign In or Sign Up)
+if (authForm) {
+  authForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    hideAlert();
 
-  if (isSignUpMode) {
-    const pwdError = validatePasswordRules(password);
+    const email = authEmail.value.trim();
+    const password = authPassword.value;
+
+    if (isSignUpMode) {
+      const pwdError = validatePasswordRules(password);
+      if (pwdError) {
+        showAlert(pwdError);
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        showAlert(error.message);
+      } else {
+        showAlert("Sign up successful! Logging in...", "success");
+      }
+    } else {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        showAlert(error.message);
+      }
+    }
+  });
+}
+
+// Trigger GitHub OAuth Redirect
+if (btnGithubLogin) {
+  btnGithubLogin.addEventListener("click", async () => {
+    hideAlert();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "github",
+      options: {
+        redirectTo: window.location.origin + window.location.pathname
+      }
+    });
+
+    if (error) showAlert(error.message);
+  });
+}
+
+// Save Username during Onboarding
+if (onboardingForm) {
+  onboardingForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    hideAlert();
+
+    const username = onboardingUsername.value.trim().toLowerCase();
+
+    try {
+      const { data: existing } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("username", username)
+        .maybeSingle();
+
+      if (existing && existing.id !== currentUser.id) {
+        showAlert("Username is already taken. Please pick another handle.");
+        return;
+      }
+
+      const { error } = await supabase
+        .from("profiles")
+        .upsert({
+          id: currentUser.id,
+          username: username,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+      await handleUserSession();
+    } catch (err) {
+      showAlert(err.message || "Failed to complete username onboarding.");
+    }
+  });
+}
+
+// Navigation and Sign-out Actions
+if (btnSignOut) {
+  btnSignOut.addEventListener("click", async () => {
+    await supabase.auth.signOut();
+  });
+}
+
+if (btnNavPassword) {
+  btnNavPassword.addEventListener("click", () => switchView("password"));
+}
+
+if (btnCancelPassword) {
+  btnCancelPassword.addEventListener("click", () => switchView("dashboard"));
+}
+
+// Password Change Form Submission
+if (passwordForm) {
+  passwordForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    hideAlert();
+
+    const newPassword = newPasswordInput.value;
+    const pwdError = validatePasswordRules(newPassword);
+
     if (pwdError) {
       showAlert(pwdError);
       return;
     }
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password
-    });
-
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) {
       showAlert(error.message);
     } else {
-      showAlert("Sign up successful! Logging in...", "success");
-    }
-  } else {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if (error) {
-      showAlert(error.message);
-    }
-  }
-});
-
-// GitHub OAuth Sign In
-btnGithubLogin.addEventListener("click", async () => {
-  hideAlert();
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "github",
-    options: {
-      redirectTo: window.location.origin + window.location.pathname
+      showAlert("Password updated successfully!", "success");
+      newPasswordInput.value = "";
+      setTimeout(() => switchView("dashboard"), 1200);
     }
   });
+}
 
-  if (error) {
-    showAlert(error.message);
-  }
-});
-
-// Save Username (Onboarding)
-onboardingForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  hideAlert();
-
-  const username = onboardingUsername.value.trim().toLowerCase();
-
-  try {
-    // Check if username is already taken
-    const { data: existing } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("username", username)
-      .maybeSingle();
-
-    if (existing && existing.id !== currentUser.id) {
-      showAlert("Username is already taken. Please choose another.");
-      return;
-    }
-
-    const { error } = await supabase
-      .from("profiles")
-      .upsert({
-        id: currentUser.id,
-        username: username,
-        updated_at: new Date().toISOString()
-      });
-
-    if (error) throw error;
-
-    await handleUserSession();
-  } catch (err) {
-    showAlert(err.message || "Failed to save username.");
-  }
-});
-
-// Navigation Handlers
-btnSignOut.addEventListener("click", async () => {
-  await supabase.auth.signOut();
-});
-
-btnNavPassword.addEventListener("click", () => {
-  switchView("password");
-});
-
-btnCancelPassword.addEventListener("click", () => {
-  switchView("dashboard");
-});
-
-// Change Password Handler
-passwordForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  hideAlert();
-
-  const newPassword = newPasswordInput.value;
-  const pwdError = validatePasswordRules(newPassword);
-
-  if (pwdError) {
-    showAlert(pwdError);
-    return;
-  }
-
-  const { error } = await supabase.auth.updateUser({
-    password: newPassword
-  });
-
-  if (error) {
-    showAlert(error.message);
-  } else {
-    showAlert("Password updated successfully!", "success");
-    newPasswordInput.value = "";
-    setTimeout(() => {
-      switchView("dashboard");
-    }, 1500);
-  }
-});
-
-// EXPENSES CRUD & STORAGE LOGIC
-
-// Load User Expenses
+// Fetch User Expenses (RLS handles single-user filtering automatically)
 async function loadExpenses() {
-  expensesTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading transactions...</td></tr>';
+  if (!expensesTbody) return;
+  expensesTbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Loading transactions...</td></tr>';
 
   try {
     const { data: expenses, error } = await supabase
@@ -298,21 +302,20 @@ async function loadExpenses() {
       .order("date", { ascending: false });
 
     if (error) throw error;
-
     renderExpensesTable(expenses || []);
   } catch (err) {
     showAlert("Failed to load expenses: " + err.message);
   }
 }
 
-// Render Expenses Table & Calculate Total
+// Render Transactions Table & Compute Total Amount
 function renderExpensesTable(expenses) {
   expensesTbody.innerHTML = "";
   let total = 0;
 
   if (expenses.length === 0) {
-    expensesTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No expenses logged yet.</td></tr>';
-    totalSpendingEl.textContent = "$0.00";
+    expensesTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #64748b;">No expenses logged yet.</td></tr>';
+    if (totalSpendingEl) totalSpendingEl.textContent = "$0.00";
     return;
   }
 
@@ -365,10 +368,10 @@ function renderExpensesTable(expenses) {
     expensesTbody.appendChild(tr);
   });
 
-  totalSpendingEl.textContent = `$${total.toFixed(2)}`;
+  if (totalSpendingEl) totalSpendingEl.textContent = `$${total.toFixed(2)}`;
 }
 
-// Open Private Storage Receipt URL
+// Request temporary signed URL to view uploaded receipt file securely
 async function openReceipt(receiptPath) {
   try {
     const { data, error } = await supabase
@@ -382,80 +385,80 @@ async function openReceipt(receiptPath) {
       window.open(data.signedUrl, "_blank");
     }
   } catch (err) {
-    showAlert("Failed to open receipt file: " + err.message);
+    showAlert("Failed to view receipt attachment: " + err.message);
   }
 }
 
-// Save New Expense (with file bucket upload)
-expenseForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  hideAlert();
+// Submit New Expense Log Record
+if (expenseForm) {
+  expenseForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    hideAlert();
 
-  const title = expenseTitle.value.trim();
-  const amount = parseFloat(expenseAmount.value);
-  const category = expenseCategory.value;
-  const date = expenseDate.value;
-  const file = expenseReceipt.files[0];
+    const title = expenseTitle.value.trim();
+    const amount = parseFloat(expenseAmount.value);
+    const category = expenseCategory.value;
+    const date = expenseDate.value;
+    const file = expenseReceipt.files[0];
 
-  let receiptPath = null;
+    let receiptPath = null;
 
-  try {
-    // Validate File if attached
-    if (file) {
-      const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
-      const maxSize = 5 * 1024 * 1024; // 5MB
+    try {
+      // Process File Upload if attached
+      if (file) {
+        const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
+        const maxSize = 5 * 1024 * 1024; // 5 MB
 
-      if (!allowedTypes.includes(file.type)) {
-        showAlert("Invalid file type. Only JPG, PNG, and PDF allowed.");
-        return;
+        if (!allowedTypes.includes(file.type)) {
+          showAlert("Invalid file format. Only JPG, PNG, and PDF files are permitted.");
+          return;
+        }
+
+        if (file.size > maxSize) {
+          showAlert("File size exceeds 5 MB limit.");
+          return;
+        }
+
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+        receiptPath = `${currentUser.id}/${fileName}`;
+
+        const { error: uploadError } = await supabase
+          .storage
+          .from("receipts")
+          .upload(receiptPath, file);
+
+        if (uploadError) throw uploadError;
       }
 
-      if (file.size > maxSize) {
-        showAlert("File size exceeds 5 MB limit.");
-        return;
-      }
+      // Insert Expense Row into Database
+      const { error: insertError } = await supabase
+        .from("expenses")
+        .insert({
+          user_id: currentUser.id,
+          title,
+          amount,
+          category,
+          date,
+          receipt_path: receiptPath
+        });
 
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
-      receiptPath = `${currentUser.id}/${fileName}`;
+      if (insertError) throw insertError;
 
-      const { error: uploadError } = await supabase
-        .storage
-        .from("receipts")
-        .upload(receiptPath, file);
+      // Reset form controls
+      expenseForm.reset();
+      expenseDate.value = new Date().toISOString().split("T")[0];
+      showAlert("Expense entry logged successfully!", "success");
 
-      if (uploadError) throw uploadError;
+      await loadExpenses();
+    } catch (err) {
+      showAlert("Failed to save expense: " + err.message);
     }
+  });
+}
 
-    // Insert Record into Database
-    const { error: insertError } = await supabase
-      .from("expenses")
-      .insert({
-        user_id: currentUser.id,
-        title,
-        amount,
-        category,
-        date,
-        receipt_path: receiptPath
-      });
-
-    if (insertError) throw insertError;
-
-    // Reset Form
-    expenseForm.reset();
-    expenseDate.value = new Date().toISOString().split("T")[0];
-    showAlert("Expense logged successfully!", "success");
-
-    await loadExpenses();
-  } catch (err) {
-    showAlert("Failed to save expense: " + err.message);
-  }
-});
-
-// Delete Expense & Remove File from Bucket
+// Remove Expense Entry and Attached File
 async function deleteExpense(expenseId, receiptPath) {
-  if (!confirm("Are you sure you want to delete this expense entry?")) return;
-
   hideAlert();
 
   try {
@@ -467,11 +470,11 @@ async function deleteExpense(expenseId, receiptPath) {
         .remove([receiptPath]);
 
       if (storageErr) {
-        console.warn("Storage removal warning:", storageErr.message);
+        console.warn("Storage deletion warning:", storageErr.message);
       }
     }
 
-    // Delete row from Database
+    // Delete database entry
     const { error: dbErr } = await supabase
       .from("expenses")
       .delete()
