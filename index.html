@@ -4,7 +4,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Game Hub - Interactive Web Games</title>
+    <title>Welcome to Game Hub - Interactive Web Games & Apps</title>
     <link rel="icon" type="image/x-icon" href="./favicon.ico">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
     
@@ -177,7 +177,7 @@
                 <div class="relative z-10 max-w-3xl space-y-4">
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-semibold uppercase tracking-wider">
                         <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
-                        Interactive Arcade Experience
+                        Interactive Arcade & App Experience
                     </div>
                     
                     <h2 class="font-display text-2xl sm:text-4xl lg:text-5xl font-extrabold text-slate-100 tracking-tight leading-tight">
@@ -188,13 +188,13 @@
                     </h2>
 
                     <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
-                        Explore original, physics-driven web games built entirely with JavaScript and HTML5 Canvas. Play directly in your browser with responsive controls, real-time audio, and local high score tracking.
+                        Explore original web games and interactive tools built entirely with JavaScript, HTML5 Canvas, and modern web tech. Launch games directly in your browser or manage transactions with SpendWise.
                     </p>
 
                     <div class="flex flex-wrap gap-4 pt-2">
                         <a href="#gamesSection" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold text-sm hover:brightness-110 shadow-lg shadow-cyan-500/25 transition">
                             <i class="fa-solid fa-gamepad text-base"></i>
-                            Browse Games
+                            Browse Portfolio
                         </a>
                         <div class="flex items-center gap-4 px-4 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400">
                             <span><strong id="statTotalPlayed" class="text-slate-200">0</strong> Games Played</span>
@@ -205,14 +205,14 @@
                 </div>
             </div>
 
-            <!-- Games Grid Section -->
+            <!-- Games & Apps Grid Section -->
             <div id="gamesSection" class="space-y-6">
                 <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
                     <div>
                         <h3 class="font-display text-2xl font-bold text-slate-100 flex items-center gap-3">
-                            <i class="fa-solid fa-rocket text-cyan-400"></i> My Games
+                            <i class="fa-solid fa-rocket text-cyan-400"></i> My Projects
                         </h3>
-                        <p class="text-xs text-slate-400">Select an entry below to launch the game instant engine.</p>
+                        <p class="text-xs text-slate-400">Select an entry below to launch games or launch web apps.</p>
                     </div>
                 </div>
 
@@ -343,6 +343,52 @@
                             <a href="cricket_ovr_app/front_end/frontend.html" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-green-600 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 hover:brightness-110 shadow-lg shadow-emerald-500/20 transition group-hover:px-6">
                                 <span>Launch Game</span>
                                 <i class="fa-solid fa-arrow-right text-xs"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- PROJECT CARD 4: SpendWise Tracker -->
+                    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group border border-slate-800 hover:border-blue-500/40">
+                        <div class="space-y-4">
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
+                                    📊
+                                </div>
+                                <span class="px-3 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold">
+                                    Finance Web App
+                                </span>
+                            </div>
+
+                            <div>
+                                <h4 class="font-display text-xl font-bold text-slate-100 group-hover:text-blue-400 transition-colors flex items-center gap-2">
+                                    SpendWise
+                                    <span class="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full font-sans uppercase font-bold tracking-wider">Web App</span>
+                                </h4>
+                                <p class="text-slate-300 text-xs sm:text-sm mt-2 leading-relaxed">
+                                    Personal expense tracker and management application. Log transactions, monitor budgets, attach receipt files securely with Supabase cloud storage, and manage profile security.
+                                </p>
+                            </div>
+
+                            <div class="space-y-1.5 pt-2">
+                                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Tech Stack</span>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="px-2.5 py-1 rounded-md bg-slate-800/80 text-slate-300 text-xs border border-slate-700">Supabase DB</span>
+                                    <span class="px-2.5 py-1 rounded-md bg-slate-800/80 text-slate-300 text-xs border border-slate-700">Auth & Storage</span>
+                                    <span class="px-2.5 py-1 rounded-md bg-slate-800/80 text-slate-300 text-xs border border-slate-700">JavaScript</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-6 mt-6 border-t border-slate-800/80 flex items-center justify-between">
+                            <div>
+                                <span class="text-[11px] text-slate-400 block">Status</span>
+                                <span class="font-display font-bold text-xs text-blue-400 flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span> Active App
+                                </span>
+                            </div>
+                            <a href="spending_tracker\index.html" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold text-xs sm:text-sm flex items-center gap-2 hover:brightness-110 shadow-lg shadow-blue-500/20 transition group-hover:px-6">
+                                <span>Launch App</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
                             </a>
                         </div>
                     </div>
@@ -504,177 +550,30 @@
         </div>
     </footer>
 
+    <!-- MAIN PAGE CORE SCRIPT -->
     <script>
-        /* ==========================================================================
-           0. SAFE HISTORY NAVIGATION HELPERS
-           ========================================================================== */
-        function safePushState(stateObj, title, url) {
-            try {
-                if (url) {
-                    history.pushState(stateObj, title, url);
-                } else {
-                    history.pushState(stateObj, title);
-                }
-            } catch (e) {
-                try {
-                    history.pushState(stateObj, title);
-                } catch (err) {}
-            }
-        }
-
-        function safeReplaceState(stateObj, title, url) {
-            try {
-                if (url) {
-                    history.replaceState(stateObj, title, url);
-                } else {
-                    history.replaceState(stateObj, title);
-                }
-            } catch (e) {
-                try {
-                    history.replaceState(stateObj, title);
-                } catch (err) {}
-            }
-        }
-
-        /* ==========================================================================
-           1. CORE AUDIO SYNTHESIZER (Web Audio API)
-           ========================================================================== */
-        class SoundFX {
-            constructor() {
-                this.ctx = null;
-                this.muted = false;
-            }
-
-            init() {
-                if (!this.ctx) {
-                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    if (AudioContext) {
-                        this.ctx = new AudioContext();
-                    }
-                }
-                if (this.ctx && this.ctx.state === 'suspended') {
-                    this.ctx.resume();
-                }
-            }
-
-            playBounce() {
-                if (this.muted || !this.ctx) return;
-                try {
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(220, this.ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(580, this.ctx.currentTime + 0.12);
-                    
-                    gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
-
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-                    osc.start();
-                    osc.stop(this.ctx.currentTime + 0.12);
-                } catch (e){}
-            }
-
-            playLaser() {
-                if (this.muted || !this.ctx) return;
-                try {
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(880, this.ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(110, this.ctx.currentTime + 0.08);
-
-                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
-
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-                    osc.start();
-                    osc.stop(this.ctx.currentTime + 0.08);
-                } catch (e){}
-            }
-
-            playExplosion() {
-                if (this.muted || !this.ctx) return;
-                try {
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(140, this.ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.3);
-
-                    gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
-
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-                    osc.start();
-                    osc.stop(this.ctx.currentTime + 0.3);
-                } catch (e){}
-            }
-
-            playPowerup() {
-                if (this.muted || !this.ctx) return;
-                try {
-                    const notes = [330, 440, 554, 659];
-                    notes.forEach((freq, idx) => {
-                        const osc = this.ctx.createOscillator();
-                        const gain = this.ctx.createGain();
-                        osc.type = 'triangle';
-                        osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.05);
-
-                        gain.gain.setValueAtTime(0.2, this.ctx.currentTime + idx * 0.05);
-                        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + idx * 0.05 + 0.1);
-
-                        osc.connect(gain);
-                        gain.connect(this.ctx.destination);
-                        osc.start(this.ctx.currentTime + idx * 0.05);
-                        osc.stop(this.ctx.currentTime + idx * 0.05 + 0.1);
-                    });
-                } catch (e){}
-            }
-        }
-
-        const soundFX = new SoundFX();
-
-        /* ==========================================================================
-           2. GLOBAL HUB APP STATE
-           ========================================================================== */
-        let activeGame = null;
+        // Global Application State & Storage Keys
+        const STORAGE_KEY_NAME = 'gh_username_pref';
+        const STORAGE_KEY_SCORES = 'gh_scores_store';
+        
+        let currentGameKey = null;
+        let isMuted = false;
         let isPaused = false;
-        let currentGameLoop = null;
+        let animationFrameId = null;
 
-        const scores = {
-            'egg-pong': parseInt(localStorage.getItem('gh_score_egg_pong') || '0'),
-            'meteor-dash': parseInt(localStorage.getItem('gh_score_meteor_dash') || '0'),
-            'cricket-ovr': parseInt(localStorage.getItem('gh_score_cricket_ovr') || '0')
-        };
-
-        let totalGamesPlayed = parseInt(localStorage.getItem('gh_total_played') || '0');
-
-        function updateHubStats() {
-            document.getElementById('eggPongHighScoreDisplay').innerText = `${scores['egg-pong']} pts`;
-            document.getElementById('meteorDashHighScoreDisplay').innerText = `${scores['meteor-dash']} pts`;
-            document.getElementById('cricketOvrHighScoreDisplay').innerText = `${scores['cricket-ovr']} pts`;
-            
-            document.getElementById('statTotalPlayed').innerText = totalGamesPlayed;
-            const combined = scores['egg-pong'] + scores['meteor-dash'] + scores['cricket-ovr'];
-            document.getElementById('statCombinedScore').innerText = combined;
-        }
-
-        /* User Profile Logic */
-        let username = localStorage.getItem('gh_username') || 'faisal427-afk';
-
-        function applyUsername() {
-            document.querySelectorAll('.gh-username-display').forEach(el => {
-                el.innerText = username;
-            });
+        // User Profile Management
+        function loadUsername() {
+            const stored = localStorage.getItem(STORAGE_KEY_NAME) || 'faisal427-afk';
+            const displays = document.querySelectorAll('.gh-username-display');
+            displays.forEach(el => el.textContent = stored);
         }
 
         function editUsernamePrompt() {
-            document.getElementById('ghUsernameInput').value = username;
-            document.getElementById('usernameModal').classList.remove('hidden');
+            const modal = document.getElementById('usernameModal');
+            const input = document.getElementById('ghUsernameInput');
+            const current = localStorage.getItem(STORAGE_KEY_NAME) || 'faisal427-afk';
+            input.value = current;
+            modal.classList.remove('hidden');
         }
 
         function closeUsernameModal() {
@@ -682,84 +581,109 @@
         }
 
         function saveUsernameFromInput() {
-            const val = document.getElementById('ghUsernameInput').value.trim();
-            if (val) {
-                username = val;
-                localStorage.setItem('gh_username', username);
-                applyUsername();
-            }
+            const input = document.getElementById('ghUsernameInput');
+            const val = input.value.trim() || 'faisal427-afk';
+            localStorage.setItem(STORAGE_KEY_NAME, val);
+            loadUsername();
             closeUsernameModal();
         }
 
+        // Sound Toggle Logic
         function toggleMute() {
-            soundFX.muted = !soundFX.muted;
+            isMuted = !isMuted;
             const icon = document.getElementById('soundIcon');
-            if (soundFX.muted) {
+            if (isMuted) {
                 icon.className = 'fa-solid fa-volume-xmark text-rose-400 text-lg';
             } else {
                 icon.className = 'fa-solid fa-volume-high text-lg';
             }
         }
 
-        /* View Switching Navigation */
-        function showHubView() {
-            if (currentGameLoop) {
-                cancelAnimationFrame(currentGameLoop);
-                currentGameLoop = null;
+        // High Score / Stats Management
+        function getScores() {
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_KEY_SCORES)) || {
+                    'egg-pong': 0,
+                    'meteor-dash': 0,
+                    'cricket-ovr': 0,
+                    'gamesPlayed': 0
+                };
+            } catch (e) {
+                return { 'egg-pong': 0, 'meteor-dash': 0, 'cricket-ovr': 0, 'gamesPlayed': 0 };
             }
-            activeGame = null;
+        }
 
+        function updateScoreDisplays() {
+            const scores = getScores();
+            document.getElementById('eggPongHighScoreDisplay').textContent = `${scores['egg-pong'] || 0} pts`;
+            document.getElementById('meteorDashHighScoreDisplay').textContent = `${scores['meteor-dash'] || 0} pts`;
+            document.getElementById('cricketOvrHighScoreDisplay').textContent = `${scores['cricket-ovr'] || 0} pts`;
+
+            document.getElementById('statTotalPlayed').textContent = scores.gamesPlayed || 0;
+            const totalScore = (scores['egg-pong'] || 0) + (scores['meteor-dash'] || 0) + (scores['cricket-ovr'] || 0);
+            document.getElementById('statCombinedScore').textContent = totalScore;
+        }
+
+        function saveHighScore(gameKey, score) {
+            const scores = getScores();
+            scores.gamesPlayed = (scores.gamesPlayed || 0) + 1;
+            if (score > (scores[gameKey] || 0)) {
+                scores[gameKey] = score;
+            }
+            localStorage.setItem(STORAGE_KEY_SCORES, JSON.stringify(scores));
+            updateScoreDisplays();
+        }
+
+        // Navigation Engine (Hub <-> Game View)
+        function showHubView() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
             document.getElementById('hubView').classList.remove('hidden');
             document.getElementById('gameView').classList.add('hidden');
             document.getElementById('activeGameHeaderControls').classList.add('hidden');
-            
             document.getElementById('pauseOverlay').classList.add('hidden');
             document.getElementById('gameOverOverlay').classList.add('hidden');
-
-            updateHubStats();
-            safeReplaceState({}, 'Game Hub', window.location.pathname);
+            currentGameKey = null;
+            updateScoreDisplays();
         }
 
-        function launchGame(gameId) {
-            soundFX.init();
-            if (currentGameLoop) {
-                cancelAnimationFrame(currentGameLoop);
-            }
-
-            activeGame = gameId;
-            totalGamesPlayed++;
-            localStorage.setItem('gh_total_played', totalGamesPlayed);
-
+        function launchGame(gameKey) {
+            currentGameKey = gameKey;
             document.getElementById('hubView').classList.add('hidden');
             document.getElementById('gameView').classList.remove('hidden');
             document.getElementById('activeGameHeaderControls').classList.remove('hidden');
-
             document.getElementById('pauseOverlay').classList.add('hidden');
             document.getElementById('gameOverOverlay').classList.add('hidden');
-            isPaused = false;
 
-            const titleElem = document.getElementById('activeGameTitle');
-            const instructionsElem = document.getElementById('instructionsText');
+            const scores = getScores();
+            document.getElementById('gameBestScore').textContent = scores[gameKey] || 0;
+            document.getElementById('gameCurrentScore').textContent = '0';
 
-            if (gameId === 'egg-pong') {
-                titleElem.innerText = 'Trampoline Egg Pong';
-                instructionsElem.innerHTML = '<i class="fa-solid fa-keyboard mr-2"></i> Move: Arrow Keys / Mouse. Keep eggs bouncing on the trampoline!';
-                initEggPong();
-            } else if (gameId === 'meteor-dash') {
-                titleElem.innerText = 'Meteor Dash';
-                instructionsElem.innerHTML = '<i class="fa-solid fa-keyboard mr-2"></i> Move: Arrow Keys / A & D | Shoot: Spacebar. Destroy meteors!';
-                initMeteorDash();
+            const titleEl = document.getElementById('activeGameTitle');
+            const instructionsEl = document.getElementById('instructionsText');
+
+            if (gameKey === 'egg-pong') {
+                titleEl.textContent = 'Trampoline Egg Pong';
+                instructionsEl.innerHTML = '<i class="fa-solid fa-keyboard mr-2"></i> Move paddle with Mouse or Arrow Keys to catch bouncing eggs!';
+                startEggPong();
+            } else if (gameKey === 'meteor-dash') {
+                titleEl.textContent = 'Meteor Dash';
+                instructionsEl.innerHTML = '<i class="fa-solid fa-keyboard mr-2"></i> Left/Right arrows or A/D to steer, SPACE or Up arrow to Shoot!';
+                startMeteorDash();
             }
 
-            safePushState({ game: gameId }, `${gameId.toUpperCase()} - Game Hub`, `#${gameId}`);
+            // Push History State for browser Back button support
+            if (history.state?.view !== 'game') {
+                history.pushState({ view: 'game', game: gameKey }, '', `#game-${gameKey}`);
+            }
         }
 
         function togglePauseGame() {
-            if (!activeGame) return;
             isPaused = !isPaused;
             const pauseOverlay = document.getElementById('pauseOverlay');
             const pauseIcon = document.getElementById('pauseIcon');
-
             if (isPaused) {
                 pauseOverlay.classList.remove('hidden');
                 pauseIcon.className = 'fa-solid fa-play';
@@ -770,277 +694,181 @@
         }
 
         function restartCurrentGame() {
-            if (activeGame) {
-                launchGame(activeGame);
+            if (currentGameKey) {
+                launchGame(currentGameKey);
             }
         }
 
-        window.addEventListener('popstate', (e) => {
-            if (e.state && e.state.game) {
-                launchGame(e.state.game);
-            } else {
-                showHubView();
-            }
-        });
-
-        /* ==========================================================================
-           3. AMBIENT BACKGROUND STARFIELD ENGINE
-           ========================================================================== */
+        // Background Starfield Canvas
         const bgCanvas = document.getElementById('bgCanvas');
         const bgCtx = bgCanvas.getContext('2d');
-        let bgStars = [];
+        let stars = [];
 
-        function resizeBg() {
+        function resizeBgCanvas() {
             bgCanvas.width = window.innerWidth;
             bgCanvas.height = window.innerHeight;
-            bgStars = [];
+            stars = [];
             for (let i = 0; i < 80; i++) {
-                bgStars.push({
+                stars.push({
                     x: Math.random() * bgCanvas.width,
                     y: Math.random() * bgCanvas.height,
-                    size: Math.random() * 2 + 0.5,
-                    speed: Math.random() * 0.5 + 0.2,
-                    alpha: Math.random()
+                    radius: Math.random() * 1.5 + 0.5,
+                    alpha: Math.random() * 0.8 + 0.2,
+                    speed: Math.random() * 0.3 + 0.1
                 });
             }
         }
-        window.addEventListener('resize', resizeBg);
-        resizeBg();
 
-        function renderBg() {
+        function drawBgStars() {
             bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
-            bgStars.forEach(star => {
-                star.y += star.speed;
-                if (star.y > bgCanvas.height) star.y = 0;
-                star.alpha += (Math.random() - 0.5) * 0.02;
-                if (star.alpha < 0.2) star.alpha = 0.2;
-                if (star.alpha > 0.9) star.alpha = 0.9;
-
-                bgCtx.fillStyle = `rgba(0, 243, 255, ${star.alpha})`;
+            stars.forEach(star => {
                 bgCtx.beginPath();
-                bgCtx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                bgCtx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                bgCtx.fillStyle = `rgba(0, 243, 255, ${star.alpha})`;
                 bgCtx.fill();
-            });
-            requestAnimationFrame(renderBg);
-        }
-        renderBg();
 
-        /* ==========================================================================
-           4. MINI GAME ENGINE 1: TRAMPOLINE EGG PONG
-           ========================================================================== */
-        function initEggPong() {
+                star.y += star.speed;
+                if (star.y > bgCanvas.height) {
+                    star.y = 0;
+                    star.x = Math.random() * bgCanvas.width;
+                }
+            });
+            requestAnimationFrame(drawBgStars);
+        }
+
+        window.addEventListener('resize', resizeBgCanvas);
+        resizeBgCanvas();
+        drawBgStars();
+
+        // Canvas Embedded Game 1: Trampoline Egg Pong
+        function startEggPong() {
             const canvas = document.getElementById('activeCanvas');
             const ctx = canvas.getContext('2d');
             canvas.width = canvas.parentElement.clientWidth;
             canvas.height = canvas.parentElement.clientHeight;
 
             let score = 0;
-            let lives = 3;
-            let bestScore = scores['egg-pong'];
+            let gameOver = false;
+            let paddleWidth = 110;
+            let paddleHeight = 16;
+            let paddleX = (canvas.width - paddleWidth) / 2;
+            let keys = {};
 
-            document.getElementById('gameCurrentScore').innerText = score;
-            document.getElementById('gameBestScore').innerText = bestScore;
-
-            const paddle = {
-                width: 120,
-                height: 18,
-                x: canvas.width / 2 - 60,
-                y: canvas.height - 40,
-                speed: 8,
-                dx: 0
-            };
-
-            let eggs = [{
+            let egg = {
                 x: canvas.width / 2,
                 y: 80,
-                vx: 3,
-                vy: 2,
-                radius: 12,
-                rotation: 0
-            }];
-
-            let particles = [];
-            let keys = {};
-
-            const handleKeyDown = (e) => { keys[e.code] = true; };
-            const handleKeyUp = (e) => { keys[e.code] = false; };
-            const handleMouseMove = (e) => {
-                const rect = canvas.getBoundingClientRect();
-                paddle.x = e.clientX - rect.left - paddle.width / 2;
+                vx: 3.5 * (Math.random() > 0.5 ? 1 : -1),
+                vy: 2.5,
+                radius: 12
             };
 
+            function handleMouseMove(e) {
+                const rect = canvas.getBoundingClientRect();
+                paddleX = e.clientX - rect.left - paddleWidth / 2;
+            }
+
+            function handleKeyDown(e) { keys[e.key] = true; }
+            function handleKeyUp(e) { keys[e.key] = false; }
+
+            window.addEventListener('mousemove', handleMouseMove);
             window.addEventListener('keydown', handleKeyDown);
             window.addEventListener('keyup', handleKeyUp);
-            canvas.addEventListener('mousemove', handleMouseMove);
 
-            function loop() {
-                if (activeGame !== 'egg-pong') {
-                    window.removeEventListener('keydown', handleKeyDown);
-                    window.removeEventListener('keyup', handleKeyUp);
-                    canvas.removeEventListener('mousemove', handleMouseMove);
-                    return;
+            function update() {
+                if (isPaused || gameOver) return;
+
+                if (keys['ArrowLeft'] || keys['a']) paddleX -= 7;
+                if (keys['ArrowRight'] || keys['d']) paddleX += 7;
+
+                paddleX = Math.max(0, Math.min(canvas.width - paddleWidth, paddleX));
+
+                egg.x += egg.vx;
+                egg.y += egg.vy;
+                egg.vy += 0.12; // gravity
+
+                // Bounce off left/right walls
+                if (egg.x - egg.radius < 0 || egg.x + egg.radius > canvas.width) {
+                    egg.vx *= -1;
                 }
 
-                if (!isPaused) {
-                    // Update paddle position
-                    if (keys['ArrowLeft'] || keys['KeyA']) paddle.x -= paddle.speed;
-                    if (keys['ArrowRight'] || keys['KeyD']) paddle.x += paddle.speed;
-                    paddle.x = Math.max(0, Math.min(canvas.width - paddle.width, paddle.x));
-
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                    // Draw Trampoline Paddle
-                    ctx.fillStyle = '#00f3ff';
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = '#00f3ff';
-                    ctx.beginPath();
-                    ctx.roundRect(paddle.x, paddle.y, paddle.width, paddle.height, 8);
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-
-                    // Update and draw eggs
-                    eggs.forEach((egg, index) => {
-                        egg.vy += 0.15; // Gravity
-                        egg.x += egg.vx;
-                        egg.y += egg.vy;
-                        egg.rotation += 0.02;
-
-                        // Wall Bounces
-                        if (egg.x - egg.radius < 0 || egg.x + egg.radius > canvas.width) {
-                            egg.vx *= -1;
-                            soundFX.playBounce();
-                        }
-                        if (egg.y - egg.radius < 0) {
-                            egg.vy *= -1;
-                            soundFX.playBounce();
-                        }
-
-                        // Paddle Collision
-                        if (
-                            egg.y + egg.radius >= paddle.y &&
-                            egg.y - egg.radius <= paddle.y + paddle.height &&
-                            egg.x >= paddle.x &&
-                            egg.x <= paddle.x + paddle.width
-                        ) {
-                            egg.vy = -Math.abs(egg.vy) * 1.02;
-                            const hitPos = (egg.x - (paddle.x + paddle.width / 2)) / (paddle.width / 2);
-                            egg.vx = hitPos * 6;
-                            score += 10;
-                            document.getElementById('gameCurrentScore').innerText = score;
-                            soundFX.playBounce();
-
-                            // Bounce Particles
-                            for (let i = 0; i < 6; i++) {
-                                particles.push({
-                                    x: egg.x,
-                                    y: egg.y,
-                                    vx: (Math.random() - 0.5) * 4,
-                                    vy: -Math.random() * 3,
-                                    life: 1
-                                });
-                            }
-                        }
-
-                        // Missed Egg
-                        if (egg.y - egg.radius > canvas.height) {
-                            lives--;
-                            soundFX.playExplosion();
-                            if (lives <= 0) {
-                                gameOver();
-                                return;
-                            } else {
-                                egg.x = canvas.width / 2;
-                                egg.y = 80;
-                                egg.vx = (Math.random() - 0.5) * 6;
-                                egg.vy = 2;
-                            }
-                        }
-
-                        // Render Egg Sprite
-                        ctx.save();
-                        ctx.translate(egg.x, egg.y);
-                        ctx.rotate(egg.rotation);
-                        ctx.fillStyle = '#ffb700';
-                        ctx.beginPath();
-                        ctx.ellipse(0, 0, egg.radius * 0.8, egg.radius, 0, 0, Math.PI * 2);
-                        ctx.fill();
-                        ctx.restore();
-                    });
-
-                    // Render Particles
-                    particles.forEach((p, idx) => {
-                        p.x += p.vx;
-                        p.y += p.vy;
-                        p.life -= 0.03;
-                        if (p.life <= 0) {
-                            particles.splice(idx, 1);
-                        } else {
-                            ctx.fillStyle = `rgba(255, 183, 0, ${p.life})`;
-                            ctx.beginPath();
-                            ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
-                            ctx.fill();
-                        }
-                    });
-
-                    // Draw Lives Indicators
-                    for (let i = 0; i < lives; i++) {
-                        ctx.font = '16px sans-serif';
-                        ctx.fillText('🥚', 20 + i * 25, 30);
-                    }
+                // Bounce off ceiling
+                if (egg.y - egg.radius < 0) {
+                    egg.vy *= -1;
                 }
 
-                currentGameLoop = requestAnimationFrame(loop);
+                // Trampoline Paddle collision
+                if (
+                    egg.y + egg.radius >= canvas.height - 35 &&
+                    egg.y - egg.radius <= canvas.height - 35 + paddleHeight &&
+                    egg.x >= paddleX &&
+                    egg.x <= paddleX + paddleWidth &&
+                    egg.vy > 0
+                ) {
+                    egg.vy = -Math.abs(egg.vy) * 0.98 - 1.5;
+                    egg.vx += (egg.x - (paddleX + paddleWidth / 2)) * 0.08;
+                    score += 10;
+                    document.getElementById('gameCurrentScore').textContent = score;
+                }
+
+                // Floor / Egg Splash Game Over
+                if (egg.y - egg.radius > canvas.height) {
+                    gameOver = true;
+                    saveHighScore('egg-pong', score);
+                    document.getElementById('finalScoreVal').textContent = score;
+                    document.getElementById('finalBestVal').textContent = getScores()['egg-pong'];
+                    document.getElementById('gameOverOverlay').classList.remove('hidden');
+                }
             }
 
-            function gameOver() {
-                if (score > scores['egg-pong']) {
-                    scores['egg-pong'] = score;
-                    localStorage.setItem('gh_score_egg_pong', score);
+            function render() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Draw Paddle / Trampoline
+                ctx.fillStyle = '#ffb700';
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#ffb700';
+                ctx.beginPath();
+                ctx.roundRect(paddleX, canvas.height - 35, paddleWidth, paddleHeight, 8);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Draw Egg
+                ctx.fillStyle = '#f8fafc';
+                ctx.beginPath();
+                ctx.ellipse(egg.x, egg.y, egg.radius * 0.8, egg.radius, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                update();
+                if (!gameOver && currentGameKey === 'egg-pong') {
+                    animationFrameId = requestAnimationFrame(render);
                 }
-                document.getElementById('finalScoreVal').innerText = score;
-                document.getElementById('finalBestVal').innerText = scores['egg-pong'];
-                document.getElementById('gameOverOverlay').classList.remove('hidden');
             }
 
-            currentGameLoop = requestAnimationFrame(loop);
+            render();
         }
 
-        /* ==========================================================================
-           5. MINI GAME ENGINE 2: METEOR DASH
-           ========================================================================== */
-        function initMeteorDash() {
+        // Canvas Embedded Game 2: Meteor Dash Space Shooter
+        function startMeteorDash() {
             const canvas = document.getElementById('activeCanvas');
             const ctx = canvas.getContext('2d');
             canvas.width = canvas.parentElement.clientWidth;
             canvas.height = canvas.parentElement.clientHeight;
 
             let score = 0;
-            let bestScore = scores['meteor-dash'];
-            let gameOverState = false;
-
-            document.getElementById('gameCurrentScore').innerText = score;
-            document.getElementById('gameBestScore').innerText = bestScore;
-
-            const player = {
-                x: canvas.width / 2,
-                y: canvas.height - 50,
-                radius: 16,
-                speed: 7
-            };
-
+            let gameOver = false;
+            let player = { x: canvas.width / 2, y: canvas.height - 50, size: 20, speed: 6 };
             let lasers = [];
             let meteors = [];
-            let particles = [];
             let keys = {};
 
-            const handleKeyDown = (e) => {
-                keys[e.code] = true;
-                if (e.code === 'Space' && !isPaused && !gameOverState) {
-                    lasers.push({ x: player.x, y: player.y - 15, vy: -12 });
-                    soundFX.playLaser();
+            function handleKeyDown(e) {
+                keys[e.key] = true;
+                if (e.key === ' ' || e.key === 'ArrowUp') {
+                    lasers.push({ x: player.x, y: player.y - player.size, speed: 10 });
                 }
-            };
-            const handleKeyUp = (e) => { keys[e.code] = false; };
+            }
+
+            function handleKeyUp(e) { keys[e.key] = false; }
 
             window.addEventListener('keydown', handleKeyDown);
             window.addEventListener('keyup', handleKeyUp);
@@ -1048,139 +876,102 @@
             function spawnMeteor() {
                 if (Math.random() < 0.04) {
                     meteors.push({
-                        x: Math.random() * canvas.width,
-                        y: -30,
-                        radius: Math.random() * 20 + 15,
-                        vy: Math.random() * 2 + 1.5,
-                        vx: (Math.random() - 0.5) * 1.5
+                        x: Math.random() * (canvas.width - 30) + 15,
+                        y: -20,
+                        radius: Math.random() * 15 + 15,
+                        speed: Math.random() * 2 + 1.5
                     });
                 }
             }
 
-            function loop() {
-                if (activeGame !== 'meteor-dash') {
-                    window.removeEventListener('keydown', handleKeyDown);
-                    window.removeEventListener('keyup', handleKeyUp);
-                    return;
-                }
+            function update() {
+                if (isPaused || gameOver) return;
 
-                if (!isPaused && !gameOverState) {
-                    if (keys['ArrowLeft'] || keys['KeyA']) player.x -= player.speed;
-                    if (keys['ArrowRight'] || keys['KeyD']) player.x += player.speed;
-                    player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
+                if (keys['ArrowLeft'] || keys['a']) player.x -= player.speed;
+                if (keys['ArrowRight'] || keys['d']) player.x += player.speed;
+                player.x = Math.max(player.size, Math.min(canvas.width - player.size, player.x));
 
-                    spawnMeteor();
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                // Move Lasers
+                lasers.forEach((l, idx) => {
+                    l.y -= l.speed;
+                    if (l.y < 0) lasers.splice(idx, 1);
+                });
 
-                    // Draw Player Ship
-                    ctx.fillStyle = '#00f3ff';
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = '#00f3ff';
-                    ctx.beginPath();
-                    ctx.moveTo(player.x, player.y - player.radius);
-                    ctx.lineTo(player.x - player.radius, player.y + player.radius);
-                    ctx.lineTo(player.x + player.radius, player.y + player.radius);
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
+                // Move & Spawn Meteors
+                spawnMeteor();
+                meteors.forEach((m, mIdx) => {
+                    m.y += m.speed;
 
-                    // Update & Render Lasers
+                    // Laser Collision
                     lasers.forEach((l, lIdx) => {
-                        l.y += l.vy;
-                        ctx.fillStyle = '#ff007f';
-                        ctx.fillRect(l.x - 2, l.y, 4, 12);
-
-                        if (l.y < -10) lasers.splice(lIdx, 1);
-                    });
-
-                    // Update & Render Meteors
-                    meteors.forEach((m, mIdx) => {
-                        m.x += m.vx;
-                        m.y += m.vy;
-
-                        ctx.fillStyle = '#ab00ff';
-                        ctx.beginPath();
-                        ctx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
-                        ctx.fill();
-
-                        // Collision with Player
-                        const dist = Math.hypot(player.x - m.x, player.y - m.y);
-                        if (dist < player.radius + m.radius) {
-                            soundFX.playExplosion();
-                            gameOver();
-                        }
-
-                        // Laser Collision
-                        lasers.forEach((l, lIdx) => {
-                            const lDist = Math.hypot(l.x - m.x, l.y - m.y);
-                            if (lDist < m.radius) {
-                                soundFX.playExplosion();
-                                score += 25;
-                                document.getElementById('gameCurrentScore').innerText = score;
-
-                                // Particles
-                                for (let p = 0; p < 8; p++) {
-                                    particles.push({
-                                        x: m.x,
-                                        y: m.y,
-                                        vx: (Math.random() - 0.5) * 5,
-                                        vy: (Math.random() - 0.5) * 5,
-                                        life: 1
-                                    });
-                                }
-
-                                meteors.splice(mIdx, 1);
-                                lasers.splice(lIdx, 1);
-                            }
-                        });
-
-                        if (m.y > canvas.height + 40) meteors.splice(mIdx, 1);
-                    });
-
-                    // Render Explosive Particles
-                    particles.forEach((p, pIdx) => {
-                        p.x += p.vx;
-                        p.y += p.vy;
-                        p.life -= 0.04;
-                        if (p.life <= 0) {
-                            particles.splice(pIdx, 1);
-                        } else {
-                            ctx.fillStyle = `rgba(0, 243, 255, ${p.life})`;
-                            ctx.beginPath();
-                            ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
-                            ctx.fill();
+                        const dist = Math.hypot(m.x - l.x, m.y - l.y);
+                        if (dist < m.radius) {
+                            meteors.splice(mIdx, 1);
+                            lasers.splice(lIdx, 1);
+                            score += 25;
+                            document.getElementById('gameCurrentScore').textContent = score;
                         }
                     });
-                }
 
-                currentGameLoop = requestAnimationFrame(loop);
+                    // Player Collision
+                    const playerDist = Math.hypot(m.x - player.x, m.y - player.y);
+                    if (playerDist < m.radius + player.size) {
+                        gameOver = true;
+                        saveHighScore('meteor-dash', score);
+                        document.getElementById('finalScoreVal').textContent = score;
+                        document.getElementById('finalBestVal').textContent = getScores()['meteor-dash'];
+                        document.getElementById('gameOverOverlay').classList.remove('hidden');
+                    }
+
+                    if (m.y > canvas.height + 30) meteors.splice(mIdx, 1);
+                });
             }
 
-            function gameOver() {
-                gameOverState = true;
-                if (score > scores['meteor-dash']) {
-                    scores['meteor-dash'] = score;
-                    localStorage.setItem('gh_score_meteor_dash', score);
+            function render() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Draw Player
+                ctx.fillStyle = '#00f3ff';
+                ctx.beginPath();
+                ctx.moveTo(player.x, player.y - player.size);
+                ctx.lineTo(player.x - player.size, player.y + player.size);
+                ctx.lineTo(player.x + player.size, player.y + player.size);
+                ctx.closePath();
+                ctx.fill();
+
+                // Draw Lasers
+                ctx.fillStyle = '#00ff66';
+                lasers.forEach(l => {
+                    ctx.fillRect(l.x - 2, l.y, 4, 12);
+                });
+
+                // Draw Meteors
+                ctx.fillStyle = '#ab00ff';
+                meteors.forEach(m => {
+                    ctx.beginPath();
+                    ctx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                update();
+                if (!gameOver && currentGameKey === 'meteor-dash') {
+                    animationFrameId = requestAnimationFrame(render);
                 }
-                document.getElementById('finalScoreVal').innerText = score;
-                document.getElementById('finalBestVal').innerText = scores['meteor-dash'];
-                document.getElementById('gameOverOverlay').classList.remove('hidden');
             }
 
-            currentGameLoop = requestAnimationFrame(loop);
+            render();
         }
 
-        /* Initial Setup on Page Load */
-        window.addEventListener('load', () => {
-            applyUsername();
-            updateHubStats();
-
-            // Hash Deep Link Check
-            const hash = window.location.hash.replace('#', '');
-            if (hash === 'egg-pong' || hash === 'meteor-dash') {
-                launchGame(hash);
+        // History Popstate Handling for Back Button
+        window.addEventListener('popstate', (e) => {
+            if (!e.state || e.state.view !== 'game') {
+                showHubView();
             }
         });
+
+        // Initialize On Load
+        loadUsername();
+        updateScoreDisplays();
     </script>
 </body>
 </html>
