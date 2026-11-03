@@ -3,7 +3,7 @@
 // ==========================================
 
 // Initialize the Supabase Client using configuration credentials
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = window.supabase.createClient("https://ehrkwohnqbigerhjyfvc.supabase.co", "sb_publishable_xq0f7IVIh9JoA-WVN8bcUg_UwYaiNSt");
 
 // Global Application State Variables
 let currentUser = null;
