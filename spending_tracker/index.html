@@ -738,6 +738,14 @@
 
     function hideAlert() { alertBox.style.display = "none"; }
 
+    // Clean OAuth URL params after redirect
+    function cleanUrlParams() {
+      if (window.location.search.includes("code=") || window.location.hash.includes("access_token")) {
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+    }
+
     // Navigation View Routing
     function switchView(viewName) {
       hideAlert();
@@ -813,6 +821,7 @@
 
     // Authentication State Management
     supabase.auth.onAuthStateChange(async (event, session) => {
+      cleanUrlParams();
       if (session && session.user) {
         currentUser = session.user;
         await handleUserSession();
@@ -882,13 +891,21 @@
     });
 
     // GitHub OAuth Sign In
-    btnGithubLogin.addEventListener("click", async () => {
+    btnGithubLogin.addEventListener("click", async (e) => {
+      e.preventDefault();
       hideAlert();
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "github",
-        options: { redirectTo: window.location.origin + window.location.pathname }
-      });
-      if (error) showAlert(error.message);
+      try {
+        const redirectUrl = window.location.origin + window.location.pathname;
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "github",
+          options: {
+            redirectTo: redirectUrl
+          }
+        });
+        if (error) throw error;
+      } catch (err) {
+        showAlert(err.message || "Failed to initiate GitHub sign-in.");
+      }
     });
 
     onboardingForm.addEventListener("submit", async (e) => {
