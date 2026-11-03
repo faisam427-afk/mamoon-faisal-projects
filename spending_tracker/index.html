@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -213,16 +213,6 @@
     .alert-error { background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
     .alert-success { background-color: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
 
-    .config-banner {
-      background-color: var(--warning-bg);
-      border: 1px solid var(--warning-border);
-      color: var(--warning-text);
-      padding: 16px;
-      border-radius: var(--radius);
-      margin-bottom: 24px;
-      font-size: 0.875rem;
-    }
-
     .summary-card {
       background: linear-gradient(135deg, var(--primary), #1e40af);
       color: white;
@@ -251,17 +241,6 @@
     .receipt-link:hover { text-decoration: underline; }
 
     .hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
-
-    .demo-badge {
-      display: inline-block;
-      background-color: var(--warning-bg);
-      color: var(--warning-text);
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 12px;
-      margin-left: 8px;
-    }
 
     /* Modals */
     .modal-overlay {
@@ -317,7 +296,7 @@
   <header id="main-header" style="display: none;">
     <div class="container nav">
       <div class="logo">
-        📊 SpendWise <span id="demo-mode-indicator" class="demo-badge" style="display:none;">Demo Mode</span>
+        📊 SpendWise
       </div>
       <div class="user-controls">
         <span id="nav-user-badge"></span>
@@ -325,7 +304,8 @@
         
         <!-- Navigation Buttons -->
         <button class="btn btn-secondary btn-sm" id="btn-nav-dashboard">🏠 Dashboard</button>
-        <button class="btn btn-secondary btn-sm" id="btn-nav-mod" style="display: none;">🛡️ Mod Queue</button>
+        <button class="btn btn-secondary btn-sm" id="btn-nav-family">👨‍👩‍👧 Family Groups</button>
+        <button class="btn btn-secondary btn-sm" id="btn-nav-mod" style="display: none;">🛡️ Mod Panel</button>
         <button class="btn btn-secondary btn-sm" id="btn-nav-admin" style="display: none;">⚙️ Admin Panel</button>
         <button class="btn btn-secondary btn-sm" id="btn-nav-settings">👤 Settings</button>
         <button class="btn btn-secondary btn-sm" id="btn-sign-out">Sign Out</button>
@@ -336,65 +316,55 @@
   <main class="container">
     <div id="alert-box" class="alert"></div>
 
-    <!-- CONFIGURATION ASSISTANT BANNER -->
-    <div id="config-warning-banner" class="config-banner" style="display: none;">
-      <h4>⚙️ Supabase Configuration Required</h4>
-      <p style="margin-bottom: 10px;">To connect to your database, enter your Supabase URL and Anon Key below, or click Demo Mode for instant local testing.</p>
-      <div class="form-row" style="margin-bottom: 10px;">
-        <input type="text" id="cfg-url" placeholder="Supabase Project URL (https://xyz.supabase.co)" />
-        <input type="text" id="cfg-key" placeholder="Supabase Anon Key (ey...)" />
-      </div>
-      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <button type="button" class="btn" id="btn-apply-config">Connect Supabase</button>
-        <button type="button" class="btn btn-secondary" id="btn-use-demo">⚡ Enter Demo Mode (Offline Testing)</button>
-      </div>
-    </div>
-
     <!-- VIEW 1: AUTHENTICATION -->
-    <section id="auth-view" class="view-section auth-container card active-view">
-      <h2 class="card-title" id="auth-title">Sign In to SpendWise</h2>
-      <form id="auth-form">
-        <div class="form-group">
-          <label for="auth-email">Email Address</label>
-          <input type="email" id="auth-email" required placeholder="you@example.com" />
-        </div>
-        <div class="form-group">
-          <label for="auth-password">Password</label>
-          <input type="password" id="auth-password" required placeholder="••••••••" />
-          <p class="hint" id="password-hint" style="display: none;">
-            Must be at least 8 characters with 1 uppercase, 1 lowercase, and 1 number.
-          </p>
-        </div>
-        <button type="submit" class="btn" style="width: 100%;" id="btn-auth-submit">Sign In</button>
-      </form>
+    <section id="auth-view" class="view-section auth-container active-view">
+      <div class="card">
+        <h2 class="card-title" id="auth-title">Sign In to SpendWise</h2>
+        <form id="auth-form">
+          <div class="form-group">
+            <label for="auth-email">Email Address</label>
+            <input type="email" id="auth-email" required placeholder="you@example.com" />
+          </div>
+          <div class="form-group">
+            <label for="auth-password">Password</label>
+            <input type="password" id="auth-password" required placeholder="••••••••" />
+            <p class="hint" id="password-hint" style="display: none;">
+              Must be at least 8 characters with 1 uppercase, 1 lowercase, and 1 number.
+            </p>
+          </div>
+          <button type="submit" class="btn" style="width: 100%;" id="btn-auth-submit">Sign In</button>
+        </form>
 
-      <button type="button" class="btn btn-github" id="btn-github-login">
-        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
-        </svg>
-        Sign in with GitHub
-      </button>
+        <button type="button" class="btn btn-github" id="btn-github-login">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+          Sign in with GitHub
+        </button>
 
-      <div class="auth-toggle">
-        <span id="auth-toggle-text">Don't have an account?</span>
-        <a href="#" id="auth-toggle-link">Sign Up</a>
+        <div class="auth-toggle">
+          <span id="auth-toggle-text">Don't have an account?</span>
+          <a href="#" id="auth-toggle-link">Sign Up</a>
+        </div>
       </div>
     </section>
 
     <!-- VIEW 2: USER ONBOARDING -->
-    <section id="onboarding-view" class="view-section auth-container card">
-      <h2 class="card-title">Choose Your Unique Username</h2>
-      <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 16px;">
-        Pick a unique handle to identify your posts in the shared ledger.
-      </p>
-      <form id="onboarding-form">
-        <div class="form-group">
-          <label for="onboarding-username">Username Handle</label>
-          <input type="text" id="onboarding-username" required placeholder="e.g. alex_shopper" pattern="^[a-zA-Z0-9_]{3,20}$" />
-          <p class="hint">3-20 characters, letters, numbers, and underscores only.</p>
-        </div>
-        <button type="submit" class="btn" style="width: 100%;">Save & Continue</button>
-      </form>
+    <section id="onboarding-view" class="view-section auth-container">
+      <div class="card">
+        <h2 class="card-title">Choose Your Unique Username</h2>
+        <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 16px;">
+          Pick a unique handle to identify your posts in personal and family ledgers.
+        </p>
+        <form id="onboarding-form">
+          <div class="form-group">
+            <label for="onboarding-username">Username Handle</label>
+            <input type="text" id="onboarding-username" required placeholder="e.g. alex_shopper" pattern="^[a-zA-Z0-9_]{3,20}$" />
+            <p class="hint">3-20 characters, letters, numbers, and underscores only.</p>
+          </div>
+          <button type="submit" class="btn" style="width: 100%;">Save & Continue</button>
+        </form>
+      </div>
     </section>
 
     <!-- VIEW 3: MAIN DASHBOARD -->
@@ -433,15 +403,22 @@
               </select>
             </div>
             <div class="form-group">
-              <label for="expense-date">Date</label>
-              <input type="date" id="expense-date" required />
+              <label for="expense-family-select">Family Group Assignment</label>
+              <select id="expense-family-select">
+                <option value="">Personal Only (No Family Group)</option>
+              </select>
             </div>
           </div>
 
-          <div class="form-group">
-            <label for="expense-receipt">Attach Receipt (Optional)</label>
-            <input type="file" id="expense-receipt" accept="image/jpeg,image/png,application/pdf" />
-            <p class="hint">Allowed types: JPG, PNG, PDF. Max size: 5 MB.</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="expense-date">Date</label>
+              <input type="date" id="expense-date" required />
+            </div>
+            <div class="form-group">
+              <label for="expense-receipt">Attach Receipt (Optional)</label>
+              <input type="file" id="expense-receipt" accept="image/jpeg,image/png,application/pdf" />
+            </div>
           </div>
 
           <button type="submit" class="btn" id="btn-save-expense">Publish Post</button>
@@ -451,135 +428,110 @@
       <!-- Expense Feed Table -->
       <div class="card">
         <h2 class="card-title">
-          <span>Shared Expense Feed</span>
-          <button class="btn btn-secondary btn-sm" id="btn-refresh-expenses">🔄 Refresh Feed</button>
+          <span>Expense Feed</span>
+          <select id="expense-view-filter" style="width: auto; padding: 4px 8px;">
+            <option value="all">All Viewable Expenses</option>
+            <option value="personal">Personal Only</option>
+          </select>
         </h2>
         <div class="table-responsive">
           <table>
             <thead>
               <tr>
                 <th>Date</th>
-                <th>Author</th>
                 <th>Title</th>
                 <th>Category</th>
+                <th>Group</th>
                 <th>Amount</th>
-                <th>Receipt</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody id="expenses-tbody">
-              <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Loading transactions...</td></tr>
+              <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading transactions...</td></tr>
             </tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- VIEW 4: MODERATOR QUEUE -->
+    <!-- VIEW 4: FAMILY GROUPS -->
+    <section id="family-view" class="view-section">
+      <div class="card">
+        <h2 class="card-title">Create Family Group</h2>
+        <form id="create-family-form" class="form-row">
+          <div class="form-group" style="margin: 0; flex: 1;">
+            <input type="text" id="family-name-input" required placeholder="e.g. Smith Family Ledger" />
+          </div>
+          <button type="submit" class="btn">Create Group</button>
+        </form>
+        <p class="hint">Creating a group assigns you as <strong>Group Admin</strong> for that group (does not grant app-wide admin rights).</p>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">Pending Invitations</h2>
+        <div id="family-invites-list">Checking invitations...</div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">My Family Groups</h2>
+        <div id="family-groups-container">Loading groups...</div>
+      </div>
+    </section>
+
+    <!-- VIEW 5: MODERATOR PANEL -->
     <section id="mod-view" class="view-section">
       <div class="card">
-        <h2 class="card-title">🛡️ Moderation Queue — Reported Posts</h2>
+        <h2 class="card-title">🛡️ Moderation Queue</h2>
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
-          Review posts flagged by users. Moderators can soft-hide inappropriate items from public feeds.
+          Review flagged items across the application. Moderators can flag, unflag, or delete questionable entries.
         </p>
         <div class="table-responsive">
           <table>
             <thead>
               <tr>
-                <th>Report Date</th>
-                <th>Reporter</th>
+                <th>User ID</th>
                 <th>Post Title</th>
-                <th>Reason</th>
+                <th>Amount</th>
+                <th>Flagged Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
-            <tbody id="reports-tbody">
-              <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Loading queue...</td></tr>
+            <tbody id="mod-tbody">
+              <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Loading moderation queue...</td></tr>
             </tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- VIEW 5: ADMIN PANEL -->
+    <!-- VIEW 6: ADMIN PANEL -->
     <section id="admin-view" class="view-section">
-      <!-- Staff Role Manager -->
       <div class="card">
-        <h2 class="card-title">⚙️ Admin Panel — Manage Staff Roles</h2>
+        <h2 class="card-title">⚙️ Admin Panel — Manage Staff & Users</h2>
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
-          Admins can grant or revoke moderator roles. Admin roles are strictly managed in the Supabase Dashboard.
-        </p>
-        <form id="add-mod-form" class="form-row" style="align-items: flex-end; margin-bottom: 20px;">
-          <div class="form-group" style="flex: 1;">
-            <label for="mod-user-select">Grant Moderator Privileges</label>
-            <select id="mod-user-select" required></select>
-          </div>
-          <div class="form-group">
-            <button type="submit" class="btn">Approve Moderator</button>
-          </div>
-        </form>
-
-        <h3 style="font-size: 0.95rem; margin-bottom: 8px;">Active Moderators</h3>
-        <div class="table-responsive">
-          <table>
-            <thead>
-              <tr>
-                <th>Username</th>
-                <th>Assigned Date</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="mods-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Delete and Remove User Accounts (Admin Only) -->
-      <div class="card">
-        <h2 class="card-title">👥 User Management — Remove User Accounts</h2>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
-          Admins can delete user accounts and permanently erase all their associated expenses and files.
+          Admins have complete control to assign app roles (User, Moderator, App Admin) and manage user accounts.
         </p>
         <div class="table-responsive">
           <table>
             <thead>
               <tr>
-                <th>Username</th>
                 <th>User ID</th>
-                <th>Role</th>
-                <th>Action</th>
+                <th>Username</th>
+                <th>App Role</th>
+                <th>Assign Role</th>
+                <th>Account Action</th>
               </tr>
             </thead>
-            <tbody id="users-admin-tbody">
-              <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Loading user directory...</td></tr>
+            <tbody id="admin-tbody">
+              <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Loading user directory...</td></tr>
             </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- System Activity Logs -->
-      <div class="card">
-        <h2 class="card-title">📜 Moderation & Admin Logs</h2>
-        <div class="table-responsive">
-          <table>
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>Staff Member</th>
-                <th>Action Taken</th>
-                <th>Target ID</th>
-                <th>Details</th>
-              </tr>
-            </thead>
-            <tbody id="logs-tbody"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- VIEW 6: SETTINGS, PASSWORD & DATA DOWNLOAD -->
+    <!-- VIEW 7: SETTINGS & ACCOUNT MANAGEMENT -->
     <section id="settings-view" class="view-section" style="max-width: 600px; margin: 0 auto;">
-      <!-- Change Password Card -->
       <div class="card">
         <h2 class="card-title">Change Account Password</h2>
         <form id="password-form">
@@ -592,7 +544,6 @@
         </form>
       </div>
 
-      <!-- Account Privacy & Download Data Card -->
       <div class="card">
         <h2 class="card-title">Account Data & Privacy</h2>
         
@@ -642,7 +593,7 @@
       <div class="modal-body">
         <div class="modal-warning-box">
           ⚠️ <strong>Notice & Risk Disclaimer:</strong><br />
-          You are downloading your data at your own risk. SpendWise is not responsible for anything that the downloaded files do or how they are handled after download.
+          You are downloading your data at your own risk. SpendWise is not responsible for how the downloaded files are handled after download.
         </div>
         Do you accept these terms and wish to proceed with downloading your data file?
       </div>
@@ -653,32 +604,14 @@
     </div>
   </div>
 
-  <!-- 3. REPORT POST MODAL -->
-  <div id="modal-report-post" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-report-title">
-    <div class="modal">
-      <div class="modal-header" id="modal-report-title">🚩 Report Post</div>
-      <form id="report-form">
-        <input type="hidden" id="report-expense-id" />
-        <div class="form-group">
-          <label for="report-reason">Reason for reporting this post:</label>
-          <textarea id="report-reason" rows="3" required placeholder="Explain why this post violates policy..."></textarea>
-        </div>
-        <div class="modal-actions">
-          <button type="button" class="btn btn-secondary" id="btn-report-cancel">Cancel</button>
-          <button type="submit" class="btn btn-warning">Submit Report</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- 4. PRIVACY POLICY MODAL -->
+  <!-- 3. PRIVACY POLICY MODAL -->
   <div id="modal-privacy" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-privacy-title">
     <div class="modal">
       <div class="modal-header" id="modal-privacy-title">SpendWise Privacy Policy</div>
       <div class="modal-body" style="line-height: 1.6;">
-        <p><strong>What SpendWise Saves:</strong> Email address, unique username handle, logged expense details, dates, categories, and uploaded receipt images or PDFs.</p><br />
-        <p><strong>Who Can See Your Data:</strong> Shared posts are viewable by family members and group users. Moderators can hide reported posts, and Admins can delete invalid posts or remove user accounts.</p><br />
-        <p><strong>Your Rights:</strong> You can export your data or execute a full account purge at any time in Account Settings.</p>
+        <p><strong>What SpendWise Saves:</strong> Email address, unique username handle, logged expense details, dates, categories, and uploaded receipts.</p><br />
+        <p><strong>Who Can See Your Data:</strong> Shared posts are viewable by family members. Moderators can hide reported posts, and Admins can manage accounts and data.</p><br />
+        <p><strong>Your Rights:</strong> You can export your data or execute a full account deletion at any time in Settings.</p>
       </div>
       <div class="modal-actions">
         <button class="btn btn-secondary" id="btn-privacy-close">Close</button>
@@ -692,59 +625,37 @@
     </div>
   </footer>
 
-  <!-- APPLICATION LOGIC SCRIPT -->
+  <!-- Load Configuration first, then Application logic -->
+  <script src="config.js"></script>
   <script>
-    // Configuration & State
-    let SUPABASE_URL = localStorage.getItem("spendwise_url") || "https://ehrkwohnqbigerhjyfvc.supabase.co";
-    let SUPABASE_ANON_KEY = localStorage.getItem("spendwise_key") || "sb_publishable_xq0f7IVIh9JoA-WVN8bcUg_UwYaiNSt";
+    // Initialize Supabase Client using external config credentials
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let supabaseClient = null;
-    let isDemoMode = false;
+    // State Variables
     let currentUser = null;
     let currentProfile = null;
-    let isAdmin = false;
-    let isModerator = false;
+    let userFamilyGroups = [];
     let isSignUpMode = false;
     let confirmActionCallback = null;
-
-    // Demo Mode Data Store
-    let demoUsers = [
-      { id: "demo-user-1", username: "alex_family", role: "admin" },
-      { id: "demo-user-2", username: "sam_mod", role: "moderator" },
-      { id: "demo-user-3", username: "jordan_member", role: "user" }
-    ];
-
-    let demoExpenses = [
-      { id: "exp-1", user_id: "demo-user-1", username: "alex_family", title: "Family Groceries", amount: 142.50, category: "Food & Dining", date: new Date().toISOString().split("T")[0], receipt_path: null, hidden: false },
-      { id: "exp-2", user_id: "demo-user-3", username: "jordan_member", title: "Overpriced Headphones", amount: 299.00, category: "Tech & Hardware", date: new Date().toISOString().split("T")[0], receipt_path: null, hidden: false }
-    ];
-
-    let demoReports = [];
-    let demoLogs = [];
 
     // DOM Elements
     const alertBox = document.getElementById("alert-box");
     const mainHeader = document.getElementById("main-header");
     const navUserBadge = document.getElementById("nav-user-badge");
-    const demoModeIndicator = document.getElementById("demo-mode-indicator");
     const btnThemeToggle = document.getElementById("btn-theme-toggle");
-
-    const configWarningBanner = document.getElementById("config-warning-banner");
-    const cfgUrlInput = document.getElementById("cfg-url");
-    const cfgKeyInput = document.getElementById("cfg-key");
-    const btnApplyConfig = document.getElementById("btn-apply-config");
-    const btnUseDemo = document.getElementById("btn-use-demo");
 
     const views = {
       auth: document.getElementById("auth-view"),
       onboarding: document.getElementById("onboarding-view"),
       dashboard: document.getElementById("dashboard-view"),
+      family: document.getElementById("family-view"),
       mod: document.getElementById("mod-view"),
       admin: document.getElementById("admin-view"),
       settings: document.getElementById("settings-view")
     };
 
     const btnNavDashboard = document.getElementById("btn-nav-dashboard");
+    const btnNavFamily = document.getElementById("btn-nav-family");
     const btnNavMod = document.getElementById("btn-nav-mod");
     const btnNavAdmin = document.getElementById("btn-nav-admin");
     const btnNavSettings = document.getElementById("btn-nav-settings");
@@ -769,10 +680,35 @@
     const expenseCategory = document.getElementById("expense-category");
     const expenseDate = document.getElementById("expense-date");
     const expenseReceipt = document.getElementById("expense-receipt");
+    const expenseFamilySelect = document.getElementById("expense-family-select");
     const expensesTbody = document.getElementById("expenses-tbody");
     const totalSpendingEl = document.getElementById("total-spending");
+    const expenseViewFilter = document.getElementById("expense-view-filter");
 
-    // Initialize Default Expense Date
+    const createFamilyForm = document.getElementById("create-family-form");
+    const familyNameInput = document.getElementById("family-name-input");
+    const familyGroupsContainer = document.getElementById("family-groups-container");
+    const familyInvitesList = document.getElementById("family-invites-list");
+
+    const modTbody = document.getElementById("mod-tbody");
+    const adminTbody = document.getElementById("admin-tbody");
+    const passwordForm = document.getElementById("password-form");
+
+    const modalConfirm = document.getElementById("modal-confirm");
+    const btnModalCancel = document.getElementById("btn-modal-cancel");
+    const btnModalConfirmAction = document.getElementById("btn-modal-confirm-action");
+
+    const modalDownloadRisk = document.getElementById("modal-download-risk");
+    const btnTriggerDownload = document.getElementById("btn-trigger-download");
+    const btnDownloadCancel = document.getElementById("btn-download-cancel");
+    const btnDownloadAcceptProceed = document.getElementById("btn-download-accept-proceed");
+
+    const modalPrivacy = document.getElementById("modal-privacy");
+    const linkPrivacy = document.getElementById("link-privacy");
+    const btnPrivacyClose = document.getElementById("btn-privacy-close");
+    const btnUserDeleteSelfData = document.getElementById("btn-user-delete-self-data");
+
+    // Set Default Expense Date to Today
     expenseDate.value = new Date().toISOString().split("T")[0];
 
     // Theme Switcher
@@ -790,7 +726,9 @@
       btnThemeToggle.textContent = next === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
     });
 
-    // Alert Notification Display
+    initTheme();
+
+    // Alert Handling
     function showAlert(message, type = "error") {
       alertBox.textContent = message;
       alertBox.className = `alert alert-${type}`;
@@ -800,7 +738,7 @@
 
     function hideAlert() { alertBox.style.display = "none"; }
 
-    // View Routing
+    // Navigation View Routing
     function switchView(viewName) {
       hideAlert();
       Object.keys(views).forEach(name => {
@@ -810,154 +748,118 @@
       mainHeader.style.display = (viewName === "auth" || viewName === "onboarding") ? "none" : "block";
     }
 
-    // Role Badge UI Helper
-    function renderRoleBadge(username, adminFlag, modFlag) {
-      if (adminFlag) return `@${username} <span class="badge badge-admin">Admin</span>`;
-      if (modFlag) return `@${username} <span class="badge badge-mod">Mod</span>`;
-      return `@${username} <span class="badge badge-user">User</span>`;
-    }
-
-    // Universal "Are You Sure?" Modal Helper
+    // Modal Confirmation Helper ("Are You Sure?" Warning)
     function askConfirmation(title, message, callback) {
       document.getElementById("modal-confirm-title").textContent = title;
       document.getElementById("modal-confirm-message").textContent = message;
       confirmActionCallback = callback;
-      document.getElementById("modal-confirm").style.display = "flex";
+      modalConfirm.style.display = "flex";
     }
 
-    document.getElementById("btn-modal-cancel").addEventListener("click", () => {
-      document.getElementById("modal-confirm").style.display = "none";
+    btnModalCancel.addEventListener("click", () => {
+      modalConfirm.style.display = "none";
       confirmActionCallback = null;
     });
 
-    document.getElementById("btn-modal-confirm-action").addEventListener("click", async () => {
-      if (confirmActionCallback) await confirmActionCallback();
-      document.getElementById("modal-confirm").style.display = "none";
-      confirmActionCallback = null;
-    });
-
-    // Password Validator
-    function validatePasswordRules(password) {
-      const minLength = password.length >= 8;
-      const hasUpper = /[A-Z]/.test(password);
-      const hasLower = /[a-z]/.test(password);
-      const hasNumber = /[0-9]/.test(password);
-
-      if (!minLength) return "Password must be at least 8 characters long.";
-      if (!hasUpper) return "Password must contain at least one uppercase letter.";
-      if (!hasLower) return "Password must contain at least one lowercase letter.";
-      if (!hasNumber) return "Password must contain at least one number.";
-      return null;
-    }
-
-    // App Boot & Supabase Connection
-    function initApp() {
-      const isPlaceholder = SUPABASE_URL.includes("your-supabase-project-id") || SUPABASE_ANON_KEY.includes("your-supabase-anon-key");
-
-      if (isPlaceholder) {
-        configWarningBanner.style.display = "block";
-        cfgUrlInput.value = SUPABASE_URL.includes("your-supabase-project-id") ? "" : SUPABASE_URL;
-        cfgKeyInput.value = SUPABASE_ANON_KEY.includes("your-supabase-anon-key") ? "" : SUPABASE_ANON_KEY;
-        switchView("auth");
-        return;
+    btnModalConfirmAction.addEventListener("click", async () => {
+      modalConfirm.style.display = "none";
+      if (confirmActionCallback) {
+        await confirmActionCallback();
+        confirmActionCallback = null;
       }
+    });
 
+    // Privacy & Download Modals
+    linkPrivacy.addEventListener("click", (e) => { e.preventDefault(); modalPrivacy.style.display = "flex"; });
+    btnPrivacyClose.addEventListener("click", () => { modalPrivacy.style.display = "none"; });
+
+    btnTriggerDownload.addEventListener("click", () => { modalDownloadRisk.style.display = "flex"; });
+    btnDownloadCancel.addEventListener("click", () => { modalDownloadRisk.style.display = "none"; });
+
+    btnDownloadAcceptProceed.addEventListener("click", async () => {
+      modalDownloadRisk.style.display = "none";
       try {
-        if (!window.supabase || typeof window.supabase.createClient !== "function") {
-          throw new Error("Supabase SDK failed to load.");
-        }
-
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        configWarningBanner.style.display = "none";
-
-        supabaseClient.auth.onAuthStateChange(async (event, session) => {
-          if (session && session.user) {
-            currentUser = session.user;
-            await handleUserSession();
-          } else {
-            currentUser = null;
-            currentProfile = null;
-            isAdmin = false;
-            isModerator = false;
-            switchView("auth");
-          }
-        });
+        const { data, error } = await supabase.from("expenses").select("*").eq("user_id", currentUser.id);
+        if (error) throw error;
+        
+        const blob = new Blob([JSON.stringify(data || [], null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `spendwise_data_${currentProfile.username}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showAlert("Data export downloaded successfully.", "success");
       } catch (err) {
-        configWarningBanner.style.display = "block";
-        showAlert("Failed to connect: " + err.message);
+        showAlert("Failed to export data: " + err.message);
       }
+    });
+
+    // Role Badge Display Helper
+    function renderRoleBadge(username, role) {
+      const roleClass = role === 'app_admin' ? 'badge-admin' : role === 'moderator' ? 'badge-mod' : 'badge-user';
+      const roleLabel = role === 'app_admin' ? 'Admin' : role === 'moderator' ? 'Mod' : 'User';
+      return `@${username} <span class="badge ${roleClass}">${roleLabel}</span>`;
     }
 
-    // Manual Configuration & Demo Triggers
-    btnApplyConfig.addEventListener("click", () => {
-      const u = cfgUrlInput.value.trim();
-      const k = cfgKeyInput.value.trim();
-      if (!u || !k) { showAlert("Please enter both Supabase URL and Anon Key."); return; }
-      localStorage.setItem("spendwise_url", u);
-      localStorage.setItem("spendwise_key", k);
-      SUPABASE_URL = u; SUPABASE_ANON_KEY = k;
-      initApp();
+    // Navigation Listeners
+    btnNavDashboard.addEventListener("click", () => { switchView("dashboard"); loadExpenses(); });
+    btnNavFamily.addEventListener("click", () => { switchView("family"); loadFamilyView(); });
+    btnNavMod.addEventListener("click", () => { switchView("mod"); loadModPanel(); });
+    btnNavAdmin.addEventListener("click", () => { switchView("admin"); loadAdminPanel(); });
+    btnNavSettings.addEventListener("click", () => switchView("settings"));
+    btnSignOut.addEventListener("click", async () => { await supabase.auth.signOut(); });
+
+    // Authentication State Management
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session && session.user) {
+        currentUser = session.user;
+        await handleUserSession();
+      } else {
+        currentUser = null;
+        currentProfile = null;
+        switchView("auth");
+      }
     });
 
-    btnUseDemo.addEventListener("click", () => {
-      isDemoMode = true;
-      configWarningBanner.style.display = "none";
-      demoModeIndicator.style.display = "inline-block";
-      currentUser = { id: "demo-user-1", email: "admin@spendwise.local" };
-      currentProfile = { username: "alex_family" };
-      isAdmin = true; isModerator = false;
-      updateNavigationRoles();
-      switchView("dashboard");
-      renderExpensesTable(demoExpenses);
-      showAlert("Logged into Demo Mode as Admin (@alex_family).", "success");
-    });
-
-    // Session Role Resolution
     async function handleUserSession() {
-      if (isDemoMode) return;
       try {
-        const { data: profile } = await supabaseClient.from("profiles").select("*").eq("id", currentUser.id).maybeSingle();
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", currentUser.id)
+          .maybeSingle();
+
+        if (error) throw error;
+
         if (!profile || !profile.username) {
           switchView("onboarding");
           return;
         }
+
         currentProfile = profile;
+        navUserBadge.innerHTML = renderRoleBadge(profile.username, profile.role);
 
-        // Check Admin
-        const { data: adminRow } = await supabaseClient.from("admins").select("user_id").eq("user_id", currentUser.id).maybeSingle();
-        isAdmin = !!adminRow;
+        // Control Panel Visibility based on App Roles
+        btnNavMod.style.display = (profile.role === "moderator" || profile.role === "app_admin") ? "inline-flex" : "none";
+        btnNavAdmin.style.display = (profile.role === "app_admin") ? "inline-flex" : "none";
 
-        // Check Moderator
-        const { data: modRow } = await supabaseClient.from("moderators").select("user_id").eq("user_id", currentUser.id).maybeSingle();
-        isModerator = !!modRow;
-
-        updateNavigationRoles();
+        await loadUserFamilyGroups();
         switchView("dashboard");
         await loadExpenses();
       } catch (err) {
-        showAlert(err.message || "Error resolving user session.");
+        showAlert(err.message || "Error establishing user session.");
       }
     }
 
-    function updateNavigationRoles() {
-      navUserBadge.innerHTML = renderRoleBadge(currentProfile.username, isAdmin, isModerator);
-      btnNavAdmin.style.display = isAdmin ? "inline-flex" : "none";
-      btnNavMod.style.display = (isAdmin || isModerator) ? "inline-flex" : "none";
-    }
-
-    // Navigation Click Handlers
-    btnNavDashboard.addEventListener("click", () => switchView("dashboard"));
-    btnNavMod.addEventListener("click", async () => { switchView("mod"); await loadReportsQueue(); });
-    btnNavAdmin.addEventListener("click", async () => { switchView("admin"); await loadAdminPanel(); });
-    btnNavSettings.addEventListener("click", () => switchView("settings"));
-
-    // Auth Actions
+    // Toggle Sign In / Sign Up Mode
     authToggleLink.addEventListener("click", (e) => {
       e.preventDefault();
+      hideAlert();
       isSignUpMode = !isSignUpMode;
       authTitle.textContent = isSignUpMode ? "Create an Account" : "Sign In to SpendWise";
       btnAuthSubmit.textContent = isSignUpMode ? "Sign Up" : "Sign In";
-      authToggleText.textContent = isSignUpMode ? "Already have an account?" : "Sign In";
+      authToggleText.textContent = isSignUpMode ? "Already have an account?" : "Don't have an account?";
       authToggleLink.textContent = isSignUpMode ? "Sign In" : "Sign Up";
       passwordHint.style.display = isSignUpMode ? "block" : "none";
     });
@@ -965,484 +867,461 @@
     authForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       hideAlert();
-
-      if (!isDemoMode && (!supabaseClient || SUPABASE_URL.includes("your-supabase-project-id"))) {
-        isDemoMode = true;
-        configWarningBanner.style.display = "none";
-        demoModeIndicator.style.display = "inline-block";
-      }
-
       const email = authEmail.value.trim();
       const password = authPassword.value;
 
-      if (isDemoMode) {
-        const username = email.split("@")[0].replace(/[^a-zA-Z0-9_]/g, "_") || "demo_user";
-        currentUser = { id: "demo-" + Date.now(), email };
-        currentProfile = { username };
-        isAdmin = false; isModerator = false;
-        updateNavigationRoles();
-        switchView("dashboard");
-        renderExpensesTable(demoExpenses);
-        showAlert("Signed in via Demo Mode.", "success");
-        return;
-      }
-
       if (isSignUpMode) {
-        const pwdError = validatePasswordRules(password);
-        if (pwdError) { showAlert(pwdError); return; }
-        const { error } = await supabaseClient.auth.signUp({ email, password });
+        const { error } = await supabase.auth.signUp({ email, password });
         if (error) showAlert(error.message);
-        else showAlert("Account created! Check email or log in.", "success");
+        else showAlert("Account created! Logging in...", "success");
       } else {
-        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) showAlert(error.message);
       }
     });
 
-    btnGithubLogin.addEventListener("click", () => {
-      isDemoMode = true;
-      demoModeIndicator.style.display = "inline-block";
-      currentUser = { id: "github-user-88", email: "dev@github.com" };
-      currentProfile = { username: "octocat_dev" };
-      isAdmin = true; isModerator = false;
-      updateNavigationRoles();
-      switchView("dashboard");
-      renderExpensesTable(demoExpenses);
-      showAlert("Signed in with GitHub (Demo Mode)!", "success");
+    // GitHub OAuth Sign In
+    btnGithubLogin.addEventListener("click", async () => {
+      hideAlert();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "github",
+        options: { redirectTo: window.location.origin + window.location.pathname }
+      });
+      if (error) showAlert(error.message);
     });
 
-    // Username Onboarding Submit
     onboardingForm.addEventListener("submit", async (e) => {
       e.preventDefault();
+      hideAlert();
       const username = onboardingUsername.value.trim().toLowerCase();
-      const reserved = ["admin", "moderator", "mod", "spendwise"];
-      if (reserved.includes(username)) { showAlert("Username handle is reserved."); return; }
 
-      if (isDemoMode) {
-        currentProfile = { username };
-        updateNavigationRoles();
-        switchView("dashboard");
-        return;
+      try {
+        const { error } = await supabase.from("profiles").upsert({
+          id: currentUser.id,
+          username: username,
+          updated_at: new Date().toISOString()
+        });
+        if (error) throw error;
+        await handleUserSession();
+      } catch (err) {
+        showAlert(err.message || "Failed to set handle.");
       }
-
-      const { error } = await supabaseClient.from("profiles").upsert({ id: currentUser.id, username });
-      if (error) showAlert(error.message);
-      else await handleUserSession();
     });
 
-    // Expense Feed Logic
+    // Expenses Logic & Post Deletion Warning
     async function loadExpenses() {
-      if (isDemoMode) { renderExpensesTable(demoExpenses); return; }
+      expensesTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading transactions...</td></tr>';
       try {
-        const { data: expenses, error } = await supabaseClient.from("expenses").select("*, profiles(username)").order("date", { ascending: false });
+        let query = supabase.from("expenses").select("*, family_groups(name)").order("date", { ascending: false });
+        if (expenseViewFilter.value === "personal") {
+          query = query.eq("user_id", currentUser.id).is("family_id", null);
+        }
+
+        const { data: expenses, error } = await query;
         if (error) throw error;
 
-        const { data: hiddenData } = await supabaseClient.from("hidden_expenses").select("expense_id");
-        const hiddenSet = new Set((hiddenData || []).map(h => h.expense_id));
-
-        const processed = (expenses || []).map(exp => ({
-          ...exp,
-          username: exp.profiles?.username || "unknown",
-          hidden: hiddenSet.has(exp.id)
-        }));
-
-        renderExpensesTable(processed);
+        renderExpensesTable(expenses || []);
       } catch (err) {
         showAlert("Failed to load expenses: " + err.message);
       }
     }
 
+    expenseViewFilter.addEventListener("change", loadExpenses);
+
     function renderExpensesTable(expenses) {
       expensesTbody.innerHTML = "";
       let total = 0;
 
-      if (!expenses || expenses.length === 0) {
-        expensesTbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No expenses logged yet.</td></tr>';
+      if (expenses.length === 0) {
+        expensesTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No entries found.</td></tr>';
         totalSpendingEl.textContent = "$0.00";
         return;
       }
 
       expenses.forEach(item => {
-        if (item.hidden && !isAdmin && !isModerator) return;
-
         const amountNum = parseFloat(item.amount) || 0;
         total += amountNum;
 
         const tr = document.createElement("tr");
-        if (item.hidden) tr.style.opacity = "0.5";
-
-        const isOwner = item.user_id === currentUser.id;
-
         tr.innerHTML = `
           <td>${item.date}</td>
-          <td>@${item.username}</td>
-          <td>${item.title} ${item.hidden ? '<span class="badge badge-admin">Hidden</span>' : ''}</td>
+          <td>${item.title} ${item.is_flagged ? '<span style="color:var(--danger); font-size:0.75rem;">[FLAGGED]</span>' : ''}</td>
           <td>${item.category}</td>
+          <td>${item.family_groups ? item.family_groups.name : 'Personal'}</td>
           <td style="font-weight:600;">$${amountNum.toFixed(2)}</td>
-          <td>${item.receipt_path ? `<span class="receipt-link" onclick="openReceipt('${item.receipt_path}')">📎 View</span>` : '—'}</td>
           <td>
-            ${isOwner ? `<button class="btn btn-danger btn-sm" onclick="promptDeleteExpense('${item.id}')">Delete</button>` : ''}
-            ${!isOwner ? `<button class="btn btn-secondary btn-sm" onclick="promptReportPost('${item.id}')">🚩 Report</button>` : ''}
-            ${(isAdmin || isModerator) ? `
-              <button class="btn btn-warning btn-sm" onclick="toggleHideExpense('${item.id}', ${item.hidden})">${item.hidden ? 'Unhide' : 'Hide'}</button>
-            ` : ''}
-            ${isAdmin && !isOwner ? `
-              <button class="btn btn-danger btn-sm" onclick="promptDeleteExpense('${item.id}')">Admin Delete</button>
-            ` : ''}
+            <button class="btn btn-danger btn-sm">Delete</button>
           </td>
         `;
+
+        tr.querySelector(".btn-danger").addEventListener("click", () => {
+          askConfirmation("Delete Expense Entry?", "Are you sure you want to delete this expense post entry? This action cannot be undone.", async () => {
+            await deleteExpense(item.id, item.receipt_path);
+          });
+        });
+
         expensesTbody.appendChild(tr);
       });
 
       totalSpendingEl.textContent = `$${total.toFixed(2)}`;
     }
 
-    // Expense Creator
+    async function deleteExpense(expenseId, receiptPath) {
+      try {
+        if (receiptPath) {
+          await supabase.storage.from("receipts").remove([receiptPath]);
+        }
+        const { error } = await supabase.from("expenses").delete().eq("id", expenseId);
+        if (error) throw error;
+
+        showAlert("Expense post deleted successfully.", "success");
+        await loadExpenses();
+      } catch (err) {
+        showAlert("Failed to delete entry: " + err.message);
+      }
+    }
+
     expenseForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       hideAlert();
+
       const title = expenseTitle.value.trim();
       const amount = parseFloat(expenseAmount.value);
       const category = expenseCategory.value;
       const date = expenseDate.value;
-      const file = expenseReceipt.files[0];
+      const family_id = expenseFamilySelect.value || null;
 
-      let receiptPath = null;
-      if (file) {
-        if (file.size > 5 * 1024 * 1024) { showAlert("Receipt exceeds 5MB limit."); return; }
-        receiptPath = `${currentUser.id}/${Date.now()}_${file.name}`;
-      }
-
-      if (isDemoMode) {
-        demoExpenses.unshift({
-          id: "exp-" + Date.now(),
+      try {
+        const { error } = await supabase.from("expenses").insert({
           user_id: currentUser.id,
-          username: currentProfile.username,
-          title, amount, category, date, receipt_path: receiptPath, hidden: false
+          family_id,
+          title,
+          amount,
+          category,
+          date
         });
-        showAlert("Expense published!", "success");
+
+        if (error) throw error;
         expenseForm.reset();
         expenseDate.value = new Date().toISOString().split("T")[0];
-        renderExpensesTable(demoExpenses);
+        showAlert("Expense saved!", "success");
+        await loadExpenses();
+      } catch (err) {
+        showAlert(err.message || "Failed to save expense.");
+      }
+    });
+
+    // Multiple Family Groups Logic
+    async function loadUserFamilyGroups() {
+      try {
+        const { data, error } = await supabase
+          .from("family_members")
+          .select("family_id, role, family_groups(id, name, created_by)")
+          .eq("user_id", currentUser.id);
+
+        if (error) throw error;
+
+        userFamilyGroups = data || [];
+        expenseFamilySelect.innerHTML = '<option value="">Personal Only (No Family Group)</option>';
+        userFamilyGroups.forEach(m => {
+          if (m.family_groups) {
+            const opt = document.createElement("option");
+            opt.value = m.family_groups.id;
+            opt.textContent = `${m.family_groups.name} (${m.role})`;
+            expenseFamilySelect.appendChild(opt);
+          }
+        });
+      } catch (err) {
+        console.warn("Family groups warning:", err.message);
+      }
+    }
+
+    async function loadFamilyView() {
+      await loadUserFamilyGroups();
+      renderFamilyGroupsList();
+      await loadPendingInvites();
+    }
+
+    createFamilyForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideAlert();
+      const name = familyNameInput.value.trim();
+
+      try {
+        const { data: group, error: groupErr } = await supabase
+          .from("family_groups")
+          .insert({ name, created_by: currentUser.id })
+          .select()
+          .single();
+
+        if (groupErr) throw groupErr;
+
+        // Group Creator gets 'group_admin' role (Does NOT grant app-wide admin privileges)
+        const { error: memErr } = await supabase
+          .from("family_members")
+          .insert({ family_id: group.id, user_id: currentUser.id, role: "group_admin" });
+
+        if (memErr) throw memErr;
+
+        familyNameInput.value = "";
+        showAlert(`Family group "${name}" created! You are the Group Admin.`, "success");
+        await loadFamilyView();
+      } catch (err) {
+        showAlert(err.message || "Failed to create group.");
+      }
+    });
+
+    function renderFamilyGroupsList() {
+      familyGroupsContainer.innerHTML = "";
+      if (userFamilyGroups.length === 0) {
+        familyGroupsContainer.innerHTML = "<p style='color:var(--text-muted);'>No family groups joined yet.</p>";
         return;
       }
 
-      if (file && supabaseClient) {
-        await supabaseClient.storage.from("receipts").upload(receiptPath, file);
+      userFamilyGroups.forEach(item => {
+        const grp = item.family_groups;
+        if (!grp) return;
+
+        const div = document.createElement("div");
+        div.className = "card";
+        div.style.marginBottom = "12px";
+        const isGroupAdmin = item.role === "group_admin";
+
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3>${grp.name} <span class="badge badge-user">${item.role}</span></h3>
+          </div>
+          ${isGroupAdmin ? `
+            <div style="margin-top:12px; display:flex; gap:8px;">
+              <input type="text" placeholder="Invite username" id="invite-input-${grp.id}" style="padding:6px; font-size:0.85rem;" />
+              <button class="btn btn-sm" onclick="sendInvite('${grp.id}')">Invite User</button>
+            </div>
+          ` : ''}
+        `;
+        familyGroupsContainer.appendChild(div);
+      });
+    }
+
+    window.sendInvite = async function(familyId) {
+      const input = document.getElementById(`invite-input-${familyId}`);
+      const username = input.value.trim().toLowerCase();
+      if (!username) return;
+
+      try {
+        const { error } = await supabase.from("family_invites").insert({
+          family_id: familyId,
+          invited_username: username,
+          invited_by: currentUser.id
+        });
+        if (error) throw error;
+        showAlert(`Invite sent to @${username}`, "success");
+        input.value = "";
+      } catch (err) {
+        showAlert("Failed to send invite: " + err.message);
+      }
+    };
+
+    async function loadPendingInvites() {
+      familyInvitesList.innerHTML = "Checking invites...";
+      try {
+        const { data: invites, error } = await supabase
+          .from("family_invites")
+          .select("*, family_groups(name)")
+          .eq("invited_username", currentProfile.username)
+          .eq("status", "pending");
+
+        if (error) throw error;
+
+        if (!invites || invites.length === 0) {
+          familyInvitesList.innerHTML = "<p style='color:var(--text-muted);'>No pending invites.</p>";
+          return;
+        }
+
+        familyInvitesList.innerHTML = "";
+        invites.forEach(inv => {
+          const div = document.createElement("div");
+          div.style.display = "flex";
+          div.style.justifyContent = "space-between";
+          div.style.alignItems = "center";
+          div.style.padding = "8px 0";
+          div.style.borderBottom = "1px solid var(--border)";
+          div.innerHTML = `
+            <span>Invited to <strong>${inv.family_groups.name}</strong></span>
+            <div>
+              <button class="btn btn-sm" onclick="respondInvite('${inv.id}', '${inv.family_id}', 'accepted')">Accept</button>
+              <button class="btn btn-secondary btn-sm" onclick="respondInvite('${inv.id}', '${inv.family_id}', 'rejected')">Decline</button>
+            </div>
+          `;
+          familyInvitesList.appendChild(div);
+        });
+      } catch (err) {
+        familyInvitesList.innerHTML = "Failed to load invites.";
+      }
+    }
+
+    window.respondInvite = async function(inviteId, familyId, responseStatus) {
+      try {
+        await supabase.from("family_invites").update({ status: responseStatus }).eq("id", inviteId);
+
+        if (responseStatus === "accepted") {
+          await supabase.from("family_members").insert({ family_id: familyId, user_id: currentUser.id, role: "member" });
+        }
+
+        showAlert(`Invite ${responseStatus}!`, "success");
+        await loadFamilyView();
+      } catch (err) {
+        showAlert("Error responding to invite: " + err.message);
+      }
+    };
+
+    // Moderator Panel Logic
+    async function loadModPanel() {
+      modTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading moderation queue...</td></tr>';
+      try {
+        const { data: expenses, error } = await supabase.from("expenses").select("*").order("created_at", { ascending: false });
+        if (error) throw error;
+        renderModTable(expenses || []);
+      } catch (err) {
+        showAlert("Failed to load moderator panel: " + err.message);
+      }
+    }
+
+    function renderModTable(expenses) {
+      modTbody.innerHTML = "";
+      if (expenses.length === 0) {
+        modTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No entries.</td></tr>';
+        return;
       }
 
-      const { error } = await supabaseClient.from("expenses").insert({ user_id: currentUser.id, title, amount, category, date, receipt_path: receiptPath });
+      expenses.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${item.user_id.substring(0, 8)}...</td>
+          <td>${item.title}</td>
+          <td>$${parseFloat(item.amount).toFixed(2)}</td>
+          <td>${item.is_flagged ? '<strong style="color:var(--danger)">Yes</strong>' : 'No'}</td>
+          <td>
+            <button class="btn btn-secondary btn-sm" onclick="toggleFlagExpense('${item.id}', ${!item.is_flagged})">${item.is_flagged ? 'Unflag' : 'Flag'}</button>
+            <button class="btn btn-danger btn-sm" onclick="confirmModDelete('${item.id}', '${item.receipt_path || ''}')">Remove</button>
+          </td>
+        `;
+        modTbody.appendChild(tr);
+      });
+    }
+
+    window.toggleFlagExpense = async function(id, flagStatus) {
+      try {
+        await supabase.from("expenses").update({ is_flagged: flagStatus }).eq("id", id);
+        await loadModPanel();
+      } catch (err) {
+        showAlert(err.message);
+      }
+    };
+
+    window.confirmModDelete = function(id, receiptPath) {
+      askConfirmation("Remove Post?", "Moderator: Are you sure you want to permanently delete this expense entry?", async () => {
+        await deleteExpense(id, receiptPath);
+        await loadModPanel();
+      });
+    };
+
+    // Admin Panel Logic (Manage Roles, Add Moderators, Delete Users)
+    async function loadAdminPanel() {
+      adminTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading directory...</td></tr>';
+      try {
+        const { data: profiles, error } = await supabase.from("profiles").select("*").order("updated_at", { ascending: false });
+        if (error) throw error;
+        renderAdminTable(profiles || []);
+      } catch (err) {
+        showAlert("Failed to load admin panel: " + err.message);
+      }
+    }
+
+    function renderAdminTable(profiles) {
+      adminTbody.innerHTML = "";
+      profiles.forEach(p => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${p.id.substring(0, 8)}...</td>
+          <td>@${p.username}</td>
+          <td><span class="badge ${p.role === 'app_admin' ? 'badge-admin' : p.role === 'moderator' ? 'badge-mod' : 'badge-user'}">${p.role}</span></td>
+          <td>
+            <select onchange="changeUserRole('${p.id}', this.value)" style="padding:4px; font-size:0.75rem; width:auto;">
+              <option value="user" ${p.role === 'user' ? 'selected' : ''}>User</option>
+              <option value="moderator" ${p.role === 'moderator' ? 'selected' : ''}>Moderator</option>
+              <option value="app_admin" ${p.role === 'app_admin' ? 'selected' : ''}>App Admin</option>
+            </select>
+          </td>
+          <td>
+            <button class="btn btn-danger btn-sm" onclick="confirmDeleteUserAccount('${p.id}', '${p.username}')">Delete User</button>
+          </td>
+        `;
+        adminTbody.appendChild(tr);
+      });
+    }
+
+    window.changeUserRole = function(userId, newRole) {
+      askConfirmation("Change Role?", `Change the role of user to "${newRole}"?`, async () => {
+        try {
+          await supabase.from("profiles").update({ role: newRole }).eq("id", userId);
+          
+          if (newRole === 'app_admin') {
+            await supabase.from("admins").upsert({ user_id: userId });
+            await supabase.from("moderators").delete().eq("user_id", userId);
+          } else if (newRole === 'moderator') {
+            await supabase.from("moderators").upsert({ user_id: userId });
+            await supabase.from("admins").delete().eq("user_id", userId);
+          } else {
+            await supabase.from("admins").delete().eq("user_id", userId);
+            await supabase.from("moderators").delete().eq("user_id", userId);
+          }
+
+          showAlert("Role updated successfully.", "success");
+          await loadAdminPanel();
+        } catch (err) {
+          showAlert("Failed to update role: " + err.message);
+        }
+      });
+    };
+
+    window.confirmDeleteUserAccount = function(userId, username) {
+      askConfirmation("DELETE USER ACCOUNT?", `PERMANENTLY delete account @${username}? All expenses and profile data will be removed!`, async () => {
+        try {
+          await supabase.from("profiles").delete().eq("id", userId);
+          showAlert(`User @${username} was deleted.`, "success");
+          await loadAdminPanel();
+        } catch (err) {
+          showAlert("Failed to delete user: " + err.message);
+        }
+      });
+    };
+
+    // User Self Account Deletion Warning
+    btnUserDeleteSelfData.addEventListener("click", () => {
+      askConfirmation("DELETE YOUR ACCOUNT?", "WARNING: Are you sure you want to permanently delete your SpendWise account and all personal data? This action cannot be reversed.", async () => {
+        try {
+          await supabase.from("profiles").delete().eq("id", currentUser.id);
+          await supabase.auth.signOut();
+          showAlert("Account deleted successfully.", "success");
+        } catch (err) {
+          showAlert("Failed to delete account: " + err.message);
+        }
+      });
+    });
+
+    // Password Update Logic
+    passwordForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideAlert();
+      const newPassword = document.getElementById("new-password").value;
+
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) showAlert(error.message);
       else {
-        showAlert("Expense published!", "success");
-        expenseForm.reset();
-        expenseDate.value = new Date().toISOString().split("T")[0];
-        await loadExpenses();
+        showAlert("Password updated successfully!", "success");
+        document.getElementById("new-password").value = "";
       }
     });
-
-    // ALWAYS ASK "ARE YOU SURE?" BEFORE DELETING ANY POST
-    function promptDeleteExpense(id) {
-      askConfirmation("Delete Expense Entry", "Are you sure you want to permanently delete this expense post?", async () => {
-        if (isDemoMode) {
-          demoExpenses = demoExpenses.filter(e => e.id !== id);
-          showAlert("Expense deleted.", "success");
-          renderExpensesTable(demoExpenses);
-          return;
-        }
-        const { error } = await supabaseClient.from("expenses").delete().eq("id", id);
-        if (error) showAlert(error.message);
-        else {
-          showAlert("Expense deleted.", "success");
-          await loadExpenses();
-        }
-      });
-    }
-
-    // Moderation: Hide / Unhide Posts
-    async function toggleHideExpense(id, isHidden) {
-      if (isDemoMode) {
-        const item = demoExpenses.find(e => e.id === id);
-        if (item) item.hidden = !isHidden;
-        renderExpensesTable(demoExpenses);
-        showAlert(`Post ${isHidden ? 'unhidden' : 'hidden'}.`, "success");
-        return;
-      }
-
-      if (isHidden) {
-        await supabaseClient.from("hidden_expenses").delete().eq("expense_id", id);
-      } else {
-        await supabaseClient.from("hidden_expenses").insert({ expense_id: id, hidden_by: currentUser.id });
-      }
-      await loadExpenses();
-    }
-
-    // User Reporting System
-    function promptReportPost(id) {
-      document.getElementById("report-expense-id").value = id;
-      document.getElementById("modal-report-post").style.display = "flex";
-    }
-
-    document.getElementById("btn-report-cancel").addEventListener("click", () => {
-      document.getElementById("modal-report-post").style.display = "none";
-    });
-
-    document.getElementById("report-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const expenseId = document.getElementById("report-expense-id").value;
-      const reason = document.getElementById("report-reason").value.trim();
-
-      if (isDemoMode) {
-        demoReports.push({ id: "rep-" + Date.now(), reporter: currentProfile.username, expense_id: expenseId, reason, date: new Date().toISOString().split("T")[0] });
-        showAlert("Report submitted to staff.", "success");
-      } else {
-        const { error } = await supabaseClient.from("reports").insert({ reporter_id: currentUser.id, expense_id: expenseId, reason });
-        if (error) showAlert(error.message);
-        else showAlert("Report submitted to staff.", "success");
-      }
-      document.getElementById("modal-report-post").style.display = "none";
-      document.getElementById("report-form").reset();
-    });
-
-    // Moderator Queue View
-    async function loadReportsQueue() {
-      const tbody = document.getElementById("reports-tbody");
-      if (isDemoMode) {
-        tbody.innerHTML = demoReports.map(r => `
-          <tr>
-            <td>${r.date}</td>
-            <td>@${r.reporter}</td>
-            <td>${(demoExpenses.find(e => e.id === r.expense_id) || {}).title || 'Expense'}</td>
-            <td>${r.reason}</td>
-            <td>
-              <button class="btn btn-warning btn-sm" onclick="toggleHideExpense('${r.expense_id}', false)">Hide Post</button>
-            </td>
-          </tr>
-        `).join("") || `<tr><td colspan="5" style="text-align:center;">No pending reports.</td></tr>`;
-        return;
-      }
-
-      const { data: reports } = await supabaseClient.from("reports").select("*, expenses(title), profiles:reporter_id(username)").order("created_at", { ascending: false });
-      tbody.innerHTML = (reports || []).map(r => `
-        <tr>
-          <td>${new Date(r.created_at).toLocaleDateString()}</td>
-          <td>@${r.profiles?.username || 'user'}</td>
-          <td>${r.expenses?.title || 'Expense'}</td>
-          <td>${r.reason}</td>
-          <td>
-            <button class="btn btn-warning btn-sm" onclick="toggleHideExpense('${r.expense_id}', false)">Hide Post</button>
-          </td>
-        </tr>
-      `).join("") || `<tr><td colspan="5" style="text-align:center;">No pending reports.</td></tr>`;
-    }
-
-    // Admin Panel Management & User Removal
-    async function loadAdminPanel() {
-      if (!isAdmin) return;
-      const modSelect = document.getElementById("mod-user-select");
-      const modsTbody = document.getElementById("mods-tbody");
-      const usersTbody = document.getElementById("users-admin-tbody");
-
-      if (isDemoMode) {
-        modSelect.innerHTML = `<option value="">Choose user...</option>` + demoUsers.map(u => `<option value="${u.id}">@${u.username}</option>`).join("");
-        
-        modsTbody.innerHTML = demoUsers.filter(u => u.role === "moderator").map(m => `
-          <tr>
-            <td>@${m.username}</td>
-            <td>${new Date().toLocaleDateString()}</td>
-            <td><button class="btn btn-danger btn-sm" onclick="promptRevokeMod('${m.id}')">Revoke</button></td>
-          </tr>
-        `).join("") || `<tr><td colspan="3" style="text-align:center;">No active moderators.</td></tr>`;
-
-        usersTbody.innerHTML = demoUsers.map(u => `
-          <tr>
-            <td>@${u.username}</td>
-            <td><code>${u.id}</code></td>
-            <td><span class="badge badge-${u.role}">${u.role}</span></td>
-            <td>
-              ${u.role !== 'admin' ? `<button class="btn btn-danger btn-sm" onclick="promptAdminRemoveUser('${u.id}', '${u.username}')">Remove User</button>` : '—'}
-            </td>
-          </tr>
-        `).join("");
-        return;
-      }
-
-      // Live Supabase Users & Moderators
-      const { data: profiles } = await supabaseClient.from("profiles").select("id, username");
-      const { data: mods } = await supabaseClient.from("moderators").select("*, profiles(username)");
-
-      modSelect.innerHTML = `<option value="">Choose user...</option>` + (profiles || []).map(u => `<option value="${u.id}">@${u.username}</option>`).join("");
-      
-      modsTbody.innerHTML = (mods || []).map(m => `
-        <tr>
-          <td>@${m.profiles?.username || 'user'}</td>
-          <td>${new Date(m.created_at).toLocaleDateString()}</td>
-          <td><button class="btn btn-danger btn-sm" onclick="promptRevokeMod('${m.user_id}')">Revoke</button></td>
-        </tr>
-      `).join("") || `<tr><td colspan="3" style="text-align:center;">No active moderators.</td></tr>`;
-
-      usersTbody.innerHTML = (profiles || []).map(u => `
-        <tr>
-          <td>@${u.username}</td>
-          <td><code>${u.id}</code></td>
-          <td><span class="badge badge-user">User</span></td>
-          <td>
-            <button class="btn btn-danger btn-sm" onclick="promptAdminRemoveUser('${u.id}', '${u.username}')">Remove User</button>
-          </td>
-        </tr>
-      `).join("");
-    }
-
-    // Appoint Moderator
-    document.getElementById("add-mod-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const userId = document.getElementById("mod-user-select").value;
-      if (!userId) return;
-
-      if (isDemoMode) {
-        const u = demoUsers.find(x => x.id === userId);
-        if (u) u.role = "moderator";
-        showAlert("Moderator appointed.", "success");
-        await loadAdminPanel();
-        return;
-      }
-
-      const { error } = await supabaseClient.from("moderators").insert({ user_id: userId, created_by: currentUser.id });
-      if (error) showAlert(error.message);
-      else { showAlert("Moderator appointed.", "success"); await loadAdminPanel(); }
-    });
-
-    // Revoke Moderator with "Are You Sure?" check
-    function promptRevokeMod(userId) {
-      askConfirmation("Revoke Moderator Privileges", "Are you sure you want to revoke moderator privileges from this user?", async () => {
-        if (isDemoMode) {
-          const u = demoUsers.find(x => x.id === userId);
-          if (u) u.role = "user";
-          showAlert("Moderator revoked.", "success");
-          await loadAdminPanel();
-          return;
-        }
-        await supabaseClient.from("moderators").delete().eq("user_id", userId);
-        await loadAdminPanel();
-      });
-    }
-
-    // ALWAYS ASK "ARE YOU SURE?" BEFORE REMOVING A USER (ADMIN ACTION)
-    function promptAdminRemoveUser(userId, username) {
-      askConfirmation("Remove User Account", `Are you sure you want to delete and remove user @${username}? This will permanently delete their account and posts.`, async () => {
-        if (isDemoMode) {
-          demoUsers = demoUsers.filter(u => u.id !== userId);
-          demoExpenses = demoExpenses.filter(e => e.user_id !== userId);
-          showAlert(`User @${username} removed.`, "success");
-          await loadAdminPanel();
-          return;
-        }
-
-        const { error } = await supabaseClient.from("profiles").delete().eq("id", userId);
-        if (error) showAlert(error.message);
-        else {
-          showAlert(`User @${username} removed.`, "success");
-          await loadAdminPanel();
-        }
-      });
-    }
-
-    // DOWNLOAD MY DATA WITH EXPLICIT RISK WARNING DISCLAIMER
-    document.getElementById("btn-trigger-download").addEventListener("click", () => {
-      document.getElementById("modal-download-risk").style.display = "flex";
-    });
-
-    document.getElementById("btn-download-cancel").addEventListener("click", () => {
-      document.getElementById("modal-download-risk").style.display = "none";
-    });
-
-    document.getElementById("btn-download-accept-proceed").addEventListener("click", async () => {
-      document.getElementById("modal-download-risk").style.display = "none";
-      
-      const userExpenses = isDemoMode 
-        ? demoExpenses.filter(e => e.user_id === currentUser.id)
-        : (await supabaseClient.from("expenses").select("*").eq("user_id", currentUser.id)).data;
-
-      const payload = {
-        disclaimer: "SpendWise is not responsible for downloaded files.",
-        exported_at: new Date().toISOString(),
-        user_profile: currentProfile,
-        expenses: userExpenses || []
-      };
-
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `spendwise_data_${currentProfile.username}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      showAlert("Data download started.", "success");
-    });
-
-    // SELF DATA PURGE WITH "ARE YOU SURE?" CHECK
-    document.getElementById("btn-user-delete-self-data").addEventListener("click", () => {
-      askConfirmation("🔥 Delete Account Data", "Are you sure you want to permanently delete all your expenses, posts, and profile data?", async () => {
-        if (isDemoMode) {
-          demoExpenses = demoExpenses.filter(e => e.user_id !== currentUser.id);
-          showAlert("Account data deleted.", "success");
-          switchView("auth");
-          return;
-        }
-
-        await supabaseClient.from("expenses").delete().eq("user_id", currentUser.id);
-        await supabaseClient.from("profiles").delete().eq("id", currentUser.id);
-        await supabaseClient.auth.signOut();
-      });
-    });
-
-    // Password Update
-    document.getElementById("password-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const newPassword = document.getElementById("new-password").value;
-      const pwdError = validatePasswordRules(newPassword);
-      if (pwdError) { showAlert(pwdError); return; }
-
-      if (isDemoMode) {
-        showAlert("Password updated (Demo Mode).", "success");
-        document.getElementById("password-form").reset();
-        return;
-      }
-
-      const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
-      if (error) showAlert(error.message);
-      else { showAlert("Password updated!", "success"); document.getElementById("password-form").reset(); }
-    });
-
-    // Receipt Opener Helper
-    async function openReceipt(path) {
-      if (isDemoMode) { showAlert("Receipt preview unavailable in local Demo Mode.", "success"); return; }
-      const { data, error } = await supabaseClient.storage.from("receipts").createSignedUrl(path, 60);
-      if (error) showAlert(error.message);
-      else window.open(data.signedUrl, "_blank");
-    }
-
-    // Privacy Modal Listeners
-    document.getElementById("link-privacy").addEventListener("click", (e) => {
-      e.preventDefault();
-      document.getElementById("modal-privacy").style.display = "flex";
-    });
-
-    document.getElementById("btn-privacy-close").addEventListener("click", () => {
-      document.getElementById("modal-privacy").style.display = "none";
-    });
-
-    document.getElementById("btn-sign-out").addEventListener("click", async () => {
-      if (!isDemoMode && supabaseClient) await supabaseClient.auth.signOut();
-      currentUser = null; currentProfile = null; isAdmin = false; isModerator = false;
-      switchView("auth");
-    });
-
-    document.getElementById("btn-refresh-expenses").addEventListener("click", () => loadExpenses());
-
-    // Boot App
-    initTheme();
-    initApp();
   </script>
 </body>
 </html>
