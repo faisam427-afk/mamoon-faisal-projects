@@ -764,8 +764,9 @@
     btnModalConfirmAction.addEventListener("click", async () => {
       modalConfirm.style.display = "none";
       if (confirmActionCallback) {
-        await confirmActionCallback();
+        const cb = confirmActionCallback;
         confirmActionCallback = null;
+        await cb();
       }
     });
 
