@@ -1,17 +1,21 @@
 // app.js
 
-// Initialize Supabase Client
+// Initialize Supabase Client (Requires config.js to be loaded first)
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Application State Variables
 let currentUser = null;
 let currentProfile = null;
+let userFamilyGroups = [];
 let isSignUpMode = false;
+let confirmActionCallback = null;
+let isAuthListenerReady = false;
 
 // DOM Element References
 const alertBox = document.getElementById("alert-box");
 const mainHeader = document.getElementById("main-header");
-const displayUsername = document.getElementById("display-username");
+const navUserBadge = document.getElementById("nav-user-badge");
+const btnThemeToggle = document.getElementById("btn-theme-toggle");
 
 // Views
 const views = {
@@ -19,10 +23,20 @@ const views = {
   onboarding: document.getElementById("onboarding-view"),
   dashboard: document.getElementById("dashboard-view"),
   family: document.getElementById("family-view"),
-  password: document.getElementById("password-view")
+  mod: document.getElementById("mod-view"),
+  admin: document.getElementById("admin-view"),
+  settings: document.getElementById("settings-view")
 };
 
-// Forms & Inputs
+// Navigation Buttons
+const btnNavDashboard = document.getElementById("btn-nav-dashboard");
+const btnNavFamily = document.getElementById("btn-nav-family");
+const btnNavMod = document.getElementById("btn-nav-mod");
+const btnNavAdmin = document.getElementById("btn-nav-admin");
+const btnNavSettings = document.getElementById("btn-nav-settings");
+const btnSignOut = document.getElementById("btn-sign-out");
+
+// Auth Elements
 const authForm = document.getElementById("auth-form");
 const authTitle = document.getElementById("auth-title");
 const authEmail = document.getElementById("auth-email");
@@ -32,51 +46,68 @@ const btnAuthSubmit = document.getElementById("btn-auth-submit");
 const authToggleLink = document.getElementById("auth-toggle-link");
 const authToggleText = document.getElementById("auth-toggle-text");
 const btnGithubLogin = document.getElementById("btn-github-login");
-
 const onboardingForm = document.getElementById("onboarding-form");
 const onboardingUsername = document.getElementById("onboarding-username");
 
+// Expense Elements
 const expenseForm = document.getElementById("expense-form");
 const expenseTitle = document.getElementById("expense-title");
 const expenseAmount = document.getElementById("expense-amount");
 const expenseCategory = document.getElementById("expense-category");
 const expenseDate = document.getElementById("expense-date");
 const expenseReceipt = document.getElementById("expense-receipt");
+const expenseFamilySelect = document.getElementById("expense-family-select");
 const expensesTbody = document.getElementById("expenses-tbody");
 const totalSpendingEl = document.getElementById("total-spending");
+const expenseViewFilter = document.getElementById("expense-view-filter");
 
-// Family share toggle in expense form
-const shareFamilyWrap = document.getElementById("share-family-wrap");
-const expenseShareFamily = document.getElementById("expense-share-family");
+// Family Elements
+const createFamilyForm = document.getElementById("create-family-form");
+const familyNameInput = document.getElementById("family-name-input");
+const familyGroupsContainer = document.getElementById("family-groups-container");
+const familyInvitesList = document.getElementById("family-invites-list");
 
+// Mod/Admin/Settings Elements
+const modTbody = document.getElementById("mod-tbody");
+const adminTbody = document.getElementById("admin-tbody");
 const passwordForm = document.getElementById("password-form");
-const newPasswordInput = document.getElementById("new-password");
 
-// Navigation Buttons
-const btnNavFamily = document.getElementById("btn-nav-family");
-const btnNavPassword = document.getElementById("btn-nav-password");
-const btnSignOut = document.getElementById("btn-sign-out");
-const btnCancelPassword = document.getElementById("btn-cancel-password");
+// Modals
+const modalConfirm = document.getElementById("modal-confirm");
+const btnModalCancel = document.getElementById("btn-modal-cancel");
+const btnModalConfirmAction = document.getElementById("btn-modal-confirm-action");
+const modalDownloadRisk = document.getElementById("modal-download-risk");
+const btnTriggerDownload = document.getElementById("btn-trigger-download");
+const btnDownloadCancel = document.getElementById("btn-download-cancel");
+const btnDownloadAcceptProceed = document.getElementById("btn-download-accept-proceed");
+const modalPrivacy = document.getElementById("modal-privacy");
+const linkPrivacy = document.getElementById("link-privacy");
+const btnPrivacyClose = document.getElementById("btn-privacy-close");
+const btnUserDeleteSelfData = document.getElementById("btn-user-delete-self-data");
 
-// Family View Elements
-const familyCreateWrap = document.getElementById("family-create-wrap");
-const familyInfoWrap = document.getElementById("family-info-wrap");
-const familyCreateForm = document.getElementById("family-create-form");
-const familyNameInput = document.getElementById("family-name");
-const familyGroupName = document.getElementById("family-group-name");
-const familyGroupId = document.getElementById("family-group-id");
-const familyMembersTbody = document.getElementById("family-members-tbody");
-const familyExpensesTbody = document.getElementById("family-expenses-tbody");
-const familyAddMemberForm = document.getElementById("family-add-member-form");
-const familyAddUsername = document.getElementById("family-add-username");
-
-// Current family state
-let currentFamily = null;
-
-// Set default expense date input to today
+// Set Default Expense Date
 expenseDate.value = new Date().toISOString().split("T")[0];
 
-// Helper: Alert Display
+// ============================================
+// THEME & UI HELPERS
+// ============================================
+function initTheme() {
+  const savedTheme = localStorage.getItem("spendwise_theme") || "light";
+  document.documentElement.setAttribute("data-theme", savedTheme);
+  if(btnThemeToggle) btnThemeToggle.textContent = savedTheme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
+}
+
+if(btnThemeToggle) {
+  btnThemeToggle.addEventListener("click", () => {
+    const current = document.documentElement.getAttribute("data-theme");
+    const next = current === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    localStorage.setItem("spendwise_theme", next);
+    btnThemeToggle.textContent = next === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
+  });
+}
+initTheme();
+
 function showAlert(message, type = "error") {
   alertBox.textContent = message;
   alertBox.className = `alert alert-${type}`;
@@ -84,618 +115,485 @@ function showAlert(message, type = "error") {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function hideAlert() {
-  alertBox.style.display = "none";
+function hideAlert() { alertBox.style.display = "none"; }
+
+function cleanUrlParams() {
+  if (window.location.search.includes("code=") || window.location.hash.includes("access_token")) {
+    const cleanUrl = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+  }
 }
 
-// Helper: Switch View Containers
 function switchView(viewName) {
   hideAlert();
-  Object.keys(views).forEach(name => {
-    views[name].classList.remove("active-view");
-  });
-  
-  if (views[viewName]) {
-    views[viewName].classList.add("active-view");
-  }
-
-  if (viewName === "dashboard" || viewName === "password" || viewName === "family") {
-    mainHeader.style.display = "block";
-  } else {
-    mainHeader.style.display = "none";
-  }
+  Object.keys(views).forEach(name => { if (views[name]) views[name].classList.remove("active-view"); });
+  if (views[viewName]) views[viewName].classList.add("active-view");
+  mainHeader.style.display = (viewName === "auth" || viewName === "onboarding") ? "none" : "block";
 }
 
-// Password Validation Rule Checker
-function validatePasswordRules(password) {
-  const minLength = password.length >= 8;
-  const hasUpper = /[A-Z]/.test(password);
-  const hasLower = /[a-z]/.test(password);
-  const hasNumber = /[0-9]/.test(password);
-
-  if (!minLength) return "Password must be at least 8 characters long.";
-  if (!hasUpper) return "Password must contain at least one uppercase letter.";
-  if (!hasLower) return "Password must contain at least one lowercase letter.";
-  if (!hasNumber) return "Password must contain at least one number.";
-  return null;
+function renderRoleBadge(username, role) {
+  const roleClass = role === 'app_admin' ? 'badge-admin' : role === 'moderator' ? 'badge-mod' : 'badge-user';
+  const roleLabel = role === 'app_admin' ? 'Admin' : role === 'moderator' ? 'Mod' : 'User';
+  return `@${username} <span class="badge ${roleClass}">${roleLabel}</span>`;
 }
 
-// AUTHENTICATION EVENT LISTENERS & STATE HANDLING
+function askConfirmation(title, message, callback) {
+  document.getElementById("modal-confirm-title").textContent = title;
+  document.getElementById("modal-confirm-message").textContent = message;
+  confirmActionCallback = callback;
+  modalConfirm.style.display = "flex";
+}
+
+// Modals Logic
+if(btnModalCancel) btnModalCancel.addEventListener("click", () => { modalConfirm.style.display = "none"; confirmActionCallback = null; });
+if(btnModalConfirmAction) btnModalConfirmAction.addEventListener("click", async () => {
+  modalConfirm.style.display = "none";
+  if (confirmActionCallback) { const cb = confirmActionCallback; confirmActionCallback = null; await cb(); }
+});
+
+if(linkPrivacy) linkPrivacy.addEventListener("click", (e) => { e.preventDefault(); modalPrivacy.style.display = "flex"; });
+if(btnPrivacyClose) btnPrivacyClose.addEventListener("click", () => { modalPrivacy.style.display = "none"; });
+if(btnTriggerDownload) btnTriggerDownload.addEventListener("click", () => { modalDownloadRisk.style.display = "flex"; });
+if(btnDownloadCancel) btnDownloadCancel.addEventListener("click", () => { modalDownloadRisk.style.display = "none"; });
+
+if(btnDownloadAcceptProceed) btnDownloadAcceptProceed.addEventListener("click", async () => {
+  modalDownloadRisk.style.display = "none";
+  try {
+    const { data, error } = await supabase.from("expenses").select("*").eq("user_id", currentUser.id);
+    if (error) throw error;
+    const blob = new Blob([JSON.stringify(data || [], null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `spendwise_data_${currentProfile.username}.json`; a.click();
+    URL.revokeObjectURL(url);
+    showAlert("Data export downloaded successfully.", "success");
+  } catch (err) { showAlert("Failed to export data: " + err.message); }
+});
+
+// ============================================
+// NAVIGATION
+// ============================================
+btnNavDashboard.addEventListener("click", () => { switchView("dashboard"); loadExpenses(); });
+btnNavFamily.addEventListener("click", () => { switchView("family"); loadFamilyView(); });
+btnNavMod.addEventListener("click", () => { switchView("mod"); loadModPanel(); });
+btnNavAdmin.addEventListener("click", () => { switchView("admin"); loadAdminPanel(); });
+btnNavSettings.addEventListener("click", () => switchView("settings"));
+btnSignOut.addEventListener("click", async () => { await supabase.auth.signOut(); });
+
+// ============================================
+// AUTHENTICATION
+// ============================================
 supabase.auth.onAuthStateChange(async (event, session) => {
-  if (session && session.user) {
-    currentUser = session.user;
-    await handleUserSession();
-  } else {
-    currentUser = null;
-    currentProfile = null;
-    switchView("auth");
+  cleanUrlParams();
+  if (!isAuthListenerReady) return;
+
+  if (event === 'SIGNED_OUT') {
+    currentUser = null; currentProfile = null; switchView("auth");
+  } else if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
+    currentUser = session.user; await handleUserSession();
   }
 });
 
 async function handleUserSession() {
   try {
-    const { data: profile, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", currentUser.id)
-      .maybeSingle();
-
+    const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", currentUser.id).maybeSingle();
     if (error) throw error;
 
-    if (!profile || !profile.username) {
-      switchView("onboarding");
-    } else {
-      currentProfile = profile;
-      displayUsername.textContent = `@${profile.username}`;
-      switchView("dashboard");
-      await loadExpenses();
-      await refreshShareFamilyVisibility();
-    }
-  } catch (err) {
-    showAlert(err.message || "Error loading profile session.");
-  }
+    if (!profile || !profile.username) { switchView("onboarding"); return; }
+
+    currentProfile = profile;
+    navUserBadge.innerHTML = renderRoleBadge(profile.username, profile.role);
+
+    // Toggle Mod/Admin Tabs
+    btnNavMod.style.display = (profile.role === "moderator" || profile.role === "app_admin") ? "inline-flex" : "none";
+    btnNavAdmin.style.display = (profile.role === "app_admin") ? "inline-flex" : "none";
+
+    await loadUserFamilyGroups();
+    switchView("dashboard");
+    await loadExpenses();
+  } catch (err) { showAlert(err.message || "Error establishing user session."); }
 }
 
-// Toggle Sign In / Sign Up Modes
+(async function initApp() {
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    if (data?.session?.user) { currentUser = data.session.user; await handleUserSession(); }
+    else { switchView("auth"); }
+  } catch (err) { switchView("auth"); }
+  finally { isAuthListenerReady = true; }
+})();
+
 authToggleLink.addEventListener("click", (e) => {
-  e.preventDefault();
-  hideAlert();
-  isSignUpMode = !isSignUpMode;
-  
-  if (isSignUpMode) {
-    authTitle.textContent = "Create an Account";
-    btnAuthSubmit.textContent = "Sign Up";
-    authToggleText.textContent = "Already have an account?";
-    authToggleLink.textContent = "Sign In";
-    passwordHint.style.display = "block";
-  } else {
-    authTitle.textContent = "Sign In to SpendWise";
-    btnAuthSubmit.textContent = "Sign In";
-    authToggleText.textContent = "Don't have an account?";
-    authToggleLink.textContent = "Sign Up";
-    passwordHint.style.display = "none";
-  }
+  e.preventDefault(); hideAlert(); isSignUpMode = !isSignUpMode;
+  authTitle.textContent = isSignUpMode ? "Create an Account" : "Sign In to SpendWise";
+  btnAuthSubmit.textContent = isSignUpMode ? "Sign Up" : "Sign In";
+  authToggleText.textContent = isSignUpMode ? "Already have an account?" : "Don't have an account?";
+  authToggleLink.textContent = isSignUpMode ? "Sign In" : "Sign Up";
+  passwordHint.style.display = isSignUpMode ? "block" : "none";
 });
 
-// Submit Email/Password Form
 authForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  hideAlert();
-
-  const email = authEmail.value.trim();
-  const password = authPassword.value;
-
+  e.preventDefault(); hideAlert();
+  const email = authEmail.value.trim(); const password = authPassword.value;
   if (isSignUpMode) {
-    const pwdError = validatePasswordRules(password);
-    if (pwdError) {
-      showAlert(pwdError);
-      return;
-    }
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password
-    });
-
-    if (error) {
-      showAlert(error.message);
-    } else {
-      showAlert("Sign up successful! Logging in...", "success");
-    }
+    const { error } = await supabase.auth.signUp({ email, password });
+    if (error) showAlert(error.message); else showAlert("Account created! Logging in...", "success");
   } else {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if (error) {
-      showAlert(error.message);
-    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) showAlert(error.message);
   }
 });
 
-// GitHub OAuth Sign In
-btnGithubLogin.addEventListener("click", async () => {
-  hideAlert();
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "github",
-    options: {
-      redirectTo: window.location.origin + window.location.pathname
-    }
-  });
-
-  if (error) {
-    showAlert(error.message);
-  }
+btnGithubLogin.addEventListener("click", async (e) => {
+  e.preventDefault(); hideAlert();
+  let redirectUrl = window.location.origin + window.location.pathname;
+  redirectUrl = redirectUrl.replace(/\/index\.html?$/i, "").replace(/\/+$/, "");
+  const { error } = await supabase.auth.signInWithOAuth({ provider: "github", options: { redirectTo: redirectUrl || window.location.origin }});
+  if (error) showAlert(error.message);
 });
 
-// Save Username (Onboarding)
 onboardingForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  hideAlert();
-
+  e.preventDefault(); hideAlert();
   const username = onboardingUsername.value.trim().toLowerCase();
-
   try {
-    const { data: existing } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("username", username)
-      .maybeSingle();
-
-    if (existing && existing.id !== currentUser.id) {
-      showAlert("Username is already taken. Please choose another.");
-      return;
-    }
-
-    const { error } = await supabase
-      .from("profiles")
-      .upsert({
-        id: currentUser.id,
-        username: username,
-        updated_at: new Date().toISOString()
-      });
-
+    const { error } = await supabase.from("profiles").upsert({ id: currentUser.id, username, updated_at: new Date().toISOString() });
     if (error) throw error;
-
     await handleUserSession();
-  } catch (err) {
-    showAlert(err.message || "Failed to save username.");
-  }
+  } catch (err) { showAlert(err.message || "Failed to set handle."); }
 });
 
-// Navigation Handlers
-btnSignOut.addEventListener("click", async () => {
-  await supabase.auth.signOut();
-});
-
-btnNavPassword.addEventListener("click", () => {
-  switchView("password");
-});
-
-btnCancelPassword.addEventListener("click", () => {
-  switchView("dashboard");
-});
-
-// Change Password Handler
-passwordForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  hideAlert();
-
-  const newPassword = newPasswordInput.value;
-  const pwdError = validatePasswordRules(newPassword);
-
-  if (pwdError) {
-    showAlert(pwdError);
-    return;
-  }
-
-  const { error } = await supabase.auth.updateUser({
-    password: newPassword
-  });
-
-  if (error) {
-    showAlert(error.message);
-  } else {
-    showAlert("Password updated successfully!", "success");
-    newPasswordInput.value = "";
-    setTimeout(() => {
-      switchView("dashboard");
-    }, 1500);
-  }
-});
-
-// EXPENSES CRUD & STORAGE LOGIC
-
-// Load User Expenses
+// ============================================
+// EXPENSES
+// ============================================
 async function loadExpenses() {
-  expensesTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading transactions...</td></tr>';
-
+  expensesTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading...</td></tr>';
   try {
-    const { data: expenses, error } = await supabase
-      .from("expenses")
-      .select("*")
-      .order("date", { ascending: false });
-
+    // No nested joins to prevent 400 errors
+    let query = supabase.from("expenses").select("*").order("date", { ascending: false });
+    if (expenseViewFilter.value === "personal") {
+      query = query.eq("user_id", currentUser.id).is("family_id", null);
+    }
+    const { data: expenses, error } = await query;
     if (error) throw error;
-
     renderExpensesTable(expenses || []);
-  } catch (err) {
-    showAlert("Failed to load expenses: " + err.message);
-  }
+  } catch (err) { showAlert("Failed to load expenses: " + err.message); }
 }
+expenseViewFilter.addEventListener("change", loadExpenses);
 
-// Render Expenses Table & Calculate Total
 function renderExpensesTable(expenses) {
   expensesTbody.innerHTML = "";
   let total = 0;
-
   if (expenses.length === 0) {
-    expensesTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No expenses logged yet.</td></tr>';
-    totalSpendingEl.textContent = "$0.00";
-    return;
+    expensesTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No entries found.</td></tr>';
+    totalSpendingEl.textContent = "$0.00"; return;
   }
 
   expenses.forEach(item => {
     const amountNum = parseFloat(item.amount) || 0;
     total += amountNum;
-
-    const tr = document.createElement("tr");
-
-    const tdDate = document.createElement("td");
-    tdDate.textContent = item.date;
-
-    const tdTitle = document.createElement("td");
-    tdTitle.textContent = item.title;
-
-    const tdCategory = document.createElement("td");
-    tdCategory.textContent = item.category;
-
-    const tdAmount = document.createElement("td");
-    tdAmount.style.fontWeight = "600";
-    tdAmount.textContent = `$${amountNum.toFixed(2)}`;
-
-    const tdReceipt = document.createElement("td");
-    if (item.receipt_path) {
-      const receiptBtn = document.createElement("span");
-      receiptBtn.className = "receipt-link";
-      receiptBtn.textContent = "📎 View";
-      receiptBtn.addEventListener("click", () => openReceipt(item.receipt_path));
-      tdReceipt.appendChild(receiptBtn);
-    } else {
-      tdReceipt.textContent = "—";
+    
+    // Find group name locally instead of querying
+    let groupName = "Personal";
+    if (item.family_id) {
+      const grp = userFamilyGroups.find(g => g.family_id === item.family_id);
+      if (grp) groupName = grp.name; else groupName = "Family";
     }
 
-    const tdAction = document.createElement("td");
-    const deleteBtn = document.createElement("button");
-    deleteBtn.className = "btn btn-danger";
-    deleteBtn.style.padding = "4px 8px";
-    deleteBtn.style.fontSize = "0.75rem";
-    deleteBtn.textContent = "Delete";
-    deleteBtn.addEventListener("click", () => deleteExpense(item.id, item.receipt_path));
-    tdAction.appendChild(deleteBtn);
-
-    tr.appendChild(tdDate);
-    tr.appendChild(tdTitle);
-    tr.appendChild(tdCategory);
-    tr.appendChild(tdAmount);
-    tr.appendChild(tdReceipt);
-    tr.appendChild(tdAction);
-
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${item.date}</td>
+      <td>${item.title} ${item.is_flagged ? '<span style="color:var(--danger); font-size:0.75rem;">[FLAGGED]</span>' : ''}</td>
+      <td>${item.category}</td>
+      <td>${groupName}</td>
+      <td style="font-weight:600;">$${amountNum.toFixed(2)}</td>
+      <td>
+        ${item.receipt_path ? `<span class="receipt-link" onclick="openReceipt('${item.receipt_path}')">📎 View</span> | ` : ''}
+        <button class="btn btn-danger btn-sm" onclick="askDeleteExpense('${item.id}', '${item.receipt_path || ''}')">Delete</button>
+      </td>
+    `;
     expensesTbody.appendChild(tr);
   });
-
   totalSpendingEl.textContent = `$${total.toFixed(2)}`;
 }
 
-// Open Private Storage Receipt URL
 async function openReceipt(receiptPath) {
   try {
-    const { data, error } = await supabase
-      .storage
-      .from("receipts")
-      .createSignedUrl(receiptPath, 60);
-
+    const { data, error } = await supabase.storage.from("receipts").createSignedUrl(receiptPath, 60);
     if (error) throw error;
-
-    if (data && data.signedUrl) {
-      window.open(data.signedUrl, "_blank");
-    }
-  } catch (err) {
-    showAlert("Failed to open receipt file: " + err.message);
-  }
+    if (data && data.signedUrl) window.open(data.signedUrl, "_blank");
+  } catch (err) { showAlert("Failed to open receipt: " + err.message); }
 }
 
-// Save New Expense (with file bucket upload)
-expenseForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  hideAlert();
+window.askDeleteExpense = function(id, path) {
+  askConfirmation("Delete Expense?", "Are you sure you want to delete this expense entry? This cannot be undone.", async () => {
+    try {
+      if (path) await supabase.storage.from("receipts").remove([path]);
+      const { error } = await supabase.from("expenses").delete().eq("id", id);
+      if (error) throw error;
+      showAlert("Expense deleted.", "success");
+      await loadExpenses();
+    } catch (err) { showAlert("Failed to delete: " + err.message); }
+  });
+};
 
+expenseForm.addEventListener("submit", async (e) => {
+  e.preventDefault(); hideAlert();
   const title = expenseTitle.value.trim();
   const amount = parseFloat(expenseAmount.value);
   const category = expenseCategory.value;
   const date = expenseDate.value;
+  const family_id = expenseFamilySelect.value || null;
   const file = expenseReceipt.files[0];
-
   let receiptPath = null;
 
   try {
     if (file) {
-      const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
-      const maxSize = 5 * 1024 * 1024; // 5MB
-
-      if (!allowedTypes.includes(file.type)) {
-        showAlert("Invalid file type. Only JPG, PNG, and PDF allowed.");
-        return;
-      }
-
-      if (file.size > maxSize) {
-        showAlert("File size exceeds 5 MB limit.");
-        return;
-      }
-
+      if (!["image/jpeg", "image/png", "application/pdf"].includes(file.type)) return showAlert("Invalid file type.");
+      if (file.size > 5 * 1024 * 1024) return showAlert("File size exceeds 5 MB limit.");
       const fileExt = file.name.split(".").pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
       receiptPath = `${currentUser.id}/${fileName}`;
-
-      const { error: uploadError } = await supabase
-        .storage
-        .from("receipts")
-        .upload(receiptPath, file);
-
+      const { error: uploadError } = await supabase.storage.from("receipts").upload(receiptPath, file);
       if (uploadError) throw uploadError;
     }
 
-    let familyId = null;
-    if (expenseShareFamily.checked && currentFamily) {
-      familyId = currentFamily.id;
-    }
+    const { error } = await supabase.from("expenses").insert({
+      user_id: currentUser.id, family_id, title, amount, category, date, receipt_path: receiptPath
+    });
 
-    const { error: insertError } = await supabase
-      .from("expenses")
-      .insert({
-        user_id: currentUser.id,
-        title,
-        amount,
-        category,
-        date,
-        receipt_path: receiptPath,
-        family_id: familyId
-      });
-
-    if (insertError) throw insertError;
-
+    if (error) throw error;
     expenseForm.reset();
     expenseDate.value = new Date().toISOString().split("T")[0];
-    expenseShareFamily.checked = false;
-    showAlert("Expense logged successfully!", "success");
-
+    showAlert("Expense saved!", "success");
     await loadExpenses();
-  } catch (err) {
-    showAlert("Failed to save expense: " + err.message);
-  }
+  } catch (err) { showAlert(err.message || "Failed to save expense."); }
 });
-
-// Delete Expense & Remove File from Bucket
-async function deleteExpense(expenseId, receiptPath) {
-  if (!confirm("Are you sure you want to delete this expense entry?")) return;
-
-  hideAlert();
-
-  try {
-    if (receiptPath) {
-      const { error: storageErr } = await supabase
-        .storage
-        .from("receipts")
-        .remove([receiptPath]);
-
-      if (storageErr) {
-        console.warn("Storage removal warning:", storageErr.message);
-      }
-    }
-
-    const { error: dbErr } = await supabase
-      .from("expenses")
-      .delete()
-      .eq("id", expenseId);
-
-    if (dbErr) throw dbErr;
-
-    showAlert("Expense entry deleted.", "success");
-    await loadExpenses();
-  } catch (err) {
-    showAlert("Failed to delete entry: " + err.message);
-  }
-}
 
 // ============================================
 // FAMILY GROUPS
 // ============================================
+async function loadUserFamilyGroups() {
+  try {
+    const { data, error } = await supabase.from("family_members").select("family_id, role").eq("user_id", currentUser.id);
+    if (error) throw error;
 
-async function refreshShareFamilyVisibility() {
-  if (!currentUser) return;
-  
-  // We can just use the currentFamily state we load on startup
-  if (currentFamily) {
-    shareFamilyWrap.style.display = "block";
-  } else {
-    shareFamilyWrap.style.display = "none";
-    expenseShareFamily.checked = false;
-  }
+    userFamilyGroups = [];
+    for (const m of (data || [])) {
+      const { data: grp } = await supabase.from("family_groups").select("name").eq("id", m.family_id).single();
+      if (grp) userFamilyGroups.push({ family_id: m.family_id, role: m.role, name: grp.name });
+    }
+
+    expenseFamilySelect.innerHTML = '<option value="">Personal Only (No Family Group)</option>';
+    userFamilyGroups.forEach(m => {
+      const opt = document.createElement("option");
+      opt.value = m.family_id;
+      opt.textContent = `${m.name} (${m.role})`;
+      expenseFamilySelect.appendChild(opt);
+    });
+  } catch (err) { console.warn("Family groups warning:", err.message); }
 }
 
-btnNavFamily.addEventListener("click", async () => {
-  switchView("family");
-  await loadFamilyState();
+async function loadFamilyView() {
+  await loadUserFamilyGroups();
+  renderFamilyGroupsList();
+  if(familyInvitesList) familyInvitesList.innerHTML = "<p style='color:var(--text-muted);'>Add members directly inside your group below.</p>";
+}
+
+createFamilyForm.addEventListener("submit", async (e) => {
+  e.preventDefault(); hideAlert();
+  const name = familyNameInput.value.trim();
+  if (!name) return;
+  try {
+    const { error } = await supabase.rpc("create_family_group", { group_name: name });
+    if (error) throw error;
+    familyNameInput.value = "";
+    showAlert(`Family group "${name}" created!`, "success");
+    await loadFamilyView();
+  } catch (err) { showAlert(err.message || "Failed to create group."); }
 });
 
-// Create a new family group (Uses RPC to automatically handle ID & admin role)
-familyCreateForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  hideAlert();
-
-  const name = familyNameInput.value.trim();
-  if (name.length < 2) {
-    showAlert("Group name must be at least 2 characters.");
+function renderFamilyGroupsList() {
+  familyGroupsContainer.innerHTML = "";
+  if (userFamilyGroups.length === 0) {
+    familyGroupsContainer.innerHTML = "<p style='color:var(--text-muted);'>No family groups joined yet.</p>";
     return;
   }
 
-  try {
-    const { error } = await supabase.rpc("create_family_group", {
-      group_name: name
-    });
+  userFamilyGroups.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "card";
+    div.style.marginBottom = "12px";
+    const isGroupAdmin = item.role === "group_admin";
 
-    if (error) throw error;
+    div.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h3>${item.name} <span class="badge badge-user">${item.role}</span></h3>
+      </div>
+      ${isGroupAdmin ? `
+        <div style="margin-top:12px; display:flex; gap:8px;">
+          <input type="text" placeholder="Add user by username" id="add-member-input-${item.family_id}" style="padding:6px; font-size:0.85rem;" />
+          <button class="btn btn-sm" onclick="addMemberDirectly('${item.family_id}')">Add Member</button>
+        </div>
+      ` : ''}
+      <div class="table-responsive" style="margin-top:12px;">
+        <table>
+          <thead><tr><th>Members</th><th>Role</th><th>Joined</th></tr></thead>
+          <tbody id="members-tbody-${item.family_id}">
+            <tr><td colspan="3" style="text-align:center;">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+    familyGroupsContainer.appendChild(div);
+    loadGroupMembers(item.family_id);
+  });
+}
 
-    showAlert("Family group created!", "success");
-    familyNameInput.value = "";
-    await loadFamilyState();
-    await refreshShareFamilyVisibility();
-  } catch (err) {
-    showAlert("Failed to create group: " + err.message);
+async function loadGroupMembers(familyId) {
+  const tbody = document.getElementById(`members-tbody-${familyId}`);
+  if (!tbody) return;
+  const { data, error } = await supabase.from("family_members").select("*").eq("family_id", familyId);
+  if (error) { tbody.innerHTML = `<tr><td colspan="3" style="color:red;">${error.message}</td></tr>`; return; }
+
+  tbody.innerHTML = "";
+  for (const m of data) {
+    const { data: pData } = await supabase.from("profiles").select("username").eq("id", m.user_id).single();
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>@${pData ? pData.username : "unknown"}</td><td>${m.role}</td><td>${new Date(m.created_at).toLocaleDateString()}</td>`;
+    tbody.appendChild(tr);
   }
-});
+}
 
-// Add member by username (Uses RPC so DB handles the secure insert)
-familyAddMemberForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  hideAlert();
-
-  const username = familyAddUsername.value.trim().toLowerCase();
+window.addMemberDirectly = async function(familyId) {
+  const input = document.getElementById(`add-member-input-${familyId}`);
+  const username = input.value.trim().toLowerCase();
   if (!username) return;
-
   try {
-    const { error } = await supabase.rpc("add_family_member", {
-      member_username: username
-    });
-
+    const { error } = await supabase.rpc("add_family_member", { member_username: username });
     if (error) throw error;
+    showAlert(`@${username} added!`, "success");
+    input.value = "";
+    await loadGroupMembers(familyId);
+  } catch (err) { showAlert("Failed to add member: " + err.message); }
+};
 
-    showAlert(`@${username} added to family!`, "success");
-    familyAddUsername.value = "";
-    await loadFamilyState();
-  } catch (err) {
-    showAlert("Failed to add member: " + err.message);
-  }
+// ============================================
+// MODERATOR PANEL
+// ============================================
+async function loadModPanel() {
+  modTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+  try {
+    const { data: expenses, error } = await supabase.from("expenses").select("*").order("created_at", { ascending: false });
+    if (error) throw error;
+    modTbody.innerHTML = "";
+    if(expenses.length === 0) { modTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No entries.</td></tr>'; return; }
+    
+    expenses.forEach(item => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${item.user_id.substring(0, 8)}...</td>
+        <td>${item.title}</td>
+        <td>$${parseFloat(item.amount).toFixed(2)}</td>
+        <td>${item.is_flagged ? '<strong style="color:var(--danger)">Yes</strong>' : 'No'}</td>
+        <td>
+          <button class="btn btn-secondary btn-sm" onclick="toggleFlagExpense('${item.id}', ${!item.is_flagged})">${item.is_flagged ? 'Unflag' : 'Flag'}</button>
+          <button class="btn btn-danger btn-sm" onclick="confirmModDelete('${item.id}', '${item.receipt_path || ''}')">Remove</button>
+        </td>
+      `;
+      modTbody.appendChild(tr);
+    });
+  } catch (err) { showAlert("Failed to load mod panel: " + err.message); }
+}
+
+window.toggleFlagExpense = async function(id, flagStatus) {
+  try { await supabase.from("expenses").update({ is_flagged: flagStatus }).eq("id", id); await loadModPanel(); }
+  catch (err) { showAlert(err.message); }
+};
+
+window.confirmModDelete = function(id, receiptPath) {
+  askConfirmation("Remove Post?", "Moderator: Permanently delete this entry?", async () => {
+    if (receiptPath) await supabase.storage.from("receipts").remove([receiptPath]);
+    await supabase.from("expenses").delete().eq("id", id);
+    await loadModPanel();
+  });
+};
+
+// ============================================
+// ADMIN PANEL
+// ============================================
+async function loadAdminPanel() {
+  adminTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+  try {
+    const { data: profiles, error } = await supabase.from("profiles").select("*").order("updated_at", { ascending: false });
+    if (error) throw error;
+    adminTbody.innerHTML = "";
+    profiles.forEach(p => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${p.id.substring(0, 8)}...</td>
+        <td>@${p.username}</td>
+        <td><span class="badge ${p.role === 'app_admin' ? 'badge-admin' : p.role === 'moderator' ? 'badge-mod' : 'badge-user'}">${p.role}</span></td>
+        <td>
+          <select onchange="changeUserRole('${p.id}', this.value)" style="padding:4px; font-size:0.75rem; width:auto;">
+            <option value="user" ${p.role === 'user' ? 'selected' : ''}>User</option>
+            <option value="moderator" ${p.role === 'moderator' ? 'selected' : ''}>Moderator</option>
+            <option value="app_admin" ${p.role === 'app_admin' ? 'selected' : ''}>App Admin</option>
+          </select>
+        </td>
+        <td><button class="btn btn-danger btn-sm" onclick="confirmDeleteUserAccount('${p.id}', '${p.username}')">Delete User</button></td>
+      `;
+      adminTbody.appendChild(tr);
+    });
+  } catch (err) { showAlert("Failed to load admin panel: " + err.message); }
+}
+
+window.changeUserRole = function(userId, newRole) {
+  askConfirmation("Change Role?", `Change role to "${newRole}"?`, async () => {
+    try {
+      // Note: Removed references to old "admins" and "moderators" tables since they aren't in your new schema.
+      await supabase.from("profiles").update({ role: newRole }).eq("id", userId);
+      showAlert("Role updated successfully.", "success");
+      await loadAdminPanel();
+    } catch (err) { showAlert("Failed to update role: " + err.message); }
+  });
+};
+
+window.confirmDeleteUserAccount = function(userId, username) {
+  askConfirmation("DELETE USER?", `Permanently delete account @${username}?`, async () => {
+    try {
+      await supabase.from("profiles").delete().eq("id", userId);
+      showAlert(`User @${username} deleted.`, "success");
+      await loadAdminPanel();
+    } catch (err) { showAlert("Failed to delete user: " + err.message); }
+  });
+};
+
+// ============================================
+// SETTINGS & ACCOUNT
+// ============================================
+btnUserDeleteSelfData.addEventListener("click", () => {
+  askConfirmation("DELETE YOUR ACCOUNT?", "WARNING: Permanently delete your account and all data?", async () => {
+    try {
+      await supabase.from("profiles").delete().eq("id", currentUser.id);
+      await supabase.auth.signOut();
+      showAlert("Account deleted.", "success");
+    } catch (err) { showAlert("Failed to delete account: " + err.message); }
+  });
 });
 
-// Load family state (Removed the nested join that was causing the 400 error)
-async function loadFamilyState() {
-  if (!currentUser) return;
-
-  familyMembersTbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Loading...</td></tr>';
-
-  try {
-    // 1. Get membership
-    const { data: memberships, error: memErr } = await supabase
-      .from("family_members")
-      .select("family_id, role, created_at")
-      .eq("user_id", currentUser.id)
-      .limit(1);
-
-    if (memErr) throw memErr;
-
-    if (!memberships || memberships.length === 0) {
-      currentFamily = null;
-      familyCreateWrap.style.display = "block";
-      familyInfoWrap.style.display = "none";
-      return;
-    }
-
-    const membership = memberships[0];
-    
-    // 2. Fetch group name separately (avoids schema cache join errors)
-    const { data: groupData } = await supabase
-      .from("family_groups")
-      .select("name")
-      .eq("id", membership.family_id)
-      .single();
-
-    currentFamily = {
-      id: membership.family_id,
-      name: groupData ? groupData.name : "Family Group",
-      role: membership.role
-    };
-
-    familyCreateWrap.style.display = "none";
-    familyInfoWrap.style.display = "block";
-    familyGroupName.textContent = currentFamily.name;
-    familyGroupId.textContent = currentFamily.id;
-
-    // 3. Load all members
-    const { data: members, error: mErr } = await supabase
-      .from("family_members")
-      .select("*")
-      .eq("family_id", currentFamily.id);
-
-    if (mErr) throw mErr;
-
-    familyMembersTbody.innerHTML = "";
-    for (const m of (members || [])) {
-      // Fetch username separately to avoid join errors
-      const { data: pData } = await supabase
-        .from("profiles")
-        .select("username")
-        .eq("id", m.user_id)
-        .single();
-
-      const username = pData ? pData.username : "unknown";
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>@${username}</td>
-        <td>${m.role}</td>
-        <td>${new Date(m.created_at).toLocaleDateString()}</td>
-      `;
-      familyMembersTbody.appendChild(tr);
-    }
-
-    await loadFamilyExpenses();
-  } catch (err) {
-    showAlert("Failed to load family state: " + err.message);
+passwordForm.addEventListener("submit", async (e) => {
+  e.preventDefault(); hideAlert();
+  const newPassword = document.getElementById("new-password").value;
+  
+  // Validate password rules (from original app.js)
+  if (newPassword.length < 8 || !/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+    return showAlert("Must be at least 8 characters with 1 uppercase, 1 lowercase, and 1 number.");
   }
-}
 
-// Load shared family expenses
-async function loadFamilyExpenses() {
-  if (!currentFamily) return;
-
-  try {
-    const { data, error } = await supabase
-      .from("expenses")
-      .select("*")
-      .eq("family_id", currentFamily.id)
-      .order("date", { ascending: false });
-
-    if (error) throw error;
-
-    if (!data || data.length === 0) {
-      familyExpensesTbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No shared expenses yet.</td></tr>';
-      return;
-    }
-
-    familyExpensesTbody.innerHTML = "";
-    for (const item of data) {
-      // Fetch username separately to avoid join errors
-      const { data: pData } = await supabase
-        .from("profiles")
-        .select("username")
-        .eq("id", item.user_id)
-        .single();
-
-      const username = pData ? pData.username : "unknown";
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${item.date}</td>
-        <td>${item.title}</td>
-        <td>${item.category}</td>
-        <td>$${parseFloat(item.amount).toFixed(2)}</td>
-        <td>@${username}</td>
-      `;
-      familyExpensesTbody.appendChild(tr);
-    }
-  } catch (err) {
-    familyExpensesTbody.innerHTML = `<tr><td colspan="5" style="color: var(--danger);">${err.message}</td></tr>`;
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) showAlert(error.message);
+  else {
+    showAlert("Password updated!", "success");
+    document.getElementById("new-password").value = "";
   }
-}
+});
