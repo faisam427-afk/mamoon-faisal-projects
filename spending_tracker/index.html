@@ -468,11 +468,6 @@
       </div>
 
       <div class="card">
-        <h2 class="card-title">Pending Invitations</h2>
-        <div id="family-invites-list">Checking invitations...</div>
-      </div>
-
-      <div class="card">
         <h2 class="card-title">My Family Groups</h2>
         <div id="family-groups-container">Loading groups...</div>
       </div>
@@ -694,7 +689,6 @@
     const createFamilyForm = document.getElementById("create-family-form");
     const familyNameInput = document.getElementById("family-name-input");
     const familyGroupsContainer = document.getElementById("family-groups-container");
-    const familyInvitesList = document.getElementById("family-invites-list");
 
     const modTbody = document.getElementById("mod-tbody");
     const adminTbody = document.getElementById("admin-tbody");
@@ -1085,30 +1079,19 @@
 
     async function loadFamilyView() {
       await loadUserFamilyGroups();
-      renderFamilyGroupsList();
-      await loadPendingInvites();
+      await renderFamilyGroupsList();
     }
 
+    // FIX: Atomic family group creation via RPC (matches hardened SQL)
     createFamilyForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       hideAlert();
       const name = familyNameInput.value.trim();
+      if (!name) return;
 
       try {
-        const { data: group, error: groupErr } = await db
-          .from("family_groups")
-          .insert({ name, created_by: currentUser.id })
-          .select()
-          .single();
-
-        if (groupErr) throw groupErr;
-
-        // Group Creator gets 'group_admin' role (Does NOT grant app-wide admin privileges)
-        const { error: memErr } = await db
-          .from("family_members")
-          .insert({ family_id: group.id, user_id: currentUser.id, role: "group_admin" });
-
-        if (memErr) throw memErr;
+        const { data: newGroupId, error } = await db.rpc("create_family_group", { group_name: name });
+        if (error) throw error;
 
         familyNameInput.value = "";
         showAlert(`Family group "${name}" created! You are the Group Admin.`, "success");
@@ -1118,16 +1101,17 @@
       }
     });
 
-    function renderFamilyGroupsList() {
+    // FIX: Render family groups with member + shared expense lists, use addEventListener (no inline handlers)
+    async function renderFamilyGroupsList() {
       familyGroupsContainer.innerHTML = "";
       if (userFamilyGroups.length === 0) {
         familyGroupsContainer.innerHTML = "<p style='color:var(--text-muted);'>No family groups joined yet.</p>";
         return;
       }
 
-      userFamilyGroups.forEach(item => {
+      for (const item of userFamilyGroups) {
         const grp = item.family_groups;
-        if (!grp) return;
+        if (!grp) continue;
 
         const div = document.createElement("div");
         div.className = "card";
@@ -1135,91 +1119,137 @@
         const isGroupAdmin = item.role === "group_admin";
 
         div.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
             <h3>${grp.name} <span class="badge badge-user">${item.role}</span></h3>
+            <span style="font-size:0.75rem; color:var(--text-muted);">ID: ${grp.id.substring(0,8)}…</span>
           </div>
+
+          <h4 style="font-size:0.9rem; margin:12px 0 6px;">Members</h4>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr><th>Username</th><th>Role</th><th>Joined</th></tr>
+              </thead>
+              <tbody class="members-tbody-${grp.id}">
+                <tr><td colspan="3" style="text-align:center; color:var(--text-muted);">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
           ${isGroupAdmin ? `
-            <div style="margin-top:12px; display:flex; gap:8px;">
-              <input type="text" placeholder="Invite username" id="invite-input-${grp.id}" style="padding:6px; font-size:0.85rem;" />
-              <button class="btn btn-sm" onclick="sendInvite('${grp.id}')">Invite User</button>
-            </div>
+            <h4 style="font-size:0.9rem; margin:12px 0 6px;">Add Member by Username</h4>
+            <form class="add-member-form" style="display:flex; gap:8px;">
+              <input type="text" class="add-member-input" placeholder="username (no @)" required style="flex:1;" />
+              <button type="submit" class="btn btn-sm">Add Member</button>
+            </form>
           ` : ''}
+
+          <h4 style="font-size:0.9rem; margin:12px 0 6px;">Shared Family Expenses</h4>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr><th>Date</th><th>Title</th><th>Category</th><th>Amount</th><th>Logged By</th></tr>
+              </thead>
+              <tbody class="expenses-tbody-${grp.id}">
+                <tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
         `;
+
+        // Wire add-member form if present
+        if (isGroupAdmin) {
+          const form = div.querySelector(".add-member-form");
+          const input = div.querySelector(".add-member-input");
+          form.addEventListener("submit", async (ev) => {
+            ev.preventDefault();
+            hideAlert();
+            const username = input.value.trim().toLowerCase();
+            if (!username) return;
+            try {
+              const { error } = await db.rpc("add_family_member", { member_username: username });
+              if (error) throw error;
+              showAlert(`@${username} added to "${grp.name}".`, "success");
+              input.value = "";
+              await loadFamilyView();
+            } catch (err) {
+              showAlert("Failed to add member: " + err.message);
+            }
+          });
+        }
+
         familyGroupsContainer.appendChild(div);
+
+        // Load members + shared expenses for this group
+        await renderGroupMembers(grp.id);
+        await renderGroupExpenses(grp.id);
+      }
+    }
+
+    async function renderGroupMembers(groupId) {
+      const tbody = familyGroupsContainer.querySelector(`.members-tbody-${groupId}`);
+      if (!tbody) return;
+
+      const { data, error } = await db
+        .from("family_members")
+        .select("user_id, role, created_at, profiles(username)")
+        .eq("family_id", groupId);
+
+      if (error) {
+        tbody.innerHTML = `<tr><td colspan="3" style="color:var(--danger);">${error.message}</td></tr>`;
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">No members.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = "";
+      data.forEach(m => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>@${m.profiles?.username || "unknown"}</td>
+          <td>${m.role}</td>
+          <td>${new Date(m.created_at).toLocaleDateString()}</td>
+        `;
+        tbody.appendChild(tr);
       });
     }
 
-    window.sendInvite = async function(familyId) {
-      const input = document.getElementById(`invite-input-${familyId}`);
-      const username = input.value.trim().toLowerCase();
-      if (!username) return;
+    async function renderGroupExpenses(groupId) {
+      const tbody = familyGroupsContainer.querySelector(`.expenses-tbody-${groupId}`);
+      if (!tbody) return;
 
-      try {
-        const { error } = await db.from("family_invites").insert({
-          family_id: familyId,
-          invited_username: username,
-          invited_by: currentUser.id
-        });
-        if (error) throw error;
-        showAlert(`Invite sent to @${username}`, "success");
-        input.value = "";
-      } catch (err) {
-        showAlert("Failed to send invite: " + err.message);
+      const { data, error } = await db
+        .from("expenses")
+        .select("*, profiles(username)")
+        .eq("family_id", groupId)
+        .order("date", { ascending: false });
+
+      if (error) {
+        tbody.innerHTML = `<tr><td colspan="5" style="color:var(--danger);">${error.message}</td></tr>`;
+        return;
       }
-    };
 
-    async function loadPendingInvites() {
-      familyInvitesList.innerHTML = "Checking invites...";
-      try {
-        const { data: invites, error } = await db
-          .from("family_invites")
-          .select("*, family_groups(name)")
-          .eq("invited_username", currentProfile.username)
-          .eq("status", "pending");
-
-        if (error) throw error;
-
-        if (!invites || invites.length === 0) {
-          familyInvitesList.innerHTML = "<p style='color:var(--text-muted);'>No pending invites.</p>";
-          return;
-        }
-
-        familyInvitesList.innerHTML = "";
-        invites.forEach(inv => {
-          const div = document.createElement("div");
-          div.style.display = "flex";
-          div.style.justifyContent = "space-between";
-          div.style.alignItems = "center";
-          div.style.padding = "8px 0";
-          div.style.borderBottom = "1px solid var(--border)";
-          div.innerHTML = `
-            <span>Invited to <strong>${inv.family_groups.name}</strong></span>
-            <div>
-              <button class="btn btn-sm" onclick="respondInvite('${inv.id}', '${inv.family_id}', 'accepted')">Accept</button>
-              <button class="btn btn-secondary btn-sm" onclick="respondInvite('${inv.id}', '${inv.family_id}', 'rejected')">Decline</button>
-            </div>
-          `;
-          familyInvitesList.appendChild(div);
-        });
-      } catch (err) {
-        familyInvitesList.innerHTML = "Failed to load invites.";
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No shared expenses yet.</td></tr>';
+        return;
       }
+
+      tbody.innerHTML = "";
+      data.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${item.date}</td>
+          <td>${item.title}</td>
+          <td>${item.category}</td>
+          <td>$${parseFloat(item.amount).toFixed(2)}</td>
+          <td>@${item.profiles?.username || "unknown"}</td>
+        `;
+        tbody.appendChild(tr);
+      });
     }
-
-    window.respondInvite = async function(inviteId, familyId, responseStatus) {
-      try {
-        await db.from("family_invites").update({ status: responseStatus }).eq("id", inviteId);
-
-        if (responseStatus === "accepted") {
-          await db.from("family_members").insert({ family_id: familyId, user_id: currentUser.id, role: "member" });
-        }
-
-        showAlert(`Invite ${responseStatus}!`, "success");
-        await loadFamilyView();
-      } catch (err) {
-        showAlert("Error responding to invite: " + err.message);
-      }
-    };
 
     // Moderator Panel Logic
     async function loadModPanel() {
