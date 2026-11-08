@@ -70,7 +70,7 @@ const familyExpensesTbody = document.getElementById("family-expenses-tbody");
 const familyAddMemberForm = document.getElementById("family-add-member-form");
 const familyAddUsername = document.getElementById("family-add-username");
 
-// Current family state (populated by loadFamilyState)
+// Current family state
 let currentFamily = null;
 
 // Set default expense date input to today
@@ -134,7 +134,6 @@ supabase.auth.onAuthStateChange(async (event, session) => {
 
 async function handleUserSession() {
   try {
-    // Check if user has a profile record with a username
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("*")
@@ -238,7 +237,6 @@ onboardingForm.addEventListener("submit", async (e) => {
   const username = onboardingUsername.value.trim().toLowerCase();
 
   try {
-    // Check if username is already taken
     const { data: existing } = await supabase
       .from("profiles")
       .select("id")
@@ -422,7 +420,6 @@ expenseForm.addEventListener("submit", async (e) => {
   let receiptPath = null;
 
   try {
-    // Validate File if attached
     if (file) {
       const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
       const maxSize = 5 * 1024 * 1024; // 5MB
@@ -449,22 +446,11 @@ expenseForm.addEventListener("submit", async (e) => {
       if (uploadError) throw uploadError;
     }
 
-    // Determine family_id if the user opted to share
     let familyId = null;
-    if (expenseShareFamily.checked) {
-      const { data: mem, error: memErr } = await supabase
-        .from("family_members")
-        .select("family_id")
-        .eq("user_id", currentUser.id)
-        .limit(1)
-        .maybeSingle();
-
-      if (!memErr && mem) {
-        familyId = mem.family_id;
-      }
+    if (expenseShareFamily.checked && currentFamily) {
+      familyId = currentFamily.id;
     }
 
-    // Insert Record into Database
     const { error: insertError } = await supabase
       .from("expenses")
       .insert({
@@ -479,7 +465,6 @@ expenseForm.addEventListener("submit", async (e) => {
 
     if (insertError) throw insertError;
 
-    // Reset Form
     expenseForm.reset();
     expenseDate.value = new Date().toISOString().split("T")[0];
     expenseShareFamily.checked = false;
@@ -498,7 +483,6 @@ async function deleteExpense(expenseId, receiptPath) {
   hideAlert();
 
   try {
-    // Delete file from Storage bucket if exists
     if (receiptPath) {
       const { error: storageErr } = await supabase
         .storage
@@ -510,7 +494,6 @@ async function deleteExpense(expenseId, receiptPath) {
       }
     }
 
-    // Delete row from Database
     const { error: dbErr } = await supabase
       .from("expenses")
       .delete()
@@ -529,17 +512,11 @@ async function deleteExpense(expenseId, receiptPath) {
 // FAMILY GROUPS
 // ============================================
 
-// Toggle the "Share with family" checkbox on the expense form based on membership
 async function refreshShareFamilyVisibility() {
   if (!currentUser) return;
-
-  const { data, error } = await supabase
-    .from("family_members")
-    .select("family_id")
-    .eq("user_id", currentUser.id)
-    .limit(1);
-
-  if (!error && data && data.length > 0) {
+  
+  // We can just use the currentFamily state we load on startup
+  if (currentFamily) {
     shareFamilyWrap.style.display = "block";
   } else {
     shareFamilyWrap.style.display = "none";
@@ -547,13 +524,12 @@ async function refreshShareFamilyVisibility() {
   }
 }
 
-// Navigation to Family view
 btnNavFamily.addEventListener("click", async () => {
   switchView("family");
   await loadFamilyState();
 });
 
-// Create a new family group (RPC enforces creator = group_admin)
+// Create a new family group (Uses RPC to automatically handle ID & admin role)
 familyCreateForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   hideAlert();
@@ -564,22 +540,23 @@ familyCreateForm.addEventListener("submit", async (e) => {
     return;
   }
 
-  const { data, error } = await supabase.rpc("create_family_group", {
-    group_name: name
-  });
+  try {
+    const { error } = await supabase.rpc("create_family_group", {
+      group_name: name
+    });
 
-  if (error) {
-    showAlert("Failed to create group: " + error.message);
-    return;
+    if (error) throw error;
+
+    showAlert("Family group created!", "success");
+    familyNameInput.value = "";
+    await loadFamilyState();
+    await refreshShareFamilyVisibility();
+  } catch (err) {
+    showAlert("Failed to create group: " + err.message);
   }
-
-  showAlert("Family group created!", "success");
-  familyNameInput.value = "";
-  await loadFamilyState();
-  await refreshShareFamilyVisibility();
 });
 
-// Add member by username (RPC enforces admin-only + SECURITY DEFINER)
+// Add member by username (Uses RPC so DB handles the secure insert)
 familyAddMemberForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   hideAlert();
@@ -587,114 +564,138 @@ familyAddMemberForm.addEventListener("submit", async (e) => {
   const username = familyAddUsername.value.trim().toLowerCase();
   if (!username) return;
 
-  const { error } = await supabase.rpc("add_family_member", {
-    member_username: username
-  });
+  try {
+    const { error } = await supabase.rpc("add_family_member", {
+      member_username: username
+    });
 
-  if (error) {
-    showAlert("Failed to add member: " + error.message);
-    return;
+    if (error) throw error;
+
+    showAlert(`@${username} added to family!`, "success");
+    familyAddUsername.value = "";
+    await loadFamilyState();
+  } catch (err) {
+    showAlert("Failed to add member: " + err.message);
   }
-
-  showAlert(`@${username} added to family!`, "success");
-  familyAddUsername.value = "";
-  await loadFamilyState();
 });
 
-// Load family state (membership + members + shared expenses)
+// Load family state (Removed the nested join that was causing the 400 error)
 async function loadFamilyState() {
   if (!currentUser) return;
 
-  familyMembersTbody.innerHTML =
-    '<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Loading...</td></tr>';
+  familyMembersTbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Loading...</td></tr>';
 
-  // Find a group the user belongs to (RLS returns only groups the user can see)
-  const { data: memberships, error: memErr } = await supabase
-    .from("family_members")
-    .select("family_id, role, created_at, family_groups(name, created_by)")
-    .eq("user_id", currentUser.id)
-    .limit(1);
+  try {
+    // 1. Get membership
+    const { data: memberships, error: memErr } = await supabase
+      .from("family_members")
+      .select("family_id, role, created_at")
+      .eq("user_id", currentUser.id)
+      .limit(1);
 
-  if (memErr) {
-    showAlert("Failed to load family: " + memErr.message);
-    return;
+    if (memErr) throw memErr;
+
+    if (!memberships || memberships.length === 0) {
+      currentFamily = null;
+      familyCreateWrap.style.display = "block";
+      familyInfoWrap.style.display = "none";
+      return;
+    }
+
+    const membership = memberships[0];
+    
+    // 2. Fetch group name separately (avoids schema cache join errors)
+    const { data: groupData } = await supabase
+      .from("family_groups")
+      .select("name")
+      .eq("id", membership.family_id)
+      .single();
+
+    currentFamily = {
+      id: membership.family_id,
+      name: groupData ? groupData.name : "Family Group",
+      role: membership.role
+    };
+
+    familyCreateWrap.style.display = "none";
+    familyInfoWrap.style.display = "block";
+    familyGroupName.textContent = currentFamily.name;
+    familyGroupId.textContent = currentFamily.id;
+
+    // 3. Load all members
+    const { data: members, error: mErr } = await supabase
+      .from("family_members")
+      .select("*")
+      .eq("family_id", currentFamily.id);
+
+    if (mErr) throw mErr;
+
+    familyMembersTbody.innerHTML = "";
+    for (const m of (members || [])) {
+      // Fetch username separately to avoid join errors
+      const { data: pData } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", m.user_id)
+        .single();
+
+      const username = pData ? pData.username : "unknown";
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>@${username}</td>
+        <td>${m.role}</td>
+        <td>${new Date(m.created_at).toLocaleDateString()}</td>
+      `;
+      familyMembersTbody.appendChild(tr);
+    }
+
+    await loadFamilyExpenses();
+  } catch (err) {
+    showAlert("Failed to load family state: " + err.message);
   }
-
-  if (!memberships || memberships.length === 0) {
-    currentFamily = null;
-    familyCreateWrap.style.display = "block";
-    familyInfoWrap.style.display = "none";
-    return;
-  }
-
-  const membership = memberships[0];
-  currentFamily = {
-    id: membership.family_id,
-    name: membership.family_groups?.name || "Unnamed Group",
-    role: membership.role
-  };
-
-  familyCreateWrap.style.display = "none";
-  familyInfoWrap.style.display = "block";
-  familyGroupName.textContent = currentFamily.name;
-  familyGroupId.textContent = currentFamily.id;
-
-  // Load all members of the current family
-  const { data: members, error: mErr } = await supabase
-    .from("family_members")
-    .select("user_id, role, created_at, profiles(username)")
-    .eq("family_id", currentFamily.id);
-
-  if (mErr) {
-    familyMembersTbody.innerHTML = `<tr><td colspan="3" style="color: var(--danger);">${mErr.message}</td></tr>`;
-    return;
-  }
-
-  familyMembersTbody.innerHTML = "";
-  (members || []).forEach(m => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>@${m.profiles?.username || "unknown"}</td>
-      <td>${m.role}</td>
-      <td>${new Date(m.created_at).toLocaleDateString()}</td>
-    `;
-    familyMembersTbody.appendChild(tr);
-  });
-
-  await loadFamilyExpenses();
 }
 
 // Load shared family expenses
 async function loadFamilyExpenses() {
   if (!currentFamily) return;
 
-  const { data, error } = await supabase
-    .from("expenses")
-    .select("*, profiles(username)")
-    .eq("family_id", currentFamily.id)
-    .order("date", { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from("expenses")
+      .select("*")
+      .eq("family_id", currentFamily.id)
+      .order("date", { ascending: false });
 
-  if (error) {
-    familyExpensesTbody.innerHTML = `<tr><td colspan="5" style="color: var(--danger);">${error.message}</td></tr>`;
-    return;
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      familyExpensesTbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No shared expenses yet.</td></tr>';
+      return;
+    }
+
+    familyExpensesTbody.innerHTML = "";
+    for (const item of data) {
+      // Fetch username separately to avoid join errors
+      const { data: pData } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", item.user_id)
+        .single();
+
+      const username = pData ? pData.username : "unknown";
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${item.date}</td>
+        <td>${item.title}</td>
+        <td>${item.category}</td>
+        <td>$${parseFloat(item.amount).toFixed(2)}</td>
+        <td>@${username}</td>
+      `;
+      familyExpensesTbody.appendChild(tr);
+    }
+  } catch (err) {
+    familyExpensesTbody.innerHTML = `<tr><td colspan="5" style="color: var(--danger);">${err.message}</td></tr>`;
   }
-
-  if (!data || data.length === 0) {
-    familyExpensesTbody.innerHTML =
-      '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No shared expenses yet.</td></tr>';
-    return;
-  }
-
-  familyExpensesTbody.innerHTML = "";
-  data.forEach(item => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${item.date}</td>
-      <td>${item.title}</td>
-      <td>${item.category}</td>
-      <td>$${parseFloat(item.amount).toFixed(2)}</td>
-      <td>@${item.profiles?.username || "unknown"}</td>
-    `;
-    familyExpensesTbody.appendChild(tr);
-  });
 }
