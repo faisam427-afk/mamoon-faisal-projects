@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SpendWise — Personal & Family Expense Tracker</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>" />
+  
   <!-- Supabase JS Client SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js?v=7"></script>
   
   <style>
     :root {
@@ -465,6 +466,12 @@
           <button type="submit" class="btn">Create Group</button>
         </form>
         <p class="hint">Creating a group assigns you as <strong>Group Admin</strong> for that group (does not grant app-wide admin rights).</p>
+      </div>
+
+      <!-- PENDING INVITATIONS SECTION -->
+      <div class="card" id="invites-card" style="border-left: 4px solid var(--primary);">
+        <h2 class="card-title">📩 Pending Invitations</h2>
+        <div id="pending-invites-container">Loading invitations...</div>
       </div>
 
       <div class="card">
@@ -1094,6 +1101,7 @@
 
     async function loadFamilyView() {
       await loadUserFamilyGroups();
+      await renderPendingInvites();
       await renderFamilyGroupsList();
     }
 
@@ -1115,6 +1123,31 @@
         showAlert(err.message || "Failed to create group.");
       }
     });
+
+    async function renderPendingInvites() {
+      const container = document.getElementById("pending-invites-container");
+      try {
+        const { data: invites } = await db.from("family_invites").select("*").eq("invited_user_id", currentUser.id);
+        if (!invites || invites.length === 0) { container.innerHTML = "<p style='color:var(--text-muted);'>No pending invites.</p>"; return; }
+        container.innerHTML = "";
+        for (const inv of invites) {
+          const { data: grp } = await db.from("family_groups").select("name").eq("id", inv.family_id).single();
+          const div = document.createElement("div"); 
+          div.style = "display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid var(--border);";
+          div.innerHTML = `<span>Invited to <strong>${grp ? grp.name : 'Family Group'}</strong></span><div><button class="btn btn-sm accept-btn">Accept</button> <button class="btn btn-secondary btn-sm reject-btn">Decline</button></div>`;
+          
+          div.querySelector(".accept-btn").onclick = async () => { 
+              await db.rpc("accept_family_invite", { invite_id: inv.id }); 
+              showAlert("Joined group!", "success"); await loadFamilyView(); 
+          };
+          div.querySelector(".reject-btn").onclick = async () => { 
+              await db.from("family_invites").delete().eq("id", inv.id); 
+              await loadFamilyView(); 
+          };
+          container.appendChild(div);
+        }
+      } catch (err) { container.innerHTML = `<p style="color:red;">${err.message}</p>`; }
+    }
 
     // Render family groups with member + shared expense lists
     async function renderFamilyGroupsList() {
@@ -1150,10 +1183,10 @@
           </div>
 
           ${isGroupAdmin ? `
-            <h4 style="font-size:0.9rem; margin:12px 0 6px;">Add Member by Username</h4>
-            <form class="add-member-form" style="display:flex; gap:8px;">
-              <input type="text" class="add-member-input" placeholder="username (no @)" required style="flex:1;" />
-              <button type="submit" class="btn btn-sm">Add Member</button>
+            <h4 style="font-size:0.9rem; margin:12px 0 6px;">Invite User by Username</h4>
+            <form class="invite-form" style="display:flex; gap:8px;">
+              <input type="text" class="invite-input" placeholder="username (no @)" required style="flex:1;" />
+              <button type="submit" class="btn btn-sm">Send Invite</button>
             </form>
           ` : ''}
 
@@ -1170,23 +1203,22 @@
           </div>
         `;
 
-        // Wire add-member form if present
+        // Wire invite form if present
         if (isGroupAdmin) {
-          const form = div.querySelector(".add-member-form");
-          const input = div.querySelector(".add-member-input");
+          const form = div.querySelector(".invite-form");
+          const input = div.querySelector(".invite-input");
           form.addEventListener("submit", async (ev) => {
             ev.preventDefault();
             hideAlert();
             const username = input.value.trim().toLowerCase();
             if (!username) return;
             try {
-              const { error } = await db.rpc("add_family_member", { member_username: username });
+              const { error } = await db.rpc("send_family_invite", { member_username: username });
               if (error) throw error;
-              showAlert(`@${username} added to "${item.name}".`, "success");
+              showAlert(`Invite sent to @${username}!`, "success");
               input.value = "";
-              await loadFamilyView();
             } catch (err) {
-              showAlert("Failed to add member: " + err.message);
+              showAlert("Failed to invite: " + err.message);
             }
           });
         }
