@@ -625,11 +625,16 @@
     </div>
   </footer>
 
-  <!-- Load Configuration first, then Application logic -->
-  <script src="config.js"></script>
+  <!-- Load Application logic -->
   <script>
-    // Initialize Supabase Client using external config credentials
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Initialize Supabase Client
+    const db = window.supabase.createClient("https://ehrkwohnqbigerhjyfvc.supabase.co", "sb_publishable_xq0f7IVIh9JoA-WVN8bcUg_UwYaiNSt", {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    });
 
     // State Variables
     let currentUser = null;
@@ -637,6 +642,7 @@
     let userFamilyGroups = [];
     let isSignUpMode = false;
     let confirmActionCallback = null;
+    let isAuthListenerReady = false;
 
     // DOM Elements
     const alertBox = document.getElementById("alert-box");
@@ -788,7 +794,7 @@
     btnDownloadAcceptProceed.addEventListener("click", async () => {
       modalDownloadRisk.style.display = "none";
       try {
-        const { data, error } = await supabase.from("expenses").select("*").eq("user_id", currentUser.id);
+        const { data, error } = await db.from("expenses").select("*").eq("user_id", currentUser.id);
         if (error) throw error;
         
         const blob = new Blob([JSON.stringify(data || [], null, 2)], { type: "application/json" });
@@ -817,24 +823,27 @@
     btnNavMod.addEventListener("click", () => { switchView("mod"); loadModPanel(); });
     btnNavAdmin.addEventListener("click", () => { switchView("admin"); loadAdminPanel(); });
     btnNavSettings.addEventListener("click", () => switchView("settings"));
-    btnSignOut.addEventListener("click", async () => { await supabase.auth.signOut(); });
+    btnSignOut.addEventListener("click", async () => { await db.auth.signOut(); });
 
-    // Authentication State Management
-    supabase.auth.onAuthStateChange(async (event, session) => {
+    // FIX: Authentication State Management
+    db.auth.onAuthStateChange(async (event, session) => {
       cleanUrlParams();
-      if (session && session.user) {
-        currentUser = session.user;
-        await handleUserSession();
-      } else {
+      
+      if (!isAuthListenerReady) return;
+
+      if (event === 'SIGNED_OUT') {
         currentUser = null;
         currentProfile = null;
         switchView("auth");
+      } else if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
+        currentUser = session.user;
+        await handleUserSession();
       }
     });
 
     async function handleUserSession() {
       try {
-        const { data: profile, error } = await supabase
+        const { data: profile, error } = await db
           .from("profiles")
           .select("*")
           .eq("id", currentUser.id)
@@ -862,6 +871,26 @@
       }
     }
 
+    // FIX: Manual Boot Check to prevent logout on refresh
+    (async function initApp() {
+      try {
+        const { data, error } = await db.auth.getSession();
+        if (error) throw error;
+
+        if (data?.session?.user) {
+          currentUser = data.session.user;
+          await handleUserSession();
+        } else {
+          switchView("auth");
+        }
+      } catch (err) {
+        console.error("Session boot error:", err);
+        switchView("auth");
+      } finally {
+        isAuthListenerReady = true;
+      }
+    })();
+
     // Toggle Sign In / Sign Up Mode
     authToggleLink.addEventListener("click", (e) => {
       e.preventDefault();
@@ -881,11 +910,11 @@
       const password = authPassword.value;
 
       if (isSignUpMode) {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { error } = await db.auth.signUp({ email, password });
         if (error) showAlert(error.message);
         else showAlert("Account created! Logging in...", "success");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await db.auth.signInWithPassword({ email, password });
         if (error) showAlert(error.message);
       }
     });
@@ -895,12 +924,12 @@
       e.preventDefault();
       hideAlert();
       try {
-        const redirectUrl = window.location.origin + window.location.pathname;
-        const { error } = await supabase.auth.signInWithOAuth({
+        let redirectUrl = window.location.origin + window.location.pathname;
+        redirectUrl = redirectUrl.replace(/\/index\.html?$/i, "").replace(/\/+$/, "");
+        
+        const { error } = await db.auth.signInWithOAuth({
           provider: "github",
-          options: {
-            redirectTo: redirectUrl
-          }
+          options: { redirectTo: redirectUrl || window.location.origin }
         });
         if (error) throw error;
       } catch (err) {
@@ -914,7 +943,7 @@
       const username = onboardingUsername.value.trim().toLowerCase();
 
       try {
-        const { error } = await supabase.from("profiles").upsert({
+        const { error } = await db.from("profiles").upsert({
           id: currentUser.id,
           username: username,
           updated_at: new Date().toISOString()
@@ -930,7 +959,7 @@
     async function loadExpenses() {
       expensesTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading transactions...</td></tr>';
       try {
-        let query = supabase.from("expenses").select("*, family_groups(name)").order("date", { ascending: false });
+        let query = db.from("expenses").select("*, family_groups(name)").order("date", { ascending: false });
         if (expenseViewFilter.value === "personal") {
           query = query.eq("user_id", currentUser.id).is("family_id", null);
         }
@@ -987,9 +1016,9 @@
     async function deleteExpense(expenseId, receiptPath) {
       try {
         if (receiptPath) {
-          await supabase.storage.from("receipts").remove([receiptPath]);
+          await db.storage.from("receipts").remove([receiptPath]);
         }
-        const { error } = await supabase.from("expenses").delete().eq("id", expenseId);
+        const { error } = await db.from("expenses").delete().eq("id", expenseId);
         if (error) throw error;
 
         showAlert("Expense post deleted successfully.", "success");
@@ -1010,7 +1039,7 @@
       const family_id = expenseFamilySelect.value || null;
 
       try {
-        const { error } = await supabase.from("expenses").insert({
+        const { error } = await db.from("expenses").insert({
           user_id: currentUser.id,
           family_id,
           title,
@@ -1032,7 +1061,7 @@
     // Multiple Family Groups Logic
     async function loadUserFamilyGroups() {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await db
           .from("family_members")
           .select("family_id, role, family_groups(id, name, created_by)")
           .eq("user_id", currentUser.id);
@@ -1066,7 +1095,7 @@
       const name = familyNameInput.value.trim();
 
       try {
-        const { data: group, error: groupErr } = await supabase
+        const { data: group, error: groupErr } = await db
           .from("family_groups")
           .insert({ name, created_by: currentUser.id })
           .select()
@@ -1075,7 +1104,7 @@
         if (groupErr) throw groupErr;
 
         // Group Creator gets 'group_admin' role (Does NOT grant app-wide admin privileges)
-        const { error: memErr } = await supabase
+        const { error: memErr } = await db
           .from("family_members")
           .insert({ family_id: group.id, user_id: currentUser.id, role: "group_admin" });
 
@@ -1126,7 +1155,7 @@
       if (!username) return;
 
       try {
-        const { error } = await supabase.from("family_invites").insert({
+        const { error } = await db.from("family_invites").insert({
           family_id: familyId,
           invited_username: username,
           invited_by: currentUser.id
@@ -1142,7 +1171,7 @@
     async function loadPendingInvites() {
       familyInvitesList.innerHTML = "Checking invites...";
       try {
-        const { data: invites, error } = await supabase
+        const { data: invites, error } = await db
           .from("family_invites")
           .select("*, family_groups(name)")
           .eq("invited_username", currentProfile.username)
@@ -1179,10 +1208,10 @@
 
     window.respondInvite = async function(inviteId, familyId, responseStatus) {
       try {
-        await supabase.from("family_invites").update({ status: responseStatus }).eq("id", inviteId);
+        await db.from("family_invites").update({ status: responseStatus }).eq("id", inviteId);
 
         if (responseStatus === "accepted") {
-          await supabase.from("family_members").insert({ family_id: familyId, user_id: currentUser.id, role: "member" });
+          await db.from("family_members").insert({ family_id: familyId, user_id: currentUser.id, role: "member" });
         }
 
         showAlert(`Invite ${responseStatus}!`, "success");
@@ -1196,7 +1225,7 @@
     async function loadModPanel() {
       modTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading moderation queue...</td></tr>';
       try {
-        const { data: expenses, error } = await supabase.from("expenses").select("*").order("created_at", { ascending: false });
+        const { data: expenses, error } = await db.from("expenses").select("*").order("created_at", { ascending: false });
         if (error) throw error;
         renderModTable(expenses || []);
       } catch (err) {
@@ -1229,7 +1258,7 @@
 
     window.toggleFlagExpense = async function(id, flagStatus) {
       try {
-        await supabase.from("expenses").update({ is_flagged: flagStatus }).eq("id", id);
+        await db.from("expenses").update({ is_flagged: flagStatus }).eq("id", id);
         await loadModPanel();
       } catch (err) {
         showAlert(err.message);
@@ -1247,7 +1276,7 @@
     async function loadAdminPanel() {
       adminTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading directory...</td></tr>';
       try {
-        const { data: profiles, error } = await supabase.from("profiles").select("*").order("updated_at", { ascending: false });
+        const { data: profiles, error } = await db.from("profiles").select("*").order("updated_at", { ascending: false });
         if (error) throw error;
         renderAdminTable(profiles || []);
       } catch (err) {
@@ -1281,17 +1310,17 @@
     window.changeUserRole = function(userId, newRole) {
       askConfirmation("Change Role?", `Change the role of user to "${newRole}"?`, async () => {
         try {
-          await supabase.from("profiles").update({ role: newRole }).eq("id", userId);
+          await db.from("profiles").update({ role: newRole }).eq("id", userId);
           
           if (newRole === 'app_admin') {
-            await supabase.from("admins").upsert({ user_id: userId });
-            await supabase.from("moderators").delete().eq("user_id", userId);
+            await db.from("admins").upsert({ user_id: userId });
+            await db.from("moderators").delete().eq("user_id", userId);
           } else if (newRole === 'moderator') {
-            await supabase.from("moderators").upsert({ user_id: userId });
-            await supabase.from("admins").delete().eq("user_id", userId);
+            await db.from("moderators").upsert({ user_id: userId });
+            await db.from("admins").delete().eq("user_id", userId);
           } else {
-            await supabase.from("admins").delete().eq("user_id", userId);
-            await supabase.from("moderators").delete().eq("user_id", userId);
+            await db.from("admins").delete().eq("user_id", userId);
+            await db.from("moderators").delete().eq("user_id", userId);
           }
 
           showAlert("Role updated successfully.", "success");
@@ -1305,7 +1334,7 @@
     window.confirmDeleteUserAccount = function(userId, username) {
       askConfirmation("DELETE USER ACCOUNT?", `PERMANENTLY delete account @${username}? All expenses and profile data will be removed!`, async () => {
         try {
-          await supabase.from("profiles").delete().eq("id", userId);
+          await db.from("profiles").delete().eq("id", userId);
           showAlert(`User @${username} was deleted.`, "success");
           await loadAdminPanel();
         } catch (err) {
@@ -1318,8 +1347,8 @@
     btnUserDeleteSelfData.addEventListener("click", () => {
       askConfirmation("DELETE YOUR ACCOUNT?", "WARNING: Are you sure you want to permanently delete your SpendWise account and all personal data? This action cannot be reversed.", async () => {
         try {
-          await supabase.from("profiles").delete().eq("id", currentUser.id);
-          await supabase.auth.signOut();
+          await db.from("profiles").delete().eq("id", currentUser.id);
+          await db.auth.signOut();
           showAlert("Account deleted successfully.", "success");
         } catch (err) {
           showAlert("Failed to delete account: " + err.message);
@@ -1333,7 +1362,7 @@
       hideAlert();
       const newPassword = document.getElementById("new-password").value;
 
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      const { error } = await db.auth.updateUser({ password: newPassword });
       if (error) showAlert(error.message);
       else {
         showAlert("Password updated successfully!", "success");
