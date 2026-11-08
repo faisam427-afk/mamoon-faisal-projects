@@ -3,7 +3,14 @@
 // ==========================================
 
 // Initialize the Supabase Client using configuration credentials
-const supabase = window.supabase.createClient("https://ehrkwohnqbigerhjyfvc.supabase.co", "sb_publishable_xq0f7IVIh9JoA-WVN8bcUg_UwYaiNSt");
+// FIX: Renamed to 'db' to prevent shadowing 'window.supabase' and added auth persistence settings
+const db = window.supabase.createClient("https://ehrkwohnqbigerhjyfvc.supabase.co", "sb_publishable_xq0f7IVIh9JoA-WVN8bcUg_UwYaiNSt", {
+  auth: {
+    detectSessionInUrl: true,
+    persistSession: true,
+    autoRefreshToken: true
+  }
+});
 
 // Global Application State Variables
 let currentUser = null;
@@ -109,22 +116,18 @@ function validatePasswordRules(password) {
   return null;
 }
 
-// Listen to authentication state changes (login, logout, token refresh)
-supabase.auth.onAuthStateChange(async (event, session) => {
-  if (session && session.user) {
-    currentUser = session.user;
-    await handleUserSession();
-  } else {
-    currentUser = null;
-    currentProfile = null;
-    switchView("auth");
+// FIX: Clean OAuth URL params after redirect to prevent hash leaks
+function cleanUrlParams() {
+  if (window.location.search.includes("code=") || window.location.hash.includes("access_token")) {
+    const cleanUrl = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
   }
-});
+}
 
 // Verify user profile and direct to onboarding or dashboard
 async function handleUserSession() {
   try {
-    const { data: profile, error } = await supabase
+    const { data: profile, error } = await db
       .from("profiles")
       .select("*")
       .eq("id", currentUser.id)
@@ -144,6 +147,42 @@ async function handleUserSession() {
     showAlert(err.message || "Error restoring user profile session.");
   }
 }
+
+// Listen to authentication state changes (login, logout, token refresh)
+db.auth.onAuthStateChange(async (event, session) => {
+  cleanUrlParams();
+  
+  // Ignore the initial event; we handle that manually below to prevent the logout flash
+  if (event === 'INITIAL_SESSION') return;
+
+  if (session && session.user) {
+    currentUser = session.user;
+    await handleUserSession();
+  } else {
+    currentUser = null;
+    currentProfile = null;
+    switchView("auth");
+  }
+});
+
+// FIX: Manually check for a saved session when the page first loads
+(async function bootstrapSession() {
+  try {
+    const { data, error } = await db.auth.getSession();
+    
+    if (error) throw error;
+
+    if (data?.session?.user) {
+      currentUser = data.session.user;
+      await handleUserSession(); // This loads their profile and shows the dashboard
+    } else {
+      switchView("auth"); // No saved session, show login
+    }
+  } catch (err) {
+    console.error("Session restore failed:", err);
+    switchView("auth");
+  }
+})();
 
 // Toggle between Sign In and Sign Up modes
 if (authToggleLink) {
@@ -184,14 +223,14 @@ if (authForm) {
         return;
       }
 
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await db.auth.signUp({ email, password });
       if (error) {
         showAlert(error.message);
       } else {
         showAlert("Sign up successful! Logging in...", "success");
       }
     } else {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await db.auth.signInWithPassword({ email, password });
       if (error) {
         showAlert(error.message);
       }
@@ -203,10 +242,15 @@ if (authForm) {
 if (btnGithubLogin) {
   btnGithubLogin.addEventListener("click", async () => {
     hideAlert();
-    const { error } = await supabase.auth.signInWithOAuth({
+    
+    // FIX: Normalize URL to remove /index.html so it matches Supabase allow-list
+    let redirectUrl = window.location.origin + window.location.pathname;
+    redirectUrl = redirectUrl.replace(/\/index\.html?$/i, "").replace(/\/+$/, "");
+
+    const { error } = await db.auth.signInWithOAuth({
       provider: "github",
       options: {
-        redirectTo: window.location.origin + window.location.pathname
+        redirectTo: redirectUrl || window.location.origin
       }
     });
 
@@ -223,7 +267,7 @@ if (onboardingForm) {
     const username = onboardingUsername.value.trim().toLowerCase();
 
     try {
-      const { data: existing } = await supabase
+      const { data: existing } = await db
         .from("profiles")
         .select("id")
         .eq("username", username)
@@ -234,7 +278,7 @@ if (onboardingForm) {
         return;
       }
 
-      const { error } = await supabase
+      const { error } = await db
         .from("profiles")
         .upsert({
           id: currentUser.id,
@@ -253,7 +297,7 @@ if (onboardingForm) {
 // Navigation and Sign-out Actions
 if (btnSignOut) {
   btnSignOut.addEventListener("click", async () => {
-    await supabase.auth.signOut();
+    await db.auth.signOut();
   });
 }
 
@@ -279,7 +323,7 @@ if (passwordForm) {
       return;
     }
 
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    const { error } = await db.auth.updateUser({ password: newPassword });
     if (error) {
       showAlert(error.message);
     } else {
@@ -296,7 +340,7 @@ async function loadExpenses() {
   expensesTbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Loading transactions...</td></tr>';
 
   try {
-    const { data: expenses, error } = await supabase
+    const { data: expenses, error } = await db
       .from("expenses")
       .select("*")
       .order("date", { ascending: false });
@@ -374,7 +418,7 @@ function renderExpensesTable(expenses) {
 // Request temporary signed URL to view uploaded receipt file securely
 async function openReceipt(receiptPath) {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .storage
       .from("receipts")
       .createSignedUrl(receiptPath, 60);
@@ -423,7 +467,7 @@ if (expenseForm) {
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
         receiptPath = `${currentUser.id}/${fileName}`;
 
-        const { error: uploadError } = await supabase
+        const { error: uploadError } = await db
           .storage
           .from("receipts")
           .upload(receiptPath, file);
@@ -432,7 +476,7 @@ if (expenseForm) {
       }
 
       // Insert Expense Row into Database
-      const { error: insertError } = await supabase
+      const { error: insertError } = await db
         .from("expenses")
         .insert({
           user_id: currentUser.id,
@@ -464,7 +508,7 @@ async function deleteExpense(expenseId, receiptPath) {
   try {
     // Delete file from Storage bucket if exists
     if (receiptPath) {
-      const { error: storageErr } = await supabase
+      const { error: storageErr } = await db
         .storage
         .from("receipts")
         .remove([receiptPath]);
@@ -475,7 +519,7 @@ async function deleteExpense(expenseId, receiptPath) {
     }
 
     // Delete database entry
-    const { error: dbErr } = await supabase
+    const { error: dbErr } = await db
       .from("expenses")
       .delete()
       .eq("id", expenseId);
