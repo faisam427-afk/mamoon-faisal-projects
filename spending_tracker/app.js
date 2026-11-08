@@ -471,32 +471,20 @@ async function loadFamilyView() {
   await loadPendingInvites();
 }
 
+// FIX: Replaced the manual two-step insert with a single RPC call to bypass the RLS read-back issue
 createFamilyForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   hideAlert();
   const name = familyNameInput.value.trim();
 
   try {
-    // 1. Insert the group and explicitly ask for the ID back
-    const { data: group, error: groupErr } = await db
-      .from("family_groups")
-      .insert({ name, created_by: currentUser.id })
-      .select("id") 
-      .single();
+    // Call the secure database function instead of inserting manually
+    const { data: newGroupId, error } = await db.rpc('create_family_group', {
+      group_name: name
+    });
 
-    if (groupErr) throw groupErr;
-    if (!group) throw new Error("Failed to retrieve the new group ID.");
-
-    // 2. Insert the user as group_admin using the verified ID
-    const { error: memErr } = await db
-      .from("family_members")
-      .insert({ 
-        family_id: group.id, 
-        user_id: currentUser.id, 
-        role: "group_admin" 
-      });
-
-    if (memErr) throw memErr;
+    if (error) throw error;
+    if (!newGroupId) throw new Error("Could not create group.");
 
     familyNameInput.value = "";
     showAlert(`Family group "${name}" created! You are the Group Admin.`, "success");
