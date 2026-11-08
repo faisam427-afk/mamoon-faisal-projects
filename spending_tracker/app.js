@@ -2,8 +2,7 @@
 // SPENDWISE CORE APPLICATION LOGIC
 // ==========================================
 
-// Initialize the Supabase Client using configuration credentials
-// FIX: Renamed to 'db' to prevent shadowing 'window.supabase' and added auth persistence settings
+// Initialize the Supabase Client
 const db = window.supabase.createClient("https://ehrkwohnqbigerhjyfvc.supabase.co", "sb_publishable_xq0f7IVIh9JoA-WVN8bcUg_UwYaiNSt", {
   auth: {
     detectSessionInUrl: true,
@@ -16,6 +15,7 @@ const db = window.supabase.createClient("https://ehrkwohnqbigerhjyfvc.supabase.c
 let currentUser = null;
 let currentProfile = null;
 let isSignUpMode = false;
+let isBootstrapping = true; // FIX: Track initial load to prevent race condition
 
 // Alert Box & Common Header Elements
 const alertBox = document.getElementById("alert-box");
@@ -92,7 +92,6 @@ function switchView(viewName) {
     views[viewName].classList.add("active-view");
   }
 
-  // Show navigation bar only for authenticated dashboard & settings views
   if (mainHeader) {
     if (viewName === "dashboard" || viewName === "password") {
       mainHeader.style.display = "block";
@@ -116,7 +115,7 @@ function validatePasswordRules(password) {
   return null;
 }
 
-// FIX: Clean OAuth URL params after redirect to prevent hash leaks
+// FIX: Clean OAuth URL params after redirect
 function cleanUrlParams() {
   if (window.location.search.includes("code=") || window.location.hash.includes("access_token")) {
     const cleanUrl = window.location.origin + window.location.pathname;
@@ -148,12 +147,16 @@ async function handleUserSession() {
   }
 }
 
-// Listen to authentication state changes (login, logout, token refresh)
+// Listen to authentication state changes
 db.auth.onAuthStateChange(async (event, session) => {
   cleanUrlParams();
   
-  // Ignore the initial event; we handle that manually below to prevent the logout flash
+  // FIX: Ignore the initial session event. bootstrapSession() handles it.
   if (event === 'INITIAL_SESSION') return;
+  
+  // FIX: If we are still bootstrapping, ignore SIGNED_OUT events 
+  // because they can be a false positive before the session loads.
+  if (isBootstrapping && event === 'SIGNED_OUT') return;
 
   if (session && session.user) {
     currentUser = session.user;
@@ -174,13 +177,16 @@ db.auth.onAuthStateChange(async (event, session) => {
 
     if (data?.session?.user) {
       currentUser = data.session.user;
-      await handleUserSession(); // This loads their profile and shows the dashboard
+      await handleUserSession(); 
     } else {
-      switchView("auth"); // No saved session, show login
+      switchView("auth"); 
     }
   } catch (err) {
     console.error("Session restore failed:", err);
     switchView("auth");
+  } finally {
+    // FIX: Mark bootstrapping as complete so future SIGNED_OUT events work
+    isBootstrapping = false;
   }
 })();
 
@@ -243,7 +249,6 @@ if (btnGithubLogin) {
   btnGithubLogin.addEventListener("click", async () => {
     hideAlert();
     
-    // FIX: Normalize URL to remove /index.html so it matches Supabase allow-list
     let redirectUrl = window.location.origin + window.location.pathname;
     redirectUrl = redirectUrl.replace(/\/index\.html?$/i, "").replace(/\/+$/, "");
 
@@ -334,7 +339,7 @@ if (passwordForm) {
   });
 }
 
-// Fetch User Expenses (RLS handles single-user filtering automatically)
+// Fetch User Expenses
 async function loadExpenses() {
   if (!expensesTbody) return;
   expensesTbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Loading transactions...</td></tr>';
@@ -448,7 +453,6 @@ if (expenseForm) {
     let receiptPath = null;
 
     try {
-      // Process File Upload if attached
       if (file) {
         const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
         const maxSize = 5 * 1024 * 1024; // 5 MB
@@ -475,7 +479,6 @@ if (expenseForm) {
         if (uploadError) throw uploadError;
       }
 
-      // Insert Expense Row into Database
       const { error: insertError } = await db
         .from("expenses")
         .insert({
@@ -489,7 +492,6 @@ if (expenseForm) {
 
       if (insertError) throw insertError;
 
-      // Reset form controls
       expenseForm.reset();
       expenseDate.value = new Date().toISOString().split("T")[0];
       showAlert("Expense entry logged successfully!", "success");
@@ -506,7 +508,6 @@ async function deleteExpense(expenseId, receiptPath) {
   hideAlert();
 
   try {
-    // Delete file from Storage bucket if exists
     if (receiptPath) {
       const { error: storageErr } = await db
         .storage
@@ -518,7 +519,6 @@ async function deleteExpense(expenseId, receiptPath) {
       }
     }
 
-    // Delete database entry
     const { error: dbErr } = await db
       .from("expenses")
       .delete()
