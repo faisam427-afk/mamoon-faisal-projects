@@ -819,7 +819,7 @@
     btnNavSettings.addEventListener("click", () => switchView("settings"));
     btnSignOut.addEventListener("click", async () => { await db.auth.signOut(); });
 
-    // FIX: Authentication State Management
+    // Authentication State Management
     db.auth.onAuthStateChange(async (event, session) => {
       cleanUrlParams();
       
@@ -865,7 +865,7 @@
       }
     }
 
-    // FIX: Manual Boot Check to prevent logout on refresh
+    // Manual Boot Check to prevent logout on refresh
     (async function initApp() {
       try {
         const { data, error } = await db.auth.getSession();
@@ -953,7 +953,8 @@
     async function loadExpenses() {
       expensesTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading transactions...</td></tr>';
       try {
-        let query = db.from("expenses").select("*, family_groups(name)").order("date", { ascending: false });
+        // Removed the nested join (family_groups(name)) to prevent 400 error
+        let query = db.from("expenses").select("*").order("date", { ascending: false });
         if (expenseViewFilter.value === "personal") {
           query = query.eq("user_id", currentUser.id).is("family_id", null);
         }
@@ -983,12 +984,19 @@
         const amountNum = parseFloat(item.amount) || 0;
         total += amountNum;
 
+        // Find group name locally
+        let groupName = "Personal";
+        if (item.family_id) {
+            const grp = userFamilyGroups.find(g => g.family_id === item.family_id);
+            groupName = grp ? grp.name : "Family";
+        }
+
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${item.date}</td>
           <td>${item.title} ${item.is_flagged ? '<span style="color:var(--danger); font-size:0.75rem;">[FLAGGED]</span>' : ''}</td>
           <td>${item.category}</td>
-          <td>${item.family_groups ? item.family_groups.name : 'Personal'}</td>
+          <td>${groupName}</td>
           <td style="font-weight:600;">$${amountNum.toFixed(2)}</td>
           <td>
             <button class="btn btn-danger btn-sm">Delete</button>
@@ -1055,22 +1063,29 @@
     // Multiple Family Groups Logic
     async function loadUserFamilyGroups() {
       try {
-        const { data, error } = await db
+        // 1. Fetch flat memberships
+        const { data: memberships, error } = await db
           .from("family_members")
-          .select("family_id, role, family_groups(id, name, created_by)")
+          .select("family_id, role")
           .eq("user_id", currentUser.id);
 
         if (error) throw error;
 
-        userFamilyGroups = data || [];
+        // 2. Loop and fetch group names to avoid API cache 400 error
+        userFamilyGroups = [];
+        for (const m of (memberships || [])) {
+          const { data: grp } = await db.from("family_groups").select("name").eq("id", m.family_id).single();
+          if (grp) {
+            userFamilyGroups.push({ family_id: m.family_id, role: m.role, name: grp.name });
+          }
+        }
+
         expenseFamilySelect.innerHTML = '<option value="">Personal Only (No Family Group)</option>';
         userFamilyGroups.forEach(m => {
-          if (m.family_groups) {
-            const opt = document.createElement("option");
-            opt.value = m.family_groups.id;
-            opt.textContent = `${m.family_groups.name} (${m.role})`;
-            expenseFamilySelect.appendChild(opt);
-          }
+          const opt = document.createElement("option");
+          opt.value = m.family_id;
+          opt.textContent = `${m.name} (${m.role})`;
+          expenseFamilySelect.appendChild(opt);
         });
       } catch (err) {
         console.warn("Family groups warning:", err.message);
@@ -1082,7 +1097,7 @@
       await renderFamilyGroupsList();
     }
 
-    // FIX: Atomic family group creation via RPC (matches hardened SQL)
+    // Atomic family group creation via RPC
     createFamilyForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       hideAlert();
@@ -1101,7 +1116,7 @@
       }
     });
 
-    // FIX: Render family groups with member + shared expense lists, use addEventListener (no inline handlers)
+    // Render family groups with member + shared expense lists
     async function renderFamilyGroupsList() {
       familyGroupsContainer.innerHTML = "";
       if (userFamilyGroups.length === 0) {
@@ -1110,18 +1125,16 @@
       }
 
       for (const item of userFamilyGroups) {
-        const grp = item.family_groups;
-        if (!grp) continue;
+        const isGroupAdmin = item.role === "group_admin";
 
         const div = document.createElement("div");
         div.className = "card";
         div.style.marginBottom = "12px";
-        const isGroupAdmin = item.role === "group_admin";
 
         div.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <h3>${grp.name} <span class="badge badge-user">${item.role}</span></h3>
-            <span style="font-size:0.75rem; color:var(--text-muted);">ID: ${grp.id.substring(0,8)}…</span>
+            <h3>${item.name} <span class="badge badge-user">${item.role}</span></h3>
+            <span style="font-size:0.75rem; color:var(--text-muted);">ID: ${item.family_id.substring(0,8)}…</span>
           </div>
 
           <h4 style="font-size:0.9rem; margin:12px 0 6px;">Members</h4>
@@ -1130,7 +1143,7 @@
               <thead>
                 <tr><th>Username</th><th>Role</th><th>Joined</th></tr>
               </thead>
-              <tbody class="members-tbody-${grp.id}">
+              <tbody class="members-tbody-${item.family_id}">
                 <tr><td colspan="3" style="text-align:center; color:var(--text-muted);">Loading...</td></tr>
               </tbody>
             </table>
@@ -1150,7 +1163,7 @@
               <thead>
                 <tr><th>Date</th><th>Title</th><th>Category</th><th>Amount</th><th>Logged By</th></tr>
               </thead>
-              <tbody class="expenses-tbody-${grp.id}">
+              <tbody class="expenses-tbody-${item.family_id}">
                 <tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Loading...</td></tr>
               </tbody>
             </table>
@@ -1169,7 +1182,7 @@
             try {
               const { error } = await db.rpc("add_family_member", { member_username: username });
               if (error) throw error;
-              showAlert(`@${username} added to "${grp.name}".`, "success");
+              showAlert(`@${username} added to "${item.name}".`, "success");
               input.value = "";
               await loadFamilyView();
             } catch (err) {
@@ -1181,8 +1194,8 @@
         familyGroupsContainer.appendChild(div);
 
         // Load members + shared expenses for this group
-        await renderGroupMembers(grp.id);
-        await renderGroupExpenses(grp.id);
+        await renderGroupMembers(item.family_id);
+        await renderGroupExpenses(item.family_id);
       }
     }
 
@@ -1190,9 +1203,10 @@
       const tbody = familyGroupsContainer.querySelector(`.members-tbody-${groupId}`);
       if (!tbody) return;
 
+      // Fetch flatly to avoid API cache error
       const { data, error } = await db
         .from("family_members")
-        .select("user_id, role, created_at, profiles(username)")
+        .select("user_id, role, created_at")
         .eq("family_id", groupId);
 
       if (error) {
@@ -1206,24 +1220,29 @@
       }
 
       tbody.innerHTML = "";
-      data.forEach(m => {
+      for (const m of data) {
+        // Fetch usernames manually
+        const { data: pData } = await db.from("profiles").select("username").eq("id", m.user_id).single();
+        const username = pData ? pData.username : "unknown";
+
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>@${m.profiles?.username || "unknown"}</td>
+          <td>@${username}</td>
           <td>${m.role}</td>
           <td>${new Date(m.created_at).toLocaleDateString()}</td>
         `;
         tbody.appendChild(tr);
-      });
+      }
     }
 
     async function renderGroupExpenses(groupId) {
       const tbody = familyGroupsContainer.querySelector(`.expenses-tbody-${groupId}`);
       if (!tbody) return;
 
+      // Fetch flatly to avoid API cache error
       const { data, error } = await db
         .from("expenses")
-        .select("*, profiles(username)")
+        .select("*")
         .eq("family_id", groupId)
         .order("date", { ascending: false });
 
@@ -1238,17 +1257,21 @@
       }
 
       tbody.innerHTML = "";
-      data.forEach(item => {
+      for (const item of data) {
+        // Fetch usernames manually
+        const { data: pData } = await db.from("profiles").select("username").eq("id", item.user_id).single();
+        const username = pData ? pData.username : "unknown";
+
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${item.date}</td>
           <td>${item.title}</td>
           <td>${item.category}</td>
           <td>$${parseFloat(item.amount).toFixed(2)}</td>
-          <td>@${item.profiles?.username || "unknown"}</td>
+          <td>@${username}</td>
         `;
         tbody.appendChild(tr);
-      });
+      }
     }
 
     // Moderator Panel Logic
@@ -1341,18 +1364,6 @@
       askConfirmation("Change Role?", `Change the role of user to "${newRole}"?`, async () => {
         try {
           await db.from("profiles").update({ role: newRole }).eq("id", userId);
-          
-          if (newRole === 'app_admin') {
-            await db.from("admins").upsert({ user_id: userId });
-            await db.from("moderators").delete().eq("user_id", userId);
-          } else if (newRole === 'moderator') {
-            await db.from("moderators").upsert({ user_id: userId });
-            await db.from("admins").delete().eq("user_id", userId);
-          } else {
-            await db.from("admins").delete().eq("user_id", userId);
-            await db.from("moderators").delete().eq("user_id", userId);
-          }
-
           showAlert("Role updated successfully.", "success");
           await loadAdminPanel();
         } catch (err) {
