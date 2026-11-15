@@ -61,6 +61,9 @@
       line-height: 1.5;
       padding-bottom: 40px;
       transition: background-color 0.2s, color 0.2s;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
 
     .container {
@@ -263,7 +266,12 @@
       width: 100%;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
       border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      max-height: 90vh;
     }
+
+    .modal-lg { max-width: 640px; }
 
     .modal-header { font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; color: var(--text); }
     .modal-body { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; }
@@ -280,15 +288,77 @@
 
     .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
 
+    /* Scrollable Privacy Policy body */
+    .privacy-body {
+      max-height: 58vh;
+      overflow-y: auto;
+      padding-right: 10px;
+      text-align: left;
+    }
+
+    .privacy-body h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 18px 0 6px;
+    }
+
+    .privacy-body h3:first-of-type { margin-top: 0; }
+
+    .privacy-body p {
+      font-size: 0.85rem;
+      margin-bottom: 10px;
+      color: var(--text-muted);
+    }
+
+    .privacy-body ul {
+      margin: 0 0 12px 20px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .privacy-body li { margin-bottom: 4px; }
+
+    .privacy-body strong { color: var(--text); }
+
+    .privacy-updated {
+      font-size: 0.75rem;
+      font-style: italic;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    .privacy-accept-note {
+      background-color: var(--bg);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      padding: 10px 12px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      color: var(--text);
+      margin-top: 16px;
+    }
+
+    /* Footer (visible on every view) */
     footer {
       text-align: center;
       font-size: 0.8rem;
       color: var(--text-muted);
-      margin-top: 40px;
-      padding: 16px 0;
+      margin-top: auto;
+      padding: 20px 0 16px;
       border-top: 1px solid var(--border);
     }
-    footer a { color: var(--primary); text-decoration: none; }
+
+    footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    footer a:hover { text-decoration: underline; }
+
+    .footer-agreement {
+      margin-bottom: 6px;
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+
+    .footer-copy { font-size: 0.75rem; opacity: 0.85; }
   </style>
 </head>
 <body>
@@ -572,6 +642,19 @@
     </section>
   </main>
 
+  <!-- ==================== FOOTER (shown on every view) ==================== -->
+  <footer>
+    <div class="container">
+      <p class="footer-agreement">
+        By using SpendWise, you acknowledge that you have read, understood, and agree to our
+        <a href="#" id="link-privacy">Privacy Policy</a>.
+      </p>
+      <p class="footer-copy">
+        SpendWise Family Ledger &copy; 2026 | <a href="#" id="link-privacy-2">Privacy Policy</a>
+      </p>
+    </div>
+  </footer>
+
   <!-- ==================== MODALS ==================== -->
 
   <!-- 1. "ARE YOU SURE?" CONFIRMATION MODAL -->
@@ -606,26 +689,115 @@
     </div>
   </div>
 
-  <!-- 3. PRIVACY POLICY MODAL -->
+  <!-- 3. PRIVACY POLICY MODAL (full text) -->
   <div id="modal-privacy" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-privacy-title">
-    <div class="modal">
+    <div class="modal modal-lg">
       <div class="modal-header" id="modal-privacy-title">SpendWise Privacy Policy</div>
-      <div class="modal-body" style="line-height: 1.6;">
-        <p><strong>What SpendWise Saves:</strong> Email address, unique username handle, logged expense details, dates, categories, and uploaded receipts.</p><br />
-        <p><strong>Who Can See Your Data:</strong> Shared posts are viewable by family members. Moderators can hide reported posts, and Admins can manage accounts and data.</p><br />
-        <p><strong>Your Rights:</strong> You can export your data or execute a full account deletion at any time in Settings.</p>
+      <div class="modal-body privacy-body">
+        <p class="privacy-updated">Last Updated: November 15, 2026</p>
+
+        <h3>1. Agreement to This Policy</h3>
+        <p>
+          By creating an account or using SpendWise, you acknowledge that you have read, understood,
+          and agreed to this Privacy Policy. If you do not agree with this policy, you should not use
+          the application.
+        </p>
+
+        <h3>2. Information We Collect and Store</h3>
+        <p>SpendWise collects and stores the information necessary to operate the application and provide its features. This includes:</p>
+        <ul>
+          <li><strong>Email address:</strong> Used for account creation and authentication.</li>
+          <li><strong>Username:</strong> Used to identify your account within the application.</li>
+          <li><strong>Posts and submitted content:</strong> Content you choose to share through the application.</li>
+          <li><strong>Inputted data:</strong> Information and entries you submit while using the application.</li>
+          <li><strong>Timestamps:</strong> Records of when certain actions or entries are created or updated.</li>
+          <li><strong>UUID:</strong> A unique identifier assigned to your account.</li>
+          <li><strong>Cookies and session data:</strong> Used to maintain your login session and keep you signed in.</li>
+        </ul>
+
+        <h3>3. Password Security</h3>
+        <p>
+          Your password is never stored in plain text. Passwords are securely hashed through the
+          authentication system.
+        </p>
+        <p>
+          SpendWise administrators and moderators cannot view your actual password. We do not have
+          access to your unhashed password.
+        </p>
+
+        <h3>4. Visibility of Your Content</h3>
+        <p>Content submitted as posts within SpendWise may be visible to other users.</p>
+        <p>
+          Administrators and moderators may also view user posts and submitted content for application
+          management and moderation purposes.
+        </p>
+        <p>
+          You should not share information in your posts that you do not wish other users,
+          administrators, or moderators to see.
+        </p>
+
+        <h3>5. Information We Do Not Collect or Store</h3>
+        <p>SpendWise does not collect or store:</p>
+        <ul>
+          <li>Your physical location or GPS coordinates.</li>
+          <li>Your device or hardware information.</li>
+          <li>Your unhashed password.</li>
+          <li>Your browser information.</li>
+          <li>Advertising or advertising-tracking information.</li>
+        </ul>
+        <p>
+          We do not use your personal information for advertising or sell your personal data to
+          advertisers.
+        </p>
+
+        <h3>6. Data Deletion</h3>
+        <p>You have the right to delete your content and account.</p>
+        <p>
+          <strong>Anything deleted from SpendWise is completely and permanently deleted.</strong>
+          Deleted information is not retained, recovered, or kept in our records.
+        </p>
+
+        <h3>7. Cookies and Login Sessions</h3>
+        <p>
+          SpendWise uses cookies and session information to maintain authentication and keep users
+          logged in. These are necessary for the application to function properly.
+        </p>
+        <p>You may need to sign in again if you clear your cookies or end your session.</p>
+
+        <h3>8. Data Security</h3>
+        <p>
+          We take the security of user information seriously. Password hashing, account authentication,
+          and access controls are used to help protect user information and prevent unauthorized access.
+        </p>
+        <p>However, no online application can guarantee absolute security.</p>
+
+        <h3>9. Changes to This Privacy Policy</h3>
+        <p>
+          SpendWise may update this Privacy Policy when application features or data practices change.
+          Any updated policy will be made available within the application.
+        </p>
+        <p>
+          Continued use of SpendWise after an updated policy is published constitutes agreement to the
+          updated policy.
+        </p>
+
+        <h3>10. Contact</h3>
+        <p>
+          For questions, concerns, or requests regarding this Privacy Policy or your account
+          information, please contact the SpendWise application administrators.
+        </p>
+
+        <div class="privacy-accept-note">
+          <strong>By using SpendWise and creating an account, you confirm that you agree to this Privacy Policy.</strong>
+        </div>
+
+        <p style="margin-top: 12px; font-size: 0.75rem;">© 2026 SpendWise. All rights reserved.</p>
       </div>
       <div class="modal-actions">
         <button class="btn btn-secondary" id="btn-privacy-close">Close</button>
       </div>
     </div>
   </div>
-
-  <footer>
-    <div class="container">
-      SpendWise Family Ledger &copy; 2026 | <a href="#" id="link-privacy">Privacy Policy</a>
-    </div>
-  </footer>
 
   <!-- Load Application logic -->
   <script>
@@ -712,6 +884,7 @@
 
     const modalPrivacy = document.getElementById("modal-privacy");
     const linkPrivacy = document.getElementById("link-privacy");
+    const linkPrivacy2 = document.getElementById("link-privacy-2");
     const btnPrivacyClose = document.getElementById("btn-privacy-close");
     const btnUserDeleteSelfData = document.getElementById("btn-user-delete-self-data");
 
@@ -785,10 +958,31 @@
       }
     });
 
-    // Privacy & Download Modals
-    linkPrivacy.addEventListener("click", (e) => { e.preventDefault(); modalPrivacy.style.display = "flex"; });
-    btnPrivacyClose.addEventListener("click", () => { modalPrivacy.style.display = "none"; });
+    // Privacy Policy Modal Open/Close (link is present in the footer on every view)
+    function openPrivacyModal(e) {
+      if (e) e.preventDefault();
+      modalPrivacy.style.display = "flex";
+      modalPrivacy.querySelector(".privacy-body").scrollTop = 0;
+    }
 
+    function closePrivacyModal() {
+      modalPrivacy.style.display = "none";
+    }
+
+    linkPrivacy.addEventListener("click", openPrivacyModal);
+    linkPrivacy2.addEventListener("click", openPrivacyModal);
+    btnPrivacyClose.addEventListener("click", closePrivacyModal);
+
+    // Close privacy modal by clicking the dark overlay or pressing Escape
+    modalPrivacy.addEventListener("click", (e) => {
+      if (e.target === modalPrivacy) closePrivacyModal();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modalPrivacy.style.display === "flex") closePrivacyModal();
+    });
+
+    // Download Modals
     btnTriggerDownload.addEventListener("click", () => { modalDownloadRisk.style.display = "flex"; });
     btnDownloadCancel.addEventListener("click", () => { modalDownloadRisk.style.display = "none"; });
 
