@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SpendWise — Personal & Family Expense Tracker</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>" />
-  
+
   <!-- Supabase JS Client SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
-  
+
   <style>
     :root {
       --primary: #2563eb;
@@ -372,7 +372,7 @@
       <div class="user-controls">
         <span id="nav-user-badge"></span>
         <button class="btn btn-secondary btn-sm" id="btn-theme-toggle" aria-label="Toggle Dark Mode">🌙 Dark Mode</button>
-        
+
         <!-- Navigation Buttons -->
         <button class="btn btn-secondary btn-sm" id="btn-nav-dashboard">🏠 Dashboard</button>
         <button class="btn btn-secondary btn-sm" id="btn-nav-family">👨‍👩‍👧 Family Groups</button>
@@ -618,7 +618,7 @@
 
       <div class="card">
         <h2 class="card-title">Account Data & Privacy</h2>
-        
+
         <div class="form-group" style="margin-bottom: 24px;">
           <label style="font-weight: 600; font-size: 0.95rem; margin-bottom: 6px;">Export Personal Data</label>
           <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
@@ -991,7 +991,7 @@
       try {
         const { data, error } = await db.from("expenses").select("*").eq("user_id", currentUser.id);
         if (error) throw error;
-        
+
         const blob = new Blob([JSON.stringify(data || [], null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -1023,7 +1023,7 @@
     // Authentication State Management
     db.auth.onAuthStateChange(async (event, session) => {
       cleanUrlParams();
-      
+
       if (!isAuthListenerReady) return;
 
       if (event === 'SIGNED_OUT') {
@@ -1121,7 +1121,7 @@
       try {
         let redirectUrl = window.location.origin + window.location.pathname;
         redirectUrl = redirectUrl.replace(/\/index\.html?$/i, "").replace(/\/+$/, "");
-        
+
         const { error } = await db.auth.signInWithOAuth({
           provider: "github",
           options: { redirectTo: redirectUrl || window.location.origin }
@@ -1326,17 +1326,17 @@
         container.innerHTML = "";
         for (const inv of invites) {
           const { data: grp } = await db.from("family_groups").select("name").eq("id", inv.family_id).single();
-          const div = document.createElement("div"); 
+          const div = document.createElement("div");
           div.style = "display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid var(--border);";
           div.innerHTML = `<span>Invited to <strong>${grp ? grp.name : 'Family Group'}</strong></span><div><button class="btn btn-sm accept-btn">Accept</button> <button class="btn btn-secondary btn-sm reject-btn">Decline</button></div>`;
-          
-          div.querySelector(".accept-btn").onclick = async () => { 
-              await db.rpc("accept_family_invite", { invite_id: inv.id }); 
-              showAlert("Joined group!", "success"); await loadFamilyView(); 
+
+          div.querySelector(".accept-btn").onclick = async () => {
+              await db.rpc("accept_family_invite", { invite_id: inv.id });
+              showAlert("Joined group!", "success"); await loadFamilyView();
           };
-          div.querySelector(".reject-btn").onclick = async () => { 
-              await db.from("family_invites").delete().eq("id", inv.id); 
-              await loadFamilyView(); 
+          div.querySelector(".reject-btn").onclick = async () => {
+              await db.from("family_invites").delete().eq("id", inv.id);
+              await loadFamilyView();
           };
           container.appendChild(div);
         }
@@ -1567,6 +1567,8 @@
       adminTbody.innerHTML = "";
       profiles.forEach(p => {
         const tr = document.createElement("tr");
+        // Tag the row with the user's UUID so we can target it for removal
+        tr.setAttribute("data-user-id", p.id);
         tr.innerHTML = `
           <td>${p.id.substring(0, 8)}...</td>
           <td>@${p.username}</td>
@@ -1589,7 +1591,8 @@
     window.changeUserRole = function(userId, newRole) {
       askConfirmation("Change Role?", `Change the role of user to "${newRole}"?`, async () => {
         try {
-          await db.from("profiles").update({ role: newRole }).eq("id", userId);
+          const { error } = await db.from("profiles").update({ role: newRole }).eq("id", userId);
+          if (error) throw error;
           showAlert("Role updated successfully.", "success");
           await loadAdminPanel();
         } catch (err) {
@@ -1598,29 +1601,71 @@
       });
     };
 
+    // Admin delete: verifies the row was actually removed (RLS-safe), then
+    // fades the row out of the DOM. The SQL trigger `handle_profile_auth_cleanup`
+    // also removes the underlying auth.users row, so the user truly disappears.
     window.confirmDeleteUserAccount = function(userId, username) {
       askConfirmation("DELETE USER ACCOUNT?", `PERMANENTLY delete account @${username}? All expenses and profile data will be removed!`, async () => {
         try {
-          await db.from("profiles").delete().eq("id", userId);
+          const row = adminTbody.querySelector(`tr[data-user-id="${userId}"]`);
+
+          const { data: deletedRows, error } = await db
+            .from("profiles")
+            .delete()
+            .eq("id", userId)
+            .select();
+
+          if (error) throw error;
+          if (!deletedRows || deletedRows.length === 0) {
+            throw new Error("Delete was blocked by the database (are you trying to delete the last app admin?).");
+          }
+
+          if (row) {
+            row.style.transition = "opacity 0.25s ease";
+            row.style.opacity = "0";
+            setTimeout(() => row.remove(), 250);
+          }
+
           showAlert(`User @${username} was deleted.`, "success");
           await loadAdminPanel();
         } catch (err) {
           showAlert("Failed to delete user: " + err.message);
+          await loadAdminPanel();
         }
       });
     };
 
     // User Self Account Deletion Warning
+    // Verified with .select() (RLS-safe). The DB trigger also removes
+    // auth.users + cascades expenses, so this is a permanent wipe.
     btnUserDeleteSelfData.addEventListener("click", () => {
-      askConfirmation("DELETE YOUR ACCOUNT?", "WARNING: Are you sure you want to permanently delete your SpendWise account and all personal data? This action cannot be reversed.", async () => {
-        try {
-          await db.from("profiles").delete().eq("id", currentUser.id);
-          await db.auth.signOut();
-          showAlert("Account deleted successfully.", "success");
-        } catch (err) {
-          showAlert("Failed to delete account: " + err.message);
+      askConfirmation(
+        "DELETE YOUR ACCOUNT?",
+        "WARNING: Permanently delete your SpendWise account and ALL personal data? The database will also remove your login credentials — you will not be able to sign in again. This action cannot be reversed.",
+        async () => {
+          try {
+            const { data: deletedRows, error } = await db
+              .from("profiles")
+              .delete()
+              .eq("id", currentUser.id)
+              .select();
+
+            if (error) throw error;
+            if (!deletedRows || deletedRows.length === 0) {
+              throw new Error("Deletion was blocked (you may be the last remaining app admin — promote another admin first).");
+            }
+
+            // The auth.users row is already gone via the DB trigger. Clear the
+            // local session best-effort — signOut may 401 since the user no
+            // longer exists, but the local session will be wiped regardless.
+            try { await db.auth.signOut(); } catch (_) { /* ignore */ }
+
+            showAlert("Account deleted successfully.", "success");
+          } catch (err) {
+            showAlert("Failed to delete account: " + err.message);
+          }
         }
-      });
+      );
     });
 
     // Password Update Logic
