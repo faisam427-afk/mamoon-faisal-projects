@@ -291,7 +291,7 @@ function renderExpensesTable(expenses) {
   expenses.forEach(item => {
     const amountNum = parseFloat(item.amount) || 0;
     total += amountNum;
-    
+
     // Find group name locally instead of querying
     let groupName = "Personal";
     if (item.family_id) {
@@ -487,7 +487,7 @@ async function loadModPanel() {
     if (error) throw error;
     modTbody.innerHTML = "";
     if(expenses.length === 0) { modTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No entries.</td></tr>'; return; }
-    
+
     expenses.forEach(item => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -529,6 +529,8 @@ async function loadAdminPanel() {
     adminTbody.innerHTML = "";
     profiles.forEach(p => {
       const tr = document.createElement("tr");
+      // Tag the row with the user's UUID so we can target it for removal
+      tr.setAttribute("data-user-id", p.id);
       tr.innerHTML = `
         <td>${p.id.substring(0, 8)}...</td>
         <td>@${p.username}</td>
@@ -550,41 +552,87 @@ async function loadAdminPanel() {
 window.changeUserRole = function(userId, newRole) {
   askConfirmation("Change Role?", `Change role to "${newRole}"?`, async () => {
     try {
-      // Note: Removed references to old "admins" and "moderators" tables since they aren't in your new schema.
-      await supabase.from("profiles").update({ role: newRole }).eq("id", userId);
+      const { error } = await supabase.from("profiles").update({ role: newRole }).eq("id", userId);
+      if (error) throw error;
       showAlert("Role updated successfully.", "success");
       await loadAdminPanel();
     } catch (err) { showAlert("Failed to update role: " + err.message); }
   });
 };
 
+// Admin delete: verifies the row was actually removed (RLS-safe), then
+// fades the row out of the DOM. The SQL trigger `handle_profile_auth_cleanup`
+// also removes the underlying auth.users row, so the user truly disappears.
 window.confirmDeleteUserAccount = function(userId, username) {
   askConfirmation("DELETE USER?", `Permanently delete account @${username}?`, async () => {
     try {
-      await supabase.from("profiles").delete().eq("id", userId);
+      const row = adminTbody.querySelector(`tr[data-user-id="${userId}"]`);
+
+      const { data: deletedRows, error } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", userId)
+        .select();
+
+      if (error) throw error;
+      if (!deletedRows || deletedRows.length === 0) {
+        throw new Error("Delete was blocked by the database (are you trying to delete the last app admin?).");
+      }
+
+      if (row) {
+        row.style.transition = "opacity 0.25s ease";
+        row.style.opacity = "0";
+        setTimeout(() => row.remove(), 250);
+      }
+
       showAlert(`User @${username} deleted.`, "success");
       await loadAdminPanel();
-    } catch (err) { showAlert("Failed to delete user: " + err.message); }
+    } catch (err) {
+      showAlert("Failed to delete user: " + err.message);
+      await loadAdminPanel();
+    }
   });
 };
 
 // ============================================
 // SETTINGS & ACCOUNT
 // ============================================
+// Self-delete: verified with .select() (RLS-safe). The DB trigger also
+// removes auth.users + cascades expenses, so this is a permanent wipe.
 btnUserDeleteSelfData.addEventListener("click", () => {
-  askConfirmation("DELETE YOUR ACCOUNT?", "WARNING: Permanently delete your account and all data?", async () => {
-    try {
-      await supabase.from("profiles").delete().eq("id", currentUser.id);
-      await supabase.auth.signOut();
-      showAlert("Account deleted.", "success");
-    } catch (err) { showAlert("Failed to delete account: " + err.message); }
-  });
+  askConfirmation(
+    "DELETE YOUR ACCOUNT?",
+    "WARNING: Permanently delete your account and ALL data? The database will also remove your login credentials — you will not be able to sign in again. This cannot be undone.",
+    async () => {
+      try {
+        const { data: deletedRows, error } = await supabase
+          .from("profiles")
+          .delete()
+          .eq("id", currentUser.id)
+          .select();
+
+        if (error) throw error;
+        if (!deletedRows || deletedRows.length === 0) {
+          throw new Error("Deletion was blocked (you may be the last remaining app admin — promote another admin first).");
+        }
+
+        // The auth.users row is already gone via the DB trigger. Clear the
+        // local session best-effort — signOut may 401 since the user no
+        // longer exists, but the local session will be wiped regardless.
+        try { await supabase.auth.signOut(); } catch (_) { /* ignore */ }
+
+        showAlert("Account deleted successfully.", "success");
+      } catch (err) {
+        showAlert("Failed to delete account: " + err.message);
+      }
+    }
+  );
 });
 
 passwordForm.addEventListener("submit", async (e) => {
   e.preventDefault(); hideAlert();
   const newPassword = document.getElementById("new-password").value;
-  
+
   // Validate password rules (from original app.js)
   if (newPassword.length < 8 || !/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
     return showAlert("Must be at least 8 characters with 1 uppercase, 1 lowercase, and 1 number.");
